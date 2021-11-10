@@ -3,6 +3,6 @@
 # # Debug mode
 # set -o xtrace
 
-VERSION="3"
+VERSION="5"
 
 echo "This is version: $VERSION"
