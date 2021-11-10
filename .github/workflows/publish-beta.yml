@@ -1,0 +1,31 @@
+name: publish-beta
+
+on:
+  release:
+    types: [prereleased]
+
+jobs:
+  publish:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [16]
+      fail-fast: true
+
+    steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node }}
+        registry-url: https://registry.npmjs.org/
+
+    - name: checkout
+      uses: actions/checkout@v2
+
+    - name: Publish BETA build
+      run: npm publish --access public --tag beta
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN_SECRET}}
+  
