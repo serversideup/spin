@@ -45,17 +45,22 @@ Kubernetes is great, but over complicated for most apps. If you need [99.9999% u
 
 # Installation
 
-## Download Docker Desktop
+### Download Docker Desktop
 You need a working `docker` command on your machine. Best place to get this is downloading and installing [Docker Desktop](https://www.docker.com/products/docker-desktop).
 
-## Install `spin`
+### Install `spin`
 There are multiple options:
 
-### Install as project dependency
+##### Install as project dependency
 Instructions coming soon.
 
-### Install as a system tool
+##### Install as a system tool
 Instructions coming soon.
 
-### Like we said -- we're always learning
+# We're always learning
+
+### Contributing
+Instructions coming soon.
+
+### Security Disclosures
 If you find a critical security flaw, please open an issue or learn more about [our responsible disclosure policy](https://www.notion.so/Responsible-Disclosure-Policy-421a6a3be1714d388ebbadba7eebbdc8).
