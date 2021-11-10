@@ -1,0 +1,17 @@
+{
+    "name": "serversideup/spin",
+    "description": "Replicate your production environment locally using Docker. Just run \"spin up\". It's really that easy.",
+    "authors": [
+        {
+            "name": "Dan Pastori",
+            "homepage": "https://twitter.com/danpastori"
+        },
+        {
+            "name": "Jay Rogers",
+            "homepage": "https://twitter.com/jaydrogers"
+        }
+    ],
+    "type": "library",
+    "license": "GPL-3.0-or-later",
+    "require": {}
+}
