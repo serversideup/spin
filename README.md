@@ -34,7 +34,7 @@ Spin is a wrapper script that dramatically improves the developer experience whe
 * You shouldn't run Vagrant in production
 
 ### Laravel Sail
-We love Laravel Sail, but it focuses specifically on Development environments only. Sail uses Docker as well, but it's not something that is built to production servers.
+We love Laravel Sail, but it focuses specifically on Development environments only. Sail uses Docker as well, but it's not something that is built to run on production servers.
 
 You should consider `spin` over Laravel sail if:
 - You want your development environment to be a 100% match of your production environment
