@@ -1,0 +1,18 @@
+{
+  "name": "@serversideup/spin",
+  "version": "0.0.1-alpha.0",
+  "description": "Replicate your production environment locally using Docker. Just run \\\"spin up\\\". It's really that easy.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/serversideup/spin.git"
+  },
+  "author": "Jay Rogers",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/serversideup/spin/issues"
+  },
+  "homepage": "https://github.com/serversideup/spin#readme",
+  "bin": {
+    "spin": "./bin/spin"
+  }
+}
