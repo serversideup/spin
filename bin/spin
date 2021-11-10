@@ -1,0 +1,8 @@
+#!/usr/bin/env 
+
+# # Debug mode
+# set -o xtrace
+
+VERSION="1"
+
+echo "This is version: $VERSION"
