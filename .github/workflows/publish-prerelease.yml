@@ -1,4 +1,4 @@
-name: publish-beta
+name: publish-prerelease
 
 on:
   release:
@@ -24,8 +24,8 @@ jobs:
     - name: checkout
       uses: actions/checkout@v2
 
-    - name: Publish BETA build
-      run: npm publish --access public --tag beta
+    - name: Publish PRERELEASE build
+      run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN_SECRET}}
   
