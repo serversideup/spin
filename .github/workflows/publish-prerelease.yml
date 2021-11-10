@@ -25,7 +25,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Publish PRERELEASE build
-      run: npm publish --access public
+      run: npm publish --access public --tags prerelease
       env:
         NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN_SECRET}}
   
