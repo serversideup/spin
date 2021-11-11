@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: ❓ Support Question
-    url: https://community.serversideup.net/t/read-me-getting-help-with-spin/539/4
+    url: https://community.serversideup.net/t/read-me-getting-help-with-spin/539/
     about: Get friendly support from the community on our forum.
 
   - name: ✨ Request a feature
-    url: https://community.serversideup.net/t/requesting-features-for-spin/537/4
+    url: https://community.serversideup.net/t/requesting-features-for-spin/537
     about: Learn how to request a new feature.
 
   - name: 🤵 Get Professional Support & Customizations
