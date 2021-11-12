@@ -6,10 +6,6 @@
     "type": "git",
     "url": "git+https://github.com/serversideup/spin.git"
   },
-  "support": {
-    "issues": "https://github.com/serversideup/spin/issues",
-    "source": "https://github.com/serversideup/spin"
-  },
   "author": "Jay Rogers",
   "license": "GPL-3.0",
   "bugs": {
