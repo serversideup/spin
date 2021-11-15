@@ -12,9 +12,9 @@
     "url": "https://github.com/serversideup/spin/issues"
   },
   "homepage": "https://github.com/serversideup/spin#readme",
-  "bin": {
-    "spin": "bin/spin"
-  },
+  "bin": [
+    "bin/spin"
+  ],
   "minimum-stability": "dev",
   "prefer-stable": true
 }
