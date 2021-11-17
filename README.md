@@ -20,7 +20,7 @@ Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/ja
 * ❤️ [Sponsor Us](https://github.com/sponsors/serversideup) - please consider sponsoring us so we can create more helpful resources
 
 ### Our Sponsors
-
+All of our software is free an open to the world. None of this can be brought to you without the financial backing of our sponsors.
 <p align="center">
 		<a href="https://github.com/sponsors/serversideup"><img src="https://serversideup.net/wp-content/themes/serversideup/images/sponsor-empty-state.png" alt="Sponsors"></a>
 </p>
