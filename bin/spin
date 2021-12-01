@@ -1,8 +1,156 @@
-#!/usr/bin/env 
+#!/usr/bin/env bash
 
 # # Debug mode
 # set -o xtrace
 
 VERSION="14"
 
-echo "This is version: $VERSION"
+################################################
+# ⚙️ FUNCTIONS: Common things that are called
+################################################
+
+
+# determine_install_type(){
+
+# }
+
+# check_for_upgrade(){
+#   # Check for updates on initial load...
+#   if [ "$DISABLE_AUTO_UPDATE" != "true" ]; then
+#     source ./tools/upgrade.sh
+#   fi
+# }
+
+is_internet_connected() {
+  # Store the response code
+  RESPONSE=$(curl https://github.com/serversideup/spin/ --write-out %{http_code} --silent --output /dev/null --max-time 1)
+
+  if [ $RESPONSE -eq 200 ]; then
+    # Return true if the internet is connected.
+    return 0
+  else
+    # Return false if the Internet is not connected.
+  	return 1
+  fi
+}
+
+################################################
+# 🏎 ACTIONS: Commands people can run
+################################################
+action_exec(){
+  # Shift the arguments
+  shift 1
+
+  $COMPOSE exec $@ 
+}
+
+action_help(){
+  echo "help" 
+}
+
+action_kill(){
+  read -p "🚨 You're about to kill all running containers. Are you sure you want to do this? (Y) " -n 1 -r
+  echo    # Move to a new line
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo "Cancelling... Nothing with Docker was touched 😅"
+      #Exit right away
+      exit 1
+  fi
+
+  echo "Stopping containers..."
+  docker stop $(docker ps -q)
+}
+
+action_logs(){
+  # Shift the arguments
+  shift 1
+
+  $COMPOSE logs "$@"
+}
+
+action_run(){
+  # Shift the arguments
+  shift 1
+  
+  # Run Docker Compose without dependencies. Ensure automations and S6 logging are disabled
+  $COMPOSE run --no-deps --rm \
+    -e RUN_LARAVEL_AUTOMATIONS=false \
+    -e "S6_LOGGING=1" \
+    $@
+}
+
+action_up(){
+  # Shift the arguments
+  shift 1
+
+  # Check for Internet connection before running a Docker pull
+  if is_internet_connected; then
+    $COMPOSE pull --ignore-pull-failures
+  fi
+  # Bring up the containers with `docker-compose`
+  $COMPOSE up --remove-orphans "$@" 
+
+}
+
+action_update(){
+  echo "update" 
+}
+
+action_version(){
+  echo "$VERSION" 
+}
+
+################################################
+# 🚀 MAIN part of "spin"
+################################################
+main() {
+  ## Set defaults for our environment
+  COMPOSE_FILE="dev" #Default the Dev file to be used
+
+  # Set up our structure for our re-used commands
+  COMPOSE="docker compose -f docker-compose.yml -f docker-compose.$COMPOSE_FILE.yml"
+
+  # Check that an argument is passed
+  if [ $# -gt 0 ]; then
+    # Check the first argument and pass the user to proper action, Only some actions need arguments passed.
+    case $1 in
+      exec)
+        shift 1
+        action_exec "$@"
+      ;;
+      help)
+        action_help
+      ;;
+      kill)
+        action_kill
+      ;;
+      logs)
+        action_logs "$@"
+      ;;
+      run)
+        action_run "$@"
+      ;;
+      up)
+        action_up "$@"
+      ;;
+      update)
+        action_update
+      ;;
+      version)
+        action_version
+      ;;
+      *)
+        echo "\"$1\" is not a valid command. Below are the commands available."
+        action_help
+      ;;
+    esac
+  else
+    echo "You didn't pass \"spin\" any arguments. Run 'spin help' if you want to see the documentation."
+  fi
+}
+
+################################################
+# Where the script acutally starts
+################################################
+#check_last_update
+main "$@" #Passing the original arguments to `main`
