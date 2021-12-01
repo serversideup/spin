@@ -5,6 +5,9 @@
 	<a href="https://actions-badge.atrox.dev/serversideup/spin/goto?ref=main"><img alt="Build Status" src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fserversideup%2Fspin%2Fbadge%3Fref%3Dmain&style=flat" /></a>
 	<a href="https://github.com/serversideup/spin/blob/main/LICENSE" target="_blank"><img src="https://badgen.net/github/license/serversideup/spin" alt="License"></a>
 	<a href="https://github.com/sponsors/serversideup"><img src="https://badgen.net/badge/icon/Support%20Us?label=GitHub%20Sponsors&color=orange" alt="Support us"></a>
+	<br />
+	<a href="https://www.npmjs.com/package/@serversideup/spin"><img alt="npm" src="https://img.shields.io/npm/dm/@serversideup/spin?color=red&label=downloads&logo=npm"></a>
+	<a href="https://packagist.org/packages/serversideup/spin"><img alt="Packagist Downloads" src="https://img.shields.io/packagist/dm/serversideup/spin?color=blue&logo=packagist"></a>
 </p>
 
 Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers). We're a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
