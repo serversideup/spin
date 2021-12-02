@@ -263,7 +263,7 @@ print_success() {
 }
 
 main() {
-    # Parse arguments
+  # Parse arguments passed to install script
   while [ $# -gt 0 ]; do
     case $1 in
       --beta) TRACK=beta ;;
