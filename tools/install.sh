@@ -44,6 +44,7 @@ SPIN_HOME=${SPIN_HOME:-~/.spin}
 REPO=${REPO:-serversideup/spin}
 REMOTE=${REMOTE:-https://github.com/${REPO}.git}
 BRANCH=${BRANCH:-main}
+TRACK=${TRACK:-stable}
 
 ############################################################################################################
 # Environment Prep: Functions that get a bunch of information and prepare the terminal
