@@ -67,7 +67,7 @@ get_latest_release() {
 }
 
 perform_upgrade() {
-    # Accepts parameters. Whatever is passed to this function will be what gets updated.
+    # Accepts parameters. Whatever is passed to this function the version that gets installed.
 
     printf "${BOLD}${YELLOW}🤠 Hey partner, an update is available for \"spin\"! Before running any commands, let's get you updated first...${RESET} \n"
     
@@ -87,7 +87,7 @@ perform_upgrade() {
         exit 1
     }
 
-    printf "${BOLD}${GREEN}✅ You're now up to date!${RESET} To make sure nothing gets screwed up, try re-running your command again. \n"
+    printf "${BOLD}${GREEN}✅ You're now up to date!${RESET} To make sure nothing gets screwed up, try re-running your spin command again. \n"
 
     exit 0
 }

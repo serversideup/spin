@@ -20,10 +20,22 @@ check_for_upgrade() {
   fi
 }
 
-send_to_upgrade_script () {
-  if is_internet_connected; then
-    source $SPIN_HOME/tools/upgrade.sh
-  fi
+current_time_minus() {
+  # Accepts parameters: The first passed argument should be the number of days to subtract
+  # This will return a value of (current epoch time - number of days)
+
+  local days_to_subtract
+  days_to_subtract=$1
+  
+  # Check the OS, because the commands are different.
+  case "$(uname -s)" in
+    Linux*)     DATE_THRESHOLD=$(date -d "now - ${days_to_subtract} days" +%s);;
+    Darwin*)    DATE_THRESHOLD=$(date -v -${days_to_subtract}d +%s);;
+    *)          echo "This operating system is not supported." && exit 2
+  esac
+
+  echo $DATE_THRESHOLD
+
 }
 
 is_within_update_threshold() {
@@ -63,24 +75,6 @@ is_internet_connected() {
   fi
 }
 
-current_time_minus() {
-  # Accepts parameters: The first passed argument should be the number of days to subtract
-  # This will return a value of (current epoch time - number of days)
-
-  local days_to_subtract
-  days_to_subtract=$1
-  
-  # Check the OS, because the commands are different.
-  case "$(uname -s)" in
-    Linux*)     DATE_THRESHOLD=$(date -d "now - ${days_to_subtract} days" +%s);;
-    Darwin*)    DATE_THRESHOLD=$(date -v -${days_to_subtract}d +%s);;
-    *)          echo "This operating system is not supported." && exit 2
-  esac
-
-  echo $DATE_THRESHOLD
-
-}
-
 print_version() {
 
   # Use the local Git repo to show our version
@@ -94,6 +88,12 @@ print_version() {
     printf "(User Installed)\n"
   else
     printf "(Project Installed)\n"
+  fi
+}
+
+send_to_upgrade_script () {
+  if is_internet_connected; then
+    source $SPIN_HOME/tools/upgrade.sh
   fi
 }
 
@@ -183,7 +183,7 @@ action_update() {
   if is_installed_to_user; then
 
     if is_internet_connected; then
-      check_for_upgrade --force
+      check_for_upgrade
     fi
 
   else
