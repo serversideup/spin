@@ -235,7 +235,7 @@ setup_spin() {
     exit 1
   }
 
-  set_track_lock_file
+  set_configuration_file
 
   echo #Empty line
 }
