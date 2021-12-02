@@ -142,7 +142,7 @@ action_exec(){
 }
 
 action_help(){
-  echo "help" 
+  echo "Help coming soon..." 
 }
 
 action_kill(){
@@ -251,7 +251,7 @@ main() {
       ;;
     esac
   else
-    echo "You didn't pass \"spin\" any arguments. Run 'spin help' if you want to see the documentation."
+    printf "${BOLD}${YELLOW}\🤔 You didn't pass \"spin\" any arguments. Run \"spin help\" if you want to see the documentation.${RESET}"
   fi
 }
 
