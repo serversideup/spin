@@ -29,7 +29,7 @@
 # For example:
 #   bash install.sh --beta
 # or:
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)" --beta
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/feature/initial-commit-of-features/tools/install.sh)" --beta
 #
 
 ############################################################################################################
@@ -181,7 +181,7 @@ command_exists() {
 }
 
 get_latest_release(){
-  if [ $TRACK == "beta" ]; then
+  if [ "$TRACK" == "beta" ]; then
     # Get the latest release (including pre-releases). We just want the 
     # absolute latest release, regardless of pre-release or stable
     curl --silent \
