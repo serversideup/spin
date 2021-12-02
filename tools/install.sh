@@ -13,8 +13,30 @@
 #   wget https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh
 #   sh install.sh
 #
+# You can tweak the install behavior by setting variables when running the script. For
+# example, to change the path to the SPIN repository:
+#   SPIN_HOME=~/.spin sh install.sh
+#
+# Respects the following environment variables:
+#   SPIN_HOME - path to the Spin repository folder (default: $HOME/.spin)
+#   REPO      - name of the GitHub repo to install from (default: serversideup/spin)
+#   REMOTE    - full remote URL of the git repo to install (default: GitHub via HTTPS)
+#   BRANCH    - branch to check out immediately after install (default: main)
+#
+#
+# You can also pass some arguments to the install script to set some these options:
+#   --beta: use the latest pre-release
+# For example:
+#   sh install.sh --beta
+# or:
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)" --beta
+#
 
-# Exit on error
+############################################################################################################
+# Settings
+###########################################################################################################
+
+# set -o xtrace
 set -e
 
 # Default settings
@@ -23,9 +45,9 @@ REPO=${REPO:-serversideup/spin}
 REMOTE=${REMOTE:-https://github.com/${REPO}.git}
 BRANCH=${BRANCH:-main}
 
-command_exists() {
-  command -v "$@" >/dev/null 2>&1
-}
+############################################################################################################
+# Environment Prep: Functions that get a bunch of information and prepare the terminal
+############################################################################################################
 
 # The [ -t 1 ] check only works when the function is not called from
 # a subshell (like in `$(...)` or `(...)`, so this hack redefines the
@@ -150,6 +172,39 @@ setup_color() {
   fi
 }
 
+############################################################################################################
+# Functions for app functionality and tests
+############################################################################################################
+
+command_exists() {
+  command -v "$@" >/dev/null 2>&1
+}
+
+get_latest_release(){
+  if [ $TRACK == "beta" ]; then
+    # Get the latest release (including pre-releases). We just want the 
+    # absolute latest release, regardless of pre-release or stable
+    curl --silent \
+      -H "Accept: application/vnd.github.v3+json" \
+      "https://api.github.com/repos/serversideup/spin/releases" | \
+    grep '"tag_name":' | \
+    sed -E 's/.*"([^"]+)".*/\1/' | \
+    head -n 1
+  else
+    # Get latest stable release
+    curl --silent \
+      -H 'Accept: application/vnd.github.v3.sha' \
+      "https://api.github.com/repos/serversideup/spin/releases/latest" | \
+    grep '"tag_name":' | \
+    sed -E 's/.*"([^"]+)".*/\1/'
+  fi
+}
+
+set_configuration_file(){
+  mkdir -p $SPIN_HOME/conf/
+  echo "TRACK=$TRACK" > $SPIN_HOME/conf/spin.conf
+}
+
 setup_spin() {
   # Prevent the cloned repository from having insecure permissions. Failing to do
   # so causes compinit() calls to fail with "command not found: compdef" errors
@@ -163,20 +218,26 @@ setup_spin() {
     exit 1
   }
 
+  local latest_release
+  latest_release=$(get_latest_release)
+
   echo "${BLUE}Cloning Spin...${RESET}"
 
   git clone -c core.eol=lf -c core.autocrlf=false \
     -c fsck.zeroPaddedFilemode=ignore \
     -c fetch.fsck.zeroPaddedFilemode=ignore \
     -c receive.fsck.zeroPaddedFilemode=ignore \
+    -c advice.detachedHead=false \
     -c spin.remote=origin \
     -c spin.branch="$BRANCH" \
-    --depth=1 --branch "$BRANCH" "$REMOTE" "$SPIN_HOME" || {
+    --depth=1 --branch "$latest_release" "$REMOTE" "$SPIN_HOME" || {
     fmt_error "git clone of spin repo failed"
     exit 1
   }
 
-  echo
+  set_track_lock_file
+
+  echo #Empty line
 }
 
 # shellcheck disable=SC2183  # printf string has more %s than arguments ($RAINBOW expands to multiple arguments)
@@ -203,9 +264,17 @@ print_success() {
 }
 
 main() {
+    # Parse arguments
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --beta) TRACK=beta ;;
+      *)
+    esac
+    shift
+  done
   setup_color
   setup_spin
   print_success
 }
 
-main
+main $@

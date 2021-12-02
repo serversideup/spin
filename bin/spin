@@ -1,44 +1,85 @@
 #!/usr/bin/env bash
 
-# # Debug mode
 # set -o xtrace
 
-VERSION="16"
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+PARENT_DIR=$(dirname "$SCRIPT_DIR")
 
 ################################################
 # ⚙️ FUNCTIONS: Common things that are called
 ################################################
 
+check_for_upgrade(){
+    source $PARENT_DIR/tools/upgrade.sh
+}
 
-# determine_install_type(){
-
-# }
-
-# check_for_upgrade(){
-#   # Check for updates on initial load...
-#   if [ "$DISABLE_AUTO_UPDATE" != "true" ]; then
-#     source ./tools/upgrade.sh
-#   fi
-# }
-
-is_internet_connected() {
-  # Store the response code
-  RESPONSE=$(curl https://github.com/serversideup/spin/ --write-out %{http_code} --silent --output /dev/null --max-time 1)
-
-  if [ $RESPONSE -eq 200 ]; then
-    # Return true if the internet is connected.
+is_installed_to_user(){
+  if [ -f "$PARENT_DIR/conf/spin.conf" ]; then
     return 0
   else
-    # Return false if the Internet is not connected.
   	return 1
   fi
+}
+
+is_internet_connected() {
+  local response
+  response=$(curl https://github.com/serversideup/spin/ --write-out %{http_code} --silent --output /dev/null --max-time 1)
+
+  if [ $response -eq 200 ]; then
+    return 0
+  else
+  	return 1
+  fi
+}
+
+print_version() {
+
+  # Use the local Git repo to show our version
+  printf "${BOLD}${YELLOW}Spin Version:${RESET} \n"
+  printf "$(git describe --tags) "
+  
+  # Show the track (if installed to the user)
+  if is_installed_to_user; then
+    source $PARENT_DIR/conf/spin.conf
+    printf "[$TRACK] "
+    printf "(User Installed)\n"
+  else
+    printf "(Project Installed)\n"
+  fi
+}
+
+setup_color() {
+  RED=$(printf '\033[31m')
+  GREEN=$(printf '\033[32m')
+  YELLOW=$(printf '\033[33m')
+  BLUE=$(printf '\033[34m')
+  BOLD=$(printf '\033[1m')
+  RESET=$(printf '\033[m')
 }
 
 ################################################
 # 🏎 ACTIONS: Commands people can run
 ################################################
+action_debug(){
+  
+  print_version
+
+    # Show operating system version
+  printf "\n${BOLD}${YELLOW}Operating System Version:${RESET} \n"
+  case "$(uname -s)" in
+      Linux*)     cat /etc/os-release;;
+      Darwin*)    sw_vers;;
+      *)          echo "This operating system is not supported." && exit 2
+  esac
+  printf "\n"
+  
+  # Show docker version
+  printf "${BOLD}${BLUE}Docker Info:${RESET} \n"
+  printf "$(docker info)\n"
+  
+}
+
 action_exec(){
-  # Shift the arguments
   shift 1
 
   $COMPOSE exec $@ 
@@ -51,9 +92,9 @@ action_help(){
 action_kill(){
   read -p "🚨 You're about to kill all running containers. Are you sure you want to do this? (Y) " -n 1 -r
   echo    # Move to a new line
+
   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
       echo "Cancelling... Nothing with Docker was touched 😅"
-      #Exit right away
       exit 1
   fi
 
@@ -62,16 +103,14 @@ action_kill(){
 }
 
 action_logs(){
-  # Shift the arguments
   shift 1
 
   $COMPOSE logs "$@"
 }
 
 action_run(){
-  # Shift the arguments
   shift 1
-  
+
   # Run Docker Compose without dependencies. Ensure automations and S6 logging are disabled
   $COMPOSE run --no-deps --rm \
     -e RUN_LARAVEL_AUTOMATIONS=false \
@@ -80,7 +119,6 @@ action_run(){
 }
 
 action_up(){
-  # Shift the arguments
   shift 1
 
   # Check for Internet connection before running a Docker pull
@@ -97,7 +135,7 @@ action_update(){
 }
 
 action_version(){
-  echo "$VERSION" 
+  print_version
 }
 
 ################################################
@@ -114,8 +152,10 @@ main() {
   if [ $# -gt 0 ]; then
     # Check the first argument and pass the user to proper action, Only some actions need arguments passed.
     case $1 in
+      debug)
+        action_debug "$@"
+      ;;
       exec)
-        shift 1
         action_exec "$@"
       ;;
       help)
@@ -152,5 +192,9 @@ main() {
 ################################################
 # Where the script acutally starts
 ################################################
-#check_last_update
+
+if is_installed_to_user; then
+  check_for_upgrade
+fi
+setup_color
 main "$@" #Passing the original arguments to `main`
