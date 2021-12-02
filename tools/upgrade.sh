@@ -221,7 +221,7 @@ perform_upgrade() {
     git -C $SPIN_HOME config receive.fsck.zeroPaddedFilemode ignore
     git -C $SPIN_HOME config rebase.autoStash true
 
-    git checkout "tags/$new_version" -b "$new_version" || {
+    git -C $SPIN_HOME checkout "tags/$new_version" -b "$new_version" || {
             fmt_error "Update of \"spin\" failed."
             exit 1
     }
