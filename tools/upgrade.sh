@@ -17,6 +17,10 @@ BRANCH=${BRANCH:-main}
 # Environment Prep: Functions that get a bunch of information and prepare the terminal
 ############################################################################################################
 
+command_exists() {
+  command -v "$@" >/dev/null 2>&1
+}
+
 # The [ -t 1 ] check only works when the function is not called from
 # a subshell (like in `$(...)` or `(...)`, so this hack redefines the
 # function at the top level to always return false when stdout is not
@@ -145,6 +149,12 @@ setup_color() {
 ############################################################################################################
 
 check_for_updates() {
+
+    command_exists git || {
+        fmt_error "\"git\" is not installed."
+        exit 1
+    }
+
     printf "${BOLD}${BLUE}It's been a while since \"spin\" checked for updates. Let's see if there are any updates...${RESET} \n"
 
     local latest_release
@@ -212,17 +222,6 @@ perform_upgrade() {
     git -C $SPIN_HOME config rebase.autoStash true
 
     git checkout "tags/$new_version" --depth=1 --branch "$new_version" "$REMOTE" "$SPIN_HOME" || {
-        fmt_error "Update of \"spin\" failed."
-        exit 1
-    }
-
-    git clone -c core.eol=lf -c core.autocrlf=false \
-        -c fsck.zeroPaddedFilemode=ignore \
-        -c fetch.fsck.zeroPaddedFilemode=ignore \
-        -c receive.fsck.zeroPaddedFilemode=ignore \
-        -c advice.detachedHead=false \
-        -c spin.remote=origin \
-        --depth=1 --branch "$new_version" "$REMOTE" "$SPIN_HOME" || {
         fmt_error "Update of \"spin\" failed."
         exit 1
     }

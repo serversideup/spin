@@ -259,4 +259,12 @@ if is_installed_to_user; then
     check_for_upgrade
   fi
 fi
+
+# Check that Docker is running
+if ! docker info > /dev/null 2>&1; then
+  printf "${BOLD}${RED}❌ Docker is not running.${RESET} "
+  printf "You need to start Docker Desktop or install it before using \"spin\".\n"
+  exit 1
+fi
+
 main "$@" #Passing the original arguments to `main`
