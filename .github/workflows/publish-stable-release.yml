@@ -24,7 +24,7 @@ jobs:
     - name: checkout
       uses: actions/checkout@v2
 
-    - name: Publish BETA build
+    - name: Publish STABLE build
       run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN_SECRET}}
