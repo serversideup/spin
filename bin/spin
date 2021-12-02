@@ -131,7 +131,12 @@ action_up(){
 }
 
 action_update(){
-  echo "update" 
+    if is_installed_to_user; then
+      check_for_upgrade
+    else
+      printf "${BOLD}${YELLOW}⚠️ Cannot automatically peform an update.${RESET} "
+      printf "Your using \"spin\" from the project level. Install updates via NPM or Composer instead.\n"
+    fi
 }
 
 action_version(){
