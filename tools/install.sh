@@ -29,7 +29,7 @@
 # For example:
 #   sh install.sh --beta
 # or:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/feature/initial-commit-of-features/tools/install.sh)" --beta
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)" "" --beta
 #
 
 ############################################################################################################
