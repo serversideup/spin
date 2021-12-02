@@ -134,12 +134,14 @@ action_up(){
 
 action_update(){
   if is_installed_to_user; then
+
     if is_internet_connected; then
       check_for_upgrade
     else
       printf "${BOLD}${RED}🤔 Spin cannot reach Github.com to check for updates.${RESET} "
       printf "Are you sure that you're connected to the Internet?\n"
     fi
+    
   else
     printf "${BOLD}${YELLOW}⚠️ Cannot automatically peform an update.${RESET} "
     printf "Your using \"spin\" from the project level. Install updates via NPM or Composer instead.\n"
