@@ -11,11 +11,11 @@
 #
 # As an alternative, you can first download the install script and run it afterwards:
 #   wget https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh
-#   sh install.sh
+#   bash install.sh
 #
 # You can tweak the install behavior by setting variables when running the script. For
 # example, to change the path to the SPIN repository:
-#   SPIN_HOME=~/.spin sh install.sh
+#   SPIN_HOME=~/.spin bash install.sh
 #
 # Respects the following environment variables:
 #   SPIN_HOME - path to the Spin repository folder (default: $HOME/.spin)
