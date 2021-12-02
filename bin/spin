@@ -10,7 +10,9 @@ PARENT_DIR=$(dirname "$SCRIPT_DIR")
 ################################################
 
 check_for_upgrade(){
+  if is_internet_connected; then
     source $PARENT_DIR/tools/upgrade.sh
+  fi
 }
 
 is_installed_to_user(){
@@ -131,12 +133,18 @@ action_up(){
 }
 
 action_update(){
+  if is_internet_connected; then
     if is_installed_to_user; then
       check_for_upgrade
     else
       printf "${BOLD}${YELLOW}⚠️ Cannot automatically peform an update.${RESET} "
       printf "Your using \"spin\" from the project level. Install updates via NPM or Composer instead.\n"
+      exit 1
     fi
+  else
+    printf "${BOLD}${RED}🤔 Spin cannot reach Github.com to check for updates.${RESET} "
+    printf "Are you sure that you're connected to the Internet?\n"
+  fi
 }
 
 action_version(){
