@@ -180,7 +180,7 @@ command_exists() {
   command -v "$@" >/dev/null 2>&1
 }
 
-get_latest_release(){
+get_latest_release() {
   if [ "$TRACK" == "beta" ]; then
     # Get the latest release (including pre-releases). We just want the 
     # absolute latest release, regardless of pre-release or stable
@@ -200,12 +200,12 @@ get_latest_release(){
   fi
 }
 
-set_configuration_file(){
+set_configuration_file() {
   mkdir -p $SPIN_HOME/conf/
   echo "TRACK=$TRACK" > $SPIN_HOME/conf/spin.conf
 }
 
-set_last_updated__check_lock_file(){
+set_last_updated__check_lock_file() {
   mkdir -p $SPIN_HOME/conf/
   echo $(date +"%s") > $SPIN_HOME/conf/last_update_check.lock
 }

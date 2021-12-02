@@ -3,20 +3,46 @@
 # set -o xtrace
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PARENT_DIR=$(dirname "$SCRIPT_DIR")
+SPIN_HOME=$(dirname "$SCRIPT_DIR") #Assume the parent directory of this script is the home
+AUTO_UPDATE_INTERVAL_IN_DAYS=${AUTO_UPDATE_INTERVAL_IN_DAYS:-14}
+SPIN_CONFIG_FILE_LOCATION="$SPIN_HOME/conf/spin.conf"
 
 ################################################
 # ⚙️ FUNCTIONS: Common things that are called
 ################################################
 
-check_for_upgrade(){
-  if is_internet_connected; then
-    source $PARENT_DIR/tools/upgrade.sh
+check_for_upgrade() {
+  if is_within_update_threshold; then
+    # Silence is golden. We won't bug the user if everything looks good.
+    :
+  else
+    send_to_upgrade_script
   fi
 }
 
-is_installed_to_user(){
-  if [ -f "$PARENT_DIR/conf/spin.conf" ]; then
+send_to_upgrade_script () {
+  if is_internet_connected; then
+    source $SPIN_HOME/tools/upgrade.sh
+  fi
+}
+
+is_within_update_threshold() {
+  if [ -f $SPIN_HOME/conf/last_update_check.lock ]; then
+
+    CURRENT_EPOCH_SECONDS=$(date +%s)
+    if (( $(cat $SPIN_HOME/conf/last_update_check.lock) <= $(current_time_minus $AUTO_UPDATE_INTERVAL_IN_DAYS) )); then
+      return 1
+    else
+      return 0
+    fi
+
+  else
+    return 1
+  fi
+}
+
+is_installed_to_user() {
+  if [ -f "$SPIN_HOME/conf/spin.conf" ]; then
     return 0
   else
   	return 1
@@ -30,19 +56,40 @@ is_internet_connected() {
   if [ $response -eq 200 ]; then
     return 0
   else
-  	return 1
+    printf "${BOLD}${YELLOW}\"spin\" tried to check for updates, but we couldn't connect to Github.com. We'll try again tomorrow.${RESET} \n"
+    # Take the current time and subtract just one day short of the auto update interval so we check again tomorrow
+    echo $(current_time_minus $(expr $AUTO_UPDATE_INTERVAL_IN_DAYS - 1)) > $SPIN_HOME/conf/last_update_check.lock
+    return 1
   fi
+}
+
+current_time_minus() {
+  # Accepts parameters: The first passed argument should be the number of days to subtract
+  # This will return a value of (current epoch time - number of days)
+
+  local days_to_subtract
+  days_to_subtract=$1
+  
+  # Check the OS, because the commands are different.
+  case "$(uname -s)" in
+    Linux*)     DATE_THRESHOLD=$(date -d "now - ${days_to_subtract} days" +%s);;
+    Darwin*)    DATE_THRESHOLD=$(date -v -${days_to_subtract}d +%s);;
+    *)          echo "This operating system is not supported." && exit 2
+  esac
+
+  echo $DATE_THRESHOLD
+
 }
 
 print_version() {
 
   # Use the local Git repo to show our version
   printf "${BOLD}${YELLOW}Spin Version:${RESET} \n"
-  printf "$(git -C $PARENT_DIR describe --tags) "
+  printf "$(git -C $SPIN_HOME describe --tags) "
   
   # Show the track (if installed to the user)
   if is_installed_to_user; then
-    source $PARENT_DIR/conf/spin.conf
+    source $SPIN_CONFIG_FILE_LOCATION
     printf "[$TRACK] "
     printf "(User Installed)\n"
   else
@@ -120,7 +167,7 @@ action_run(){
     $@
 }
 
-action_up(){
+action_up() {
   shift 1
 
   # Check for Internet connection before running a Docker pull
@@ -132,16 +179,13 @@ action_up(){
 
 }
 
-action_update(){
+action_update() {
   if is_installed_to_user; then
 
     if is_internet_connected; then
-      check_for_upgrade
-    else
-      printf "${BOLD}${RED}🤔 Spin cannot reach Github.com to check for updates.${RESET} "
-      printf "Are you sure that you're connected to the Internet?\n"
+      check_for_upgrade --force
     fi
-    
+
   else
     printf "${BOLD}${YELLOW}⚠️ Cannot automatically peform an update.${RESET} "
     printf "Your using \"spin\" from the project level. Install updates via NPM or Composer instead.\n"
@@ -149,7 +193,7 @@ action_update(){
   fi
 }
 
-action_version(){
+action_version() {
   print_version
 }
 
