@@ -36,7 +36,7 @@
 # Settings
 ###########################################################################################################
 
-# set -o xtrace
+set -o xtrace
 set -e
 
 # Default settings
@@ -268,7 +268,6 @@ main() {
   while [ $# -gt 0 ]; do
     case $1 in
       --beta) TRACK=beta ;;
-      --debug) set -o xtrace;;
       *)
     esac
     shift
