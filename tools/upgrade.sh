@@ -183,7 +183,7 @@ perform_upgrade() {
 
     echo "${BLUE}Updating spin Spin...${RESET}"
 
-    git -C $SPIN_HOME fetch --all --tags
+    git -C $SPIN_HOME fetch --all --tags > /dev/null
 
     # Set git-config values known to fix git errors
     # Line endings (#4069)
@@ -218,7 +218,7 @@ perform_upgrade() {
     printf '%s\n' "• Get sweet perks, exclusive access, and professional support: $(fmt_link "Become a sponsor" https://serversideup.net/sponsor)"
     printf '%s\n' $RESET
     printf '\n'
-    printf "${BOLD}${GREEN}✅ Spin has been upgraded to $new_version!${RESET} ${BOLD}${Yellow}To make sure nothing gets screwed during the update, try re-running your spin command again.${RESET} \n"
+    printf "${BOLD}${GREEN}✅ Spin has been upgraded to $new_version!${RESET} ${BOLD}${YELLOW}To make sure nothing gets screwed during the update, try re-running your spin command again.${RESET} \n"
 
     exit 0
 }
