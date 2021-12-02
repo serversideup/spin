@@ -184,7 +184,7 @@ action_update() {
   if is_installed_to_user; then
 
     if is_internet_connected; then
-      check_for_upgrade
+      check_for_upgrade --force
     fi
 
   else
@@ -234,7 +234,7 @@ main() {
         action_up "$@"
       ;;
       update)
-        action_update --force
+        action_update
       ;;
       version)
         action_version
