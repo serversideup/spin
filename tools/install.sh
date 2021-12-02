@@ -229,7 +229,6 @@ setup_spin() {
     -c receive.fsck.zeroPaddedFilemode=ignore \
     -c advice.detachedHead=false \
     -c spin.remote=origin \
-    -c spin.branch="$BRANCH" \
     --depth=1 --branch "$latest_release" "$REMOTE" "$SPIN_HOME" || {
     fmt_error "git clone of spin repo failed"
     exit 1
