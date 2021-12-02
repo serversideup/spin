@@ -36,7 +36,7 @@ print_version() {
 
   # Use the local Git repo to show our version
   printf "${BOLD}${YELLOW}Spin Version:${RESET} \n"
-  printf "$(git describe --tags) "
+  printf "$(git -C $PARENT_DIR describe --tags) "
   
   # Show the track (if installed to the user)
   if is_installed_to_user; then
