@@ -1,21 +1,21 @@
-#!/bin/env bash
+#!/bin/sh
 #
 # This installer was heavily inspired by talented devs of OhMyZSH https://github.com/ohmyzsh/ohmyzsh
 #
 # This script should be run via curl:
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
 # or via wget:
-#   bash -c "$(wget -qO- https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
+#   sh -c "$(wget -qO- https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
 # or via fetch:
-#   bash -c "$(fetch -o - https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
+#   sh -c "$(fetch -o - https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
 #
 # As an alternative, you can first download the install script and run it afterwards:
 #   wget https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh
-#   bash install.sh
+#   sh install.sh
 #
 # You can tweak the install behavior by setting variables when running the script. For
 # example, to change the path to the SPIN repository:
-#   SPIN_HOME=~/.spin bash install.sh
+#   SPIN_HOME=~/.spin sh install.sh
 #
 # Respects the following environment variables:
 #   SPIN_HOME - path to the Spin repository folder (default: $HOME/.spin)
@@ -27,9 +27,9 @@
 # You can also pass some arguments to the install script to set some these options:
 #   --beta: use the latest pre-release
 # For example:
-#   bash install.sh --beta
+#   sh install.sh --beta
 # or:
-#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/feature/initial-commit-of-features/tools/install.sh)" --beta
+#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/feature/initial-commit-of-features/tools/install.sh)" --beta
 #
 
 ############################################################################################################
