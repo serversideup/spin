@@ -1,8 +1,277 @@
-#!/usr/bin/env 
+#!/usr/bin/env bash
 
-# # Debug mode
 # set -o xtrace
 
-VERSION="14"
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SPIN_HOME=$(dirname "$SCRIPT_DIR") #Assume the parent directory of this script is the home
+AUTO_UPDATE_INTERVAL_IN_DAYS=${AUTO_UPDATE_INTERVAL_IN_DAYS:-14}
+SPIN_CONFIG_FILE_LOCATION="$SPIN_HOME/conf/spin.conf"
 
-echo "This is version: $VERSION"
+################################################
+# ⚙️ FUNCTIONS: Common things that are called
+################################################
+
+check_for_upgrade() {
+  # Perform upgrades when not within update threshold, or if "--force" is passed
+  if [ ! is_within_update_threshold ] || [ "$1" == "--force" ] ; then
+    send_to_upgrade_script
+  else
+    # Silence is golden. We won't bug the user if everything looks good.
+    :
+  fi
+}
+
+current_time_minus() {
+  # Accepts parameters: The first passed argument should be the number of days to subtract
+  # This will return a value of (current epoch time - number of days)
+
+  local days_to_subtract
+  days_to_subtract=$1
+  
+  # Check the OS, because the commands are different.
+  case "$(uname -s)" in
+    Linux*)     DATE_THRESHOLD=$(date -d "now - ${days_to_subtract} days" +%s);;
+    Darwin*)    DATE_THRESHOLD=$(date -v -${days_to_subtract}d +%s);;
+    *)          echo "This operating system is not supported." && exit 2
+  esac
+
+  echo $DATE_THRESHOLD
+
+}
+
+is_within_update_threshold() {
+  if [ -f $SPIN_HOME/conf/last_update_check.lock ]; then
+
+    CURRENT_EPOCH_SECONDS=$(date +%s)
+    if (( $(cat $SPIN_HOME/conf/last_update_check.lock) <= $(current_time_minus $AUTO_UPDATE_INTERVAL_IN_DAYS) )); then
+      return 1
+    else
+      return 0
+    fi
+
+  else
+    return 1
+  fi
+}
+
+is_installed_to_user() {
+  if [ -f "$SPIN_HOME/conf/spin.conf" ]; then
+    return 0
+  else
+  	return 1
+  fi
+}
+
+is_internet_connected() {
+  local response
+  response=$(curl https://github.com/serversideup/spin/ --write-out %{http_code} --silent --output /dev/null --max-time 1)
+
+  if [ $response -eq 200 ]; then
+    return 0
+  else
+    printf "${BOLD}${YELLOW}\"spin\" tried to check for updates, but we couldn't connect to Github.com. We'll try again tomorrow.${RESET} \n"
+    # Take the current time and subtract just one day short of the auto update interval so we check again tomorrow
+    echo $(current_time_minus $(expr $AUTO_UPDATE_INTERVAL_IN_DAYS - 1)) > $SPIN_HOME/conf/last_update_check.lock
+    return 1
+  fi
+}
+
+print_version() {
+
+  # Use the local Git repo to show our version
+  printf "${BOLD}${YELLOW}Spin Version:${RESET} \n"
+  printf "$(git -C $SPIN_HOME describe --tags) "
+  
+  # Show the track (if installed to the user)
+  if is_installed_to_user; then
+    source $SPIN_CONFIG_FILE_LOCATION
+    printf "[$TRACK] "
+    printf "(User Installed)\n"
+  else
+    printf "(Project Installed)\n"
+  fi
+}
+
+send_to_upgrade_script () {
+  if is_internet_connected; then
+    source $SPIN_HOME/tools/upgrade.sh
+  fi
+}
+
+setup_color() {
+    RAINBOW="
+      $(printf '\033[38;5;196m')
+      $(printf '\033[38;5;202m')
+      $(printf '\033[38;5;226m')
+      $(printf '\033[38;5;082m')
+    "
+    RED=$(printf '\033[31m')
+    GREEN=$(printf '\033[32m')
+    YELLOW=$(printf '\033[33m')
+    BLUE=$(printf '\033[34m')
+    BOLD=$(printf '\033[1m')
+    RESET=$(printf '\033[m')
+}
+
+################################################
+# 🏎 ACTIONS: Commands people can run
+################################################
+action_debug(){
+  
+  print_version
+
+    # Show operating system version
+  printf "\n${BOLD}${YELLOW}Operating System Version:${RESET} \n"
+  case "$(uname -s)" in
+      Linux*)     cat /etc/os-release;;
+      Darwin*)    sw_vers;;
+      *)          echo "This operating system is not supported." && exit 2
+  esac
+  printf "\n"
+  
+  # Show docker version
+  printf "${BOLD}${BLUE}Docker Info:${RESET} \n"
+  printf "$(docker info)\n"
+  
+}
+
+action_exec(){
+  shift 1
+
+  $COMPOSE exec $@ 
+}
+
+action_help(){
+  echo "help" 
+}
+
+action_kill(){
+  read -p "🚨 You're about to kill all running containers. Are you sure you want to do this? (Y) " -n 1 -r
+  echo    # Move to a new line
+
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo "Cancelling... Nothing with Docker was touched 😅"
+      exit 1
+  fi
+
+  echo "Stopping containers..."
+  docker stop $(docker ps -q)
+}
+
+action_logs(){
+  shift 1
+
+  $COMPOSE logs "$@"
+}
+
+action_run(){
+  shift 1
+
+  # Run Docker Compose without dependencies. Ensure automations and S6 logging are disabled
+  $COMPOSE run --no-deps --rm \
+    -e RUN_LARAVEL_AUTOMATIONS=false \
+    -e "S6_LOGGING=1" \
+    $@
+}
+
+action_up() {
+  shift 1
+
+  # Check for Internet connection before running a Docker pull
+  if is_internet_connected; then
+    $COMPOSE pull --ignore-pull-failures
+  fi
+  # Bring up the containers with `docker-compose`
+  $COMPOSE up --remove-orphans "$@" 
+
+}
+
+action_update() {
+  if is_installed_to_user; then
+
+    if is_internet_connected; then
+      check_for_upgrade --force
+    fi
+
+  else
+    printf "${BOLD}${YELLOW}⚠️ Cannot automatically peform an update.${RESET} "
+    printf "Your using \"spin\" from the project level. Install updates via NPM or Composer instead.\n"
+    exit 1
+  fi
+}
+
+action_version() {
+  print_version
+}
+
+################################################
+# 🚀 MAIN part of "spin"
+################################################
+main() {
+  ## Set defaults for our environment
+  COMPOSE_FILE="dev" #Default the Dev file to be used
+
+  # Set up our structure for our re-used commands
+  COMPOSE="docker compose -f docker-compose.yml -f docker-compose.$COMPOSE_FILE.yml"
+
+  # Check that an argument is passed
+  if [ $# -gt 0 ]; then
+    # Check the first argument and pass the user to proper action, Only some actions need arguments passed.
+    case $1 in
+      debug)
+        action_debug "$@"
+      ;;
+      exec)
+        action_exec "$@"
+      ;;
+      help)
+        action_help
+      ;;
+      kill)
+        action_kill
+      ;;
+      logs)
+        action_logs "$@"
+      ;;
+      run)
+        action_run "$@"
+      ;;
+      up)
+        action_up "$@"
+      ;;
+      update)
+        action_update
+      ;;
+      version)
+        action_version
+      ;;
+      *)
+        echo "\"$1\" is not a valid command. Below are the commands available."
+        action_help
+      ;;
+    esac
+  else
+    echo "You didn't pass \"spin\" any arguments. Run 'spin help' if you want to see the documentation."
+  fi
+}
+
+################################################
+# Where the script acutally starts
+################################################
+
+setup_color
+if is_installed_to_user; then
+  # Prevent "spin update" from running updates twice
+  if [ "$1" != "update" ]; then
+    check_for_upgrade
+  fi
+fi
+
+# Check that Docker is running
+if ! docker info > /dev/null 2>&1; then
+  printf "${BOLD}${RED}❌ Docker is not running.${RESET} "
+  printf "You need to start Docker Desktop or install it before using \"spin\".\n"
+  exit 1
+fi
+
+main "$@" #Passing the original arguments to `main`

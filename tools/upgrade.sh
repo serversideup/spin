@@ -1,36 +1,4 @@
-#!/bin/sh
-#
-# This installer was heavily inspired by talented devs of OhMyZSH https://github.com/ohmyzsh/ohmyzsh
-#
-# This script should be run via curl:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
-# or via wget:
-#   sh -c "$(wget -qO- https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
-# or via fetch:
-#   sh -c "$(fetch -o - https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
-#
-# As an alternative, you can first download the install script and run it afterwards:
-#   wget https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh
-#   sh install.sh
-#
-# You can tweak the install behavior by setting variables when running the script. For
-# example, to change the path to the SPIN repository:
-#   SPIN_HOME=~/.spin sh install.sh
-#
-# Respects the following environment variables:
-#   SPIN_HOME - path to the Spin repository folder (default: $HOME/.spin)
-#   REPO      - name of the GitHub repo to install from (default: serversideup/spin)
-#   REMOTE    - full remote URL of the git repo to install (default: GitHub via HTTPS)
-#   BRANCH    - branch to check out immediately after install (default: main)
-#
-#
-# You can also pass some arguments to the install script to set some these options:
-#   --beta: use the latest pre-release
-# For example:
-#   sh install.sh --beta
-# or:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)" "" --beta
-#
+# This upgrade script was heavily inspired by talented devs of OhMyZSH https://github.com/ohmyzsh/ohmyzsh
 
 ############################################################################################################
 # Settings
@@ -44,11 +12,14 @@ SPIN_HOME=${SPIN_HOME:-~/.spin}
 REPO=${REPO:-serversideup/spin}
 REMOTE=${REMOTE:-https://github.com/${REPO}.git}
 BRANCH=${BRANCH:-main}
-TRACK=${TRACK:-stable}
 
 ############################################################################################################
 # Environment Prep: Functions that get a bunch of information and prepare the terminal
 ############################################################################################################
+
+command_exists() {
+  command -v "$@" >/dev/null 2>&1
+}
 
 # The [ -t 1 ] check only works when the function is not called from
 # a subshell (like in `$(...)` or `(...)`, so this hack redefines the
@@ -147,108 +118,88 @@ fmt_error() {
   printf '%sError: %s%s\n' "$BOLD$RED" "$*" "$RESET" >&2
 }
 
-setup_color() {
-  # Only use colors if connected to a terminal
-  if is_tty; then
-    RAINBOW="
-      $(printf '\033[38;5;196m')
-      $(printf '\033[38;5;202m')
-      $(printf '\033[38;5;226m')
-      $(printf '\033[38;5;082m')
-    "
-    RED=$(printf '\033[31m')
-    GREEN=$(printf '\033[32m')
-    YELLOW=$(printf '\033[33m')
-    BLUE=$(printf '\033[34m')
-    BOLD=$(printf '\033[1m')
-    RESET=$(printf '\033[m')
-  else
-    RAINBOW=""
-    RED=""
-    GREEN=""
-    YELLOW=""
-    BLUE=""
-    BOLD=""
-    RESET=""
-  fi
-}
-
 ############################################################################################################
 # Functions for app functionality and tests
 ############################################################################################################
 
-command_exists() {
-  command -v "$@" >/dev/null 2>&1
+check_for_updates() {
+
+    command_exists git || {
+        fmt_error "\"git\" is not installed."
+        exit 1
+    }
+
+    printf "${BOLD}${BLUE}It's been a while since \"spin\" checked for updates. Let's see if there are any updates...${RESET} \n"
+
+    local latest_release
+    latest_release=$(get_latest_release)
+
+    if [ "$(get_current_version)" != "$latest_release" ]; then
+        perform_upgrade $latest_release
+    else
+        printf "${BOLD}${GREEN}✅ No updates needed!${RESET} \"spin\" is up-to-date. Now get back to work! \n"
+        echo $(date +"%s") > $SPIN_HOME/conf/last_update_check.lock
+    fi
+}
+
+get_current_version() {
+    local local_tag
+    local_tag=$(git -C $SPIN_HOME describe --tags --abbrev=0)
+
+    echo $local_tag
+
 }
 
 get_latest_release() {
-  if [ "$TRACK" == "beta" ]; then
-    # Get the latest release (including pre-releases). We just want the 
-    # absolute latest release, regardless of pre-release or stable
-    curl --silent \
-      -H "Accept: application/vnd.github.v3+json" \
-      "https://api.github.com/repos/serversideup/spin/releases" | \
-    grep '"tag_name":' | \
-    sed -E 's/.*"([^"]+)".*/\1/' | \
-    head -n 1
-  else
-    # Get latest stable release
-    curl --silent \
-      -H 'Accept: application/vnd.github.v3.sha' \
-      "https://api.github.com/repos/serversideup/spin/releases/latest" | \
-    grep '"tag_name":' | \
-    sed -E 's/.*"([^"]+)".*/\1/'
-  fi
+
+    source $SPIN_CONFIG_FILE_LOCATION
+
+    if [ "$TRACK" == "beta" ]; then
+        # Get the latest release (including pre-releases). We just want the 
+        # absolute latest release, regardless of pre-release or stable
+        curl --silent \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/serversideup/spin/releases" | \
+        grep '"tag_name":' | \
+        sed -E 's/.*"([^"]+)".*/\1/' | \
+        head -n 1
+    else
+        # Get latest stable release
+        curl --silent \
+            -H 'Accept: application/vnd.github.v3.sha' \
+            "https://api.github.com/repos/serversideup/spin/releases/latest" | \
+        grep '"tag_name":' | \
+        sed -E 's/.*"([^"]+)".*/\1/'
+    fi
 }
 
-set_configuration_file() {
-  mkdir -p $SPIN_HOME/conf/
-  echo "TRACK=$TRACK" > $SPIN_HOME/conf/spin.conf
-}
+perform_upgrade() {
+    # Accepts parameters. Whatever is passed to this function the version that gets installed.
 
-set_last_updated__check_lock_file() {
-  mkdir -p $SPIN_HOME/conf/
-  echo $(date +"%s") > $SPIN_HOME/conf/last_update_check.lock
-}
+    printf "${BOLD}${YELLOW}🤠 Hey partner, an update is available for \"spin\"! Before running any commands, let's get you updated first...${RESET} \n"
+    
+    local new_version
+    new_version=$1
 
-setup_spin() {
-  # Prevent the cloned repository from having insecure permissions. Failing to do
-  # so causes compinit() calls to fail with "command not found: compdef" errors
-  # for users with insecure umasks (e.g., "002", allowing group writability). Note
-  # that this will be ignored under Cygwin by default, as Windows ACLs take
-  # precedence over umasks except for filesystems mounted with option "noacl".
-  umask g-w,o-w
+    echo "${BLUE}Updating spin Spin...${RESET}"
 
-  command_exists git || {
-    fmt_error "git is not installed"
-    exit 1
-  }
+    git -C $SPIN_HOME fetch --all --tags > /dev/null
 
-  local latest_release
-  latest_release=$(get_latest_release)
+    # Set git-config values known to fix git errors
+    # Line endings (#4069)
+    git -C $SPIN_HOME config core.eol lf
+    git -C $SPIN_HOME config core.autocrlf false
+    # zeroPaddedFilemode fsck errors (#4963)
+    git -C $SPIN_HOME config fsck.zeroPaddedFilemode ignore
+    git -C $SPIN_HOME config fetch.fsck.zeroPaddedFilemode ignore
+    git -C $SPIN_HOME config receive.fsck.zeroPaddedFilemode ignore
+    git -C $SPIN_HOME config rebase.autoStash true
 
-  echo "${BLUE}Cloning Spin...${RESET}"
+    git -C $SPIN_HOME checkout "tags/$new_version" -b "$new_version" || {
+            fmt_error "Update of \"spin\" failed."
+            exit 1
+    }
 
-  git clone -c core.eol=lf -c core.autocrlf=false \
-    -c fsck.zeroPaddedFilemode=ignore \
-    -c fetch.fsck.zeroPaddedFilemode=ignore \
-    -c receive.fsck.zeroPaddedFilemode=ignore \
-    -c advice.detachedHead=false \
-    -c spin.remote=origin \
-    --depth=1 --branch "$latest_release" "$REMOTE" "$SPIN_HOME" || {
-    fmt_error "git clone of spin repo failed"
-    exit 1
-  }
-
-  set_configuration_file
-
-  set_last_updated__check_lock_file
-
-  echo #Empty line
-}
-
-# shellcheck disable=SC2183  # printf string has more %s than arguments ($RAINBOW expands to multiple arguments)
-print_success() {
     printf '%s      ___     %s      ___   %s            %s      ___     %s\n'      $RAINBOW $RESET
     printf '%s     /  /\    %s     /  /\  %s    ___     %s     /__/\    %s\n'      $RAINBOW $RESET
     printf '%s    /  /:/_   %s    /  /::\ %s   /  /\    %s     \  \:\   %s\n'      $RAINBOW $RESET
@@ -261,27 +212,18 @@ print_success() {
     printf '%s     /__/:/   %s    \  \:\  %s     \__\/  %s    \  \:\    %s\n'      $RAINBOW $RESET
     printf '%s     \__\/    %s     \__\/  %s            %s     \__\/    %s\n'      $RAINBOW $RESET
     printf '\n'
-    printf "%s %s %s\n" "${BOLD}${GREEN}✅ You are now ready to rock!${RESET} Check out the documentation to get started."
-    printf '\n'
-    printf '%s\n' "• See what \"spin\" is capable of: $(fmt_link "Read the Docs" https://serversideup.net/open-source/spin/docs)"
+    printf '%s\n' "• See what\'s new by reading the release notes: $(fmt_link "View the latest release notes" https://github.com/serversideup/spin/releases)"
     printf '%s\n' "• Get latest news and updates by follow on Twitter: $(fmt_link @serversideup https://twitter.com/serversideup)"
     printf '%s\n' "• Meet friends and get help on our community: $(fmt_link "Join our Discourse Community" https://community.serversideup.net/)"
     printf '%s\n' "• Get sweet perks, exclusive access, and professional support: $(fmt_link "Become a sponsor" https://serversideup.net/sponsor)"
     printf '%s\n' $RESET
+    printf '\n'
+    printf "${BOLD}${GREEN}✅ Spin has been upgraded to $new_version!${RESET} ${BOLD}${YELLOW}To make sure nothing gets screwed during the update, try re-running your spin command again.${RESET} \n"
+
+    exit 0
 }
 
-main() {
-  # Parse arguments passed to install script
-  while [ $# -gt 0 ]; do
-    case $1 in
-      --beta) TRACK=beta ;;
-      *)
-    esac
-    shift
-  done
-  setup_color
-  setup_spin
-  print_success
-}
-
-main $@
+############################################################################################################
+# Where the script actually starts
+############################################################################################################
+check_for_updates
