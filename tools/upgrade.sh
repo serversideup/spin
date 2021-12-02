@@ -221,9 +221,9 @@ perform_upgrade() {
     git -C $SPIN_HOME config receive.fsck.zeroPaddedFilemode ignore
     git -C $SPIN_HOME config rebase.autoStash true
 
-    git checkout "tags/$new_version" --depth=1 --branch "$new_version" "$REMOTE" "$SPIN_HOME" || {
-        fmt_error "Update of \"spin\" failed."
-        exit 1
+    git checkout "tags/$new_version" -b "$new_version" || {
+            fmt_error "Update of \"spin\" failed."
+            exit 1
     }
 
     printf '%s      ___     %s      ___   %s            %s      ___     %s\n'      $RAINBOW $RESET
