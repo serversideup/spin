@@ -205,6 +205,11 @@ set_configuration_file(){
   echo "TRACK=$TRACK" > $SPIN_HOME/conf/spin.conf
 }
 
+set_last_updated__check_lock_file(){
+  mkdir -p $SPIN_HOME/conf/
+  echo $(date +"%s") > $SPIN_HOME/conf/last_update_check.lock
+}
+
 setup_spin() {
   # Prevent the cloned repository from having insecure permissions. Failing to do
   # so causes compinit() calls to fail with "command not found: compdef" errors
@@ -235,6 +240,8 @@ setup_spin() {
   }
 
   set_configuration_file
+
+  set_last_updated__check_lock_file
 
   echo #Empty line
 }
