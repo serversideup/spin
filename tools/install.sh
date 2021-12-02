@@ -262,10 +262,10 @@ print_success() {
     printf '\n'
     printf "%s %s %s\n" "${BOLD}${GREEN}✅ You are now ready to rock!${RESET} Check out the documentation to get started."
     printf '\n'
-    printf '%s\n' "• Docs: $(fmt_link "Documentation" https://serversideup.net/open-source/spin/docs)"
-    printf '%s\n' "• Follow us on Twitter: $(fmt_link @serversideup https://twitter.com/serversideup)"
-    printf '%s\n' "• Join our Discord community: $(fmt_link "Discord server" https://serversideup.net/discord)"
-    printf '%s\n' "• Get sweet perks, exclusive access, and support: $(fmt_link "Become a sponsor" https://serversideup.net/sponsor)"
+    printf '%s\n' "• See what \"spin\" is capable of: $(fmt_link "Read the Docs" https://serversideup.net/open-source/spin/docs)"
+    printf '%s\n' "• Get latest news and updates by follow on Twitter: $(fmt_link @serversideup https://twitter.com/serversideup)"
+    printf '%s\n' "• Meet friends and get help on our community: $(fmt_link "Join our Discourse Community" https://community.serversideup.net/)"
+    printf '%s\n' "• Get sweet perks, exclusive access, and professional support: $(fmt_link "Become a sponsor" https://serversideup.net/sponsor)"
     printf '%s\n' $RESET
 }
 
