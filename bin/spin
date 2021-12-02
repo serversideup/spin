@@ -12,11 +12,12 @@ SPIN_CONFIG_FILE_LOCATION="$SPIN_HOME/conf/spin.conf"
 ################################################
 
 check_for_upgrade() {
-  if is_within_update_threshold; then
+  # Perform upgrades when not within update threshold, or if "--force" is passed
+  if [ ! is_within_update_threshold ] || [ "$1" == "--force" ] ; then
+    send_to_upgrade_script
+  else
     # Silence is golden. We won't bug the user if everything looks good.
     :
-  else
-    send_to_upgrade_script
   fi
 }
 
@@ -233,7 +234,7 @@ main() {
         action_up "$@"
       ;;
       update)
-        action_update
+        action_update --force
       ;;
       version)
         action_version
