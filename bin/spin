@@ -133,17 +133,17 @@ action_up(){
 }
 
 action_update(){
-  if is_internet_connected; then
-    if is_installed_to_user; then
+  if is_installed_to_user; then
+    if is_internet_connected; then
       check_for_upgrade
     else
-      printf "${BOLD}${YELLOW}⚠️ Cannot automatically peform an update.${RESET} "
-      printf "Your using \"spin\" from the project level. Install updates via NPM or Composer instead.\n"
-      exit 1
+      printf "${BOLD}${RED}🤔 Spin cannot reach Github.com to check for updates.${RESET} "
+      printf "Are you sure that you're connected to the Internet?\n"
     fi
   else
-    printf "${BOLD}${RED}🤔 Spin cannot reach Github.com to check for updates.${RESET} "
-    printf "Are you sure that you're connected to the Internet?\n"
+    printf "${BOLD}${YELLOW}⚠️ Cannot automatically peform an update.${RESET} "
+    printf "Your using \"spin\" from the project level. Install updates via NPM or Composer instead.\n"
+    exit 1
   fi
 }
 
@@ -206,8 +206,11 @@ main() {
 # Where the script acutally starts
 ################################################
 
-if is_installed_to_user; then
-  check_for_upgrade
-fi
 setup_color
+if is_installed_to_user; then
+  # Prevent "spin update" from running updates twice
+  if [ "$1" != "update" ]; then
+    check_for_upgrade
+  fi
+fi
 main "$@" #Passing the original arguments to `main`
