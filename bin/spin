@@ -99,12 +99,18 @@ send_to_upgrade_script () {
 }
 
 setup_color() {
-  RED=$(printf '\033[31m')
-  GREEN=$(printf '\033[32m')
-  YELLOW=$(printf '\033[33m')
-  BLUE=$(printf '\033[34m')
-  BOLD=$(printf '\033[1m')
-  RESET=$(printf '\033[m')
+    RAINBOW="
+      $(printf '\033[38;5;196m')
+      $(printf '\033[38;5;202m')
+      $(printf '\033[38;5;226m')
+      $(printf '\033[38;5;082m')
+    "
+    RED=$(printf '\033[31m')
+    GREEN=$(printf '\033[32m')
+    YELLOW=$(printf '\033[33m')
+    BLUE=$(printf '\033[34m')
+    BOLD=$(printf '\033[1m')
+    RESET=$(printf '\033[m')
 }
 
 ################################################

@@ -118,32 +118,6 @@ fmt_error() {
   printf '%sError: %s%s\n' "$BOLD$RED" "$*" "$RESET" >&2
 }
 
-setup_color() {
-  # Only use colors if connected to a terminal
-  if is_tty; then
-    RAINBOW="
-      $(printf '\033[38;5;196m')
-      $(printf '\033[38;5;202m')
-      $(printf '\033[38;5;226m')
-      $(printf '\033[38;5;082m')
-    "
-    RED=$(printf '\033[31m')
-    GREEN=$(printf '\033[32m')
-    YELLOW=$(printf '\033[33m')
-    BLUE=$(printf '\033[34m')
-    BOLD=$(printf '\033[1m')
-    RESET=$(printf '\033[m')
-  else
-    RAINBOW=""
-    RED=""
-    GREEN=""
-    YELLOW=""
-    BLUE=""
-    BOLD=""
-    RESET=""
-  fi
-}
-
 ############################################################################################################
 # Functions for app functionality and tests
 ############################################################################################################
