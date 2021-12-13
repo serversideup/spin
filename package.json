@@ -6,7 +6,7 @@
     "type": "git",
     "url": "git+https://github.com/serversideup/spin.git"
   },
-  "author": "Jay Rogers",
+  "author": "Server Side Up",
   "license": "GPL-3.0",
   "bugs": {
     "url": "https://github.com/serversideup/spin/issues"
