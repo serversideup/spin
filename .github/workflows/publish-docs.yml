@@ -16,26 +16,25 @@ jobs:
 
       - name: Setup Node
         uses: actions/setup-node@v1
-        working-directory: ${{env.working-directory}}
         with:
           node-version: '16.x'
 
       - name: Cache dependencies
         uses: actions/cache@v1
-        working-directory: ${{env.working-directory}}
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
       - run: yarn install --frozen-lockfile
         working-directory: ${{env.working-directory}}
+
       - run: yarn generate
         working-directory: ${{env.working-directory}}
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
-        working-directory: ${{env.working-directory}}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
