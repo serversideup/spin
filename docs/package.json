@@ -7,8 +7,15 @@
     "start": "nuxt start",
     "generate": "nuxt generate"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/serversideup/spin.git"
+  },
+  "author": "Server Side Up",
+  "license": "GPL-3.0",
   "dependencies": {
     "@nuxt/content-theme-docs": "^0.11.0",
+    "@nuxtjs/sitemap": "^2.4.0",
     "nuxt": "^2.15.8"
   }
 }
