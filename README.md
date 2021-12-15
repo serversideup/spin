@@ -8,6 +8,8 @@
 	<br />
 	<a href="https://www.npmjs.com/package/@serversideup/spin"><img alt="npm" src="https://img.shields.io/npm/dm/@serversideup/spin?color=red&label=downloads&logo=npm"></a>
 	<a href="https://packagist.org/packages/serversideup/spin"><img alt="Packagist Downloads" src="https://img.shields.io/packagist/dm/serversideup/spin?color=blue&logo=packagist"></a>
+	<a href="https://community.serversideup.net"><img alt="Discourse users" src="https://img.shields.io/discourse/users?color=blue&server=https%3A%2F%2Fcommunity.serversideup.net"></a>
+  <a href="https://serversideup.net/discord"><img alt="Discord" src="https://img.shields.io/discord/910287105714954251?color=blueviolet"></a>
 </p>
 
 Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers). We're a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
