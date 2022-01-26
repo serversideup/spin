@@ -169,7 +169,7 @@ action_run(){
 
   # Run Docker Compose without dependencies. Ensure automations and S6 logging are disabled
   $COMPOSE run --no-deps --rm \
-    -e RUN_LARAVEL_AUTOMATIONS=false \
+    -e "AUTORUN_ENABLED=false" \
     -e "S6_LOGGING=1" \
     $@
 }
