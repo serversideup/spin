@@ -167,6 +167,11 @@ action_logs(){
 action_run(){
   shift 1
 
+  # Check for Internet connection before running a Docker pull
+  if is_internet_connected; then
+    $COMPOSE pull --ignore-pull-failures
+  fi
+
   # Run Docker Compose without dependencies. Ensure automations and S6 logging are disabled
   $COMPOSE run --no-deps --rm \
     -e "AUTORUN_ENABLED=false" \
