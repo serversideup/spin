@@ -217,7 +217,7 @@ main() {
   COMPOSE_FILE="dev" #Default the Dev file to be used
 
   # Set up our structure for our re-used commands
-  COMPOSE="docker compose -f docker-compose.yml -f docker-compose.$COMPOSE_FILE.yml"
+  COMPOSE="docker-compose -f docker-compose.yml -f docker-compose.$COMPOSE_FILE.yml"
 
   # Check that an argument is passed
   if [ $# -gt 0 ]; then
