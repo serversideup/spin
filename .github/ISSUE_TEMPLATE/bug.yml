@@ -29,14 +29,7 @@ body:
   attributes:
     label: Environment
     description: |
-      examples:
-        - **Spin Version**: v1.0.0
-        - **Operating Sytem**: macOS 12.1
-        - **Docker Server Version**: 20.10.12
-    value: |
-        - Spin Version
-        - Operating Sytem
-        - Docker Server Version
+      Run `spin debug` and paste your output below.
     render: markdown
   validations:
     required: true
