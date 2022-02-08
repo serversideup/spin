@@ -280,7 +280,7 @@ main() {
 }
 
 ################################################
-# Where the script acutally starts
+# Where the script actually starts
 ################################################
 
 setup_color
