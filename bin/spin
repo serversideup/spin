@@ -227,11 +227,20 @@ action_version() {
 ################################################
 main() {
   ## Set defaults for our environment
-  COMPOSE_FILE="dev" #Default the Dev file to be used
+
+  # Select environment to be used, 
+  # Allows passing as `ENV` environment variable,
+  # or defaults to `dev`
+  ENV=${ENV:-dev}
+
+  # Export the compose file(s) to be used
+  # Allows overriding with standard `COMPOSE_FILE` environment variable
+  # or defaults to building compound from base and environment files
+  export COMPOSE_FILE=${COMPOSE_FILE:-"docker-compose.yml:docker-compose.$ENV.yml"}
 
   # Set up our structure for our re-used commands
-  COMPOSE="docker compose -f docker-compose.yml -f docker-compose.$COMPOSE_FILE.yml"
-
+  COMPOSE="docker compose"
+ 
   # Check that an argument is passed
   if [ $# -gt 0 ]; then
     # Check the first argument and pass the user to proper action, Only some actions need arguments passed.
