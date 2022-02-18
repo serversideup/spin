@@ -245,8 +245,14 @@ main() {
   if [ $# -gt 0 ]; then
     # Check the first argument and pass the user to proper action, Only some actions need arguments passed.
     case $1 in
+      build)
+        action_build "$@"
+      ;;
       debug)
         action_debug "$@"
+      ;;
+      down)
+        action_down "$@"
       ;;
       exec)
         action_exec "$@"
@@ -265,12 +271,6 @@ main() {
       ;;
       up)
         action_up "$@"
-      ;;
-      down)
-        action_down "$@"
-      ;;
-      build)
-        action_build "$@"
       ;;
       update)
         action_update
