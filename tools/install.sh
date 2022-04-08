@@ -182,7 +182,7 @@ command_exists() {
 }
 
 get_latest_release() {
-  if [ "$TRACK" == "beta" ]; then
+  if [ "$TRACK" = "beta" ]; then
     # Get the latest release (including pre-releases). We just want the 
     # absolute latest release, regardless of pre-release or stable
     curl --silent \
