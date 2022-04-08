@@ -116,6 +116,13 @@ setup_color() {
 ################################################
 # 🏎 ACTIONS: Commands people can run
 ################################################
+action_build() {
+  shift 1
+
+  # Build the containers with `docker-compose`
+  $COMPOSE build "$@"
+}
+
 action_debug(){
   
   print_version
@@ -133,6 +140,13 @@ action_debug(){
   printf "${BOLD}${BLUE}Docker Info:${RESET} \n"
   printf "$(docker info)\n"
   
+}
+
+action_down() {
+  shift 1
+
+  # Bring down the containers with `docker-compose`
+  $COMPOSE down --remove-orphans "$@"
 }
 
 action_exec(){
@@ -188,7 +202,6 @@ action_up() {
   fi
   # Bring up the containers with `docker-compose`
   $COMPOSE up --remove-orphans "$@" 
-
 }
 
 action_update() {
@@ -214,17 +227,32 @@ action_version() {
 ################################################
 main() {
   ## Set defaults for our environment
-  COMPOSE_FILE="dev" #Default the Dev file to be used
+
+  # Select environment to be used, 
+  # Allows passing as `ENV` environment variable,
+  # or defaults to `dev`
+  SPIN_ENV=${SPIN_ENV:-dev}
+
+  # Export the compose file(s) to be used
+  # Allows overriding with standard `COMPOSE_FILE` environment variable
+  # or defaults to building compound from base and environment files
+  export COMPOSE_FILE=${COMPOSE_FILE:-"docker-compose.yml:docker-compose.$SPIN_ENV.yml"}
 
   # Set up our structure for our re-used commands
-  COMPOSE="docker compose -f docker-compose.yml -f docker-compose.$COMPOSE_FILE.yml"
-
+  COMPOSE="docker compose"
+ 
   # Check that an argument is passed
   if [ $# -gt 0 ]; then
     # Check the first argument and pass the user to proper action, Only some actions need arguments passed.
     case $1 in
+      build)
+        action_build "$@"
+      ;;
       debug)
         action_debug "$@"
+      ;;
+      down)
+        action_down "$@"
       ;;
       exec)
         action_exec "$@"
@@ -261,7 +289,7 @@ main() {
 }
 
 ################################################
-# Where the script acutally starts
+# Where the script actually starts
 ################################################
 
 setup_color
