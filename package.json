@@ -1,6 +1,6 @@
 {
   "name": "@serversideup/spin",
-  "version": "1.0.0",
+  "version": "1.1.0-0",
   "description": "Replicate your production environment locally using Docker. Just run \\\"spin up\\\". It's really that easy.",
   "repository": {
     "type": "git",
