@@ -212,7 +212,7 @@ action_update() {
     fi
 
   else
-    printf "${BOLD}${YELLOW}⚠️ Cannot automatically peform an update.${RESET} "
+    printf "${BOLD}${YELLOW}⚠️ Cannot automatically perform an update.${RESET} "
     printf "Your using \"spin\" from the project level. Install updates via NPM or Composer instead.\n"
     exit 1
   fi
