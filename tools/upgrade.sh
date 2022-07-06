@@ -164,14 +164,17 @@ get_latest_release() {
         # absolute latest release, regardless of pre-release or stable
         curl --silent --header "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/serversideup/spin/releases" \
-            | jq -r '.[0]."tag_name"'
+            | grep '"tag_name":' \
+            | sed -E 's/.*"([^"]+)".*/\1/' \
+            | head -n 1
         return
     fi
 
     # Get latest stable release
     curl --silent --header "Accept: application/vnd.github.v3.sha" \
         "https://api.github.com/repos/serversideup/spin/releases/latest" \
-        | jq -r '."tag_name"'
+        | grep '"tag_name":' \
+        | sed -E 's/.*"([^"]+)".*/\1/'
 }
 
 perform_upgrade() {
