@@ -27,11 +27,11 @@ command_exists() {
 # a tty.
 if [ -t 1 ]; then
   is_tty() {
-    true
+    return 0
   }
 else
   is_tty() {
-    false
+    return 1
   }
 fi
 
@@ -56,12 +56,14 @@ fi
 supports_hyperlinks() {
   # $FORCE_HYPERLINK must be set and be non-zero (this acts as a logic bypass)
   if [ -n "$FORCE_HYPERLINK" ]; then
-    [ "$FORCE_HYPERLINK" != 0 ]
-    return $?
+    [ "$FORCE_HYPERLINK" -ne 0 ]
+    return
   fi
 
   # If stdout is not a tty, it doesn't support hyperlinks
-  is_tty || return 1
+  if ! is_tty; then
+    return 1
+  fi
 
   # DomTerm terminal emulator (domterm.org)
   if [ -n "$DOMTERM" ]; then
@@ -70,13 +72,13 @@ supports_hyperlinks() {
 
   # VTE-based terminals above v0.50 (Gnome Terminal, Guake, ROXTerm, etc)
   if [ -n "$VTE_VERSION" ]; then
-    [ $VTE_VERSION -ge 5000 ]
-    return $?
+    [ "$VTE_VERSION" -ge 5000 ]
+    return
   fi
 
   # If $TERM_PROGRAM is set, these terminals support hyperlinks
   case "$TERM_PROGRAM" in
-  Hyper|iTerm.app|terminology|WezTerm) return 0 ;;
+    Hyper|iTerm.app|terminology|WezTerm) return 0 ;;
   esac
 
   # kitty supports hyperlinks
@@ -89,6 +91,7 @@ supports_hyperlinks() {
     return 0
   fi
 
+  # In all other cases do not support hyperlinks
   return 1
 }
 
@@ -100,22 +103,30 @@ fmt_link() {
   fi
 
   case "$3" in
-  --text) printf '%s\n' "$1" ;;
-  --url|*) fmt_underline "$2" ;;
+    --text) printf '%s\n' "$1" ;;
+    --url|*) fmt_underline "$2" ;;
   esac
 }
 
 fmt_underline() {
-  is_tty && printf '\033[4m%s\033[24m\n' "$*" || printf '%s\n' "$*"
+  if is_tty; then
+    printf '\033[4m%s\033[24m\n' "$*"
+  else
+    printf '%s\n' "$*"
+  fi
 }
 
 # shellcheck disable=SC2016 # backtick in single-quote
 fmt_code() {
-  is_tty && printf '`\033[2m%s\033[22m`\n' "$*" || printf '`%s`\n' "$*"
+  if is_tty; then
+    printf '`\033[2m%s\033[22m`\n' "$*"
+  else
+    printf '`%s`\n' "$*"
+  fi
 }
 
 fmt_error() {
-  printf '%sError: %s%s\n' "$BOLD$RED" "$*" "$RESET" >&2
+  printf '%sError: %s%s\n' "$BOLD$RED" "$*" "$RESET" 1>&2
 }
 
 ############################################################################################################
@@ -123,11 +134,10 @@ fmt_error() {
 ############################################################################################################
 
 check_for_updates() {
-
-    command_exists git || {
-        fmt_error "\"git\" is not installed."
+    if ! command_exists git; then
+        fmt_error '"git" is not installed.'
         exit 1
-    }
+    fi
 
     printf "${BOLD}${BLUE}It's been a while since \"spin\" checked for updates. Let's see if there are any updates...${RESET} \n"
 
@@ -138,39 +148,33 @@ check_for_updates() {
         perform_upgrade $latest_release
     else
         printf "${BOLD}${GREEN}✅ No updates needed!${RESET} \"spin\" is up-to-date. Now get back to work! \n"
-        echo $(date +"%s") > $SPIN_HOME/conf/last_update_check.lock
+        date "+%s" > "${SPIN_HOME}/conf/last_update_check.lock"
     fi
 }
 
 get_current_version() {
-    local local_tag
-    local_tag=$(git -C $SPIN_HOME describe --tags --abbrev=0)
-
-    echo $local_tag
-
+    git -C "$SPIN_HOME" describe --tags --abbrev=0
 }
 
 get_latest_release() {
+    source "$SPIN_CONFIG_FILE_LOCATION"
 
-    source $SPIN_CONFIG_FILE_LOCATION
-
-    if [ "$TRACK" == "beta" ]; then
+    if [ "$TRACK" == beta ]; then
         # Get the latest release (including pre-releases). We just want the 
         # absolute latest release, regardless of pre-release or stable
-        curl --silent \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/serversideup/spin/releases" | \
-        grep '"tag_name":' | \
-        sed -E 's/.*"([^"]+)".*/\1/' | \
-        head -n 1
-    else
-        # Get latest stable release
-        curl --silent \
-            -H 'Accept: application/vnd.github.v3.sha' \
-            "https://api.github.com/repos/serversideup/spin/releases/latest" | \
-        grep '"tag_name":' | \
-        sed -E 's/.*"([^"]+)".*/\1/'
+        curl --silent --header "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/serversideup/spin/releases" \
+            | grep '"tag_name":' \
+            | sed -E 's/.*"([^"]+)".*/\1/' \
+            | head -n 1
+        return
     fi
+
+    # Get latest stable release
+    curl --silent --header "Accept: application/vnd.github.v3.sha" \
+        "https://api.github.com/repos/serversideup/spin/releases/latest" \
+        | grep '"tag_name":' \
+        | sed -E 's/.*"([^"]+)".*/\1/'
 }
 
 perform_upgrade() {
@@ -195,10 +199,10 @@ perform_upgrade() {
     git -C $SPIN_HOME config receive.fsck.zeroPaddedFilemode ignore
     git -C $SPIN_HOME config rebase.autoStash true
 
-    git -C $SPIN_HOME checkout "tags/$new_version" -b "$new_version" || {
-            fmt_error "Update of \"spin\" failed."
-            exit 1
-    }
+    if ! git -C $SPIN_HOME checkout "tags/$new_version" -b "$new_version"; then
+        fmt_error 'Update of "spin" failed.'
+        exit 1
+    fi
 
     printf '%s      ___     %s      ___   %s            %s      ___     %s\n'      $RAINBOW $RESET
     printf '%s     /  /\    %s     /  /\  %s    ___     %s     /__/\    %s\n'      $RAINBOW $RESET
