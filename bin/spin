@@ -204,16 +204,10 @@ action_run(){
   docker_pull_check "$@"
 
   # Run Docker Compose without dependencies. Ensure automations and S6 logging are disabled
-  if [ -z "$PULL_PROCESSED_COMMANDS" ]; then
-    $COMPOSE run --no-deps --rm \
-      -e "AUTORUN_ENABLED=false" \
-      -e "S6_LOGGING=1"
-  else
     $COMPOSE run --no-deps --rm \
       -e "AUTORUN_ENABLED=false" \
       -e "S6_LOGGING=1" \
-      "$PULL_PROCESSED_COMMANDS"
-  fi
+      $PULL_PROCESSED_COMMANDS
 
 }
 
@@ -221,13 +215,7 @@ action_up() {
   shift 1
 
   docker_pull_check "$@"
-  
-  # Bring up the containers with `docker-compose`
-  if [ -z "$PULL_PROCESSED_COMMANDS" ]; then
-      $COMPOSE up --remove-orphans
-  else
-      $COMPOSE up --remove-orphans "$PULL_PROCESSED_COMMANDS" 
-  fi
+  $COMPOSE up --remove-orphans $PULL_PROCESSED_COMMANDS
 }
 
 action_update() {
