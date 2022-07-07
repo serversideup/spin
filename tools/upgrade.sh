@@ -18,7 +18,7 @@ BRANCH=${BRANCH:-main}
 ############################################################################################################
 
 command_exists() {
-  command -v "$@" >/dev/null 2>&1
+    command -v "$@" >/dev/null 2>&1
 }
 
 # The [ -t 1 ] check only works when the function is not called from
@@ -26,13 +26,13 @@ command_exists() {
 # function at the top level to always return false when stdout is not
 # a tty.
 if [ -t 1 ]; then
-  is_tty() {
-    return 0
-  }
+    is_tty() {
+        return 0
+    }
 else
-  is_tty() {
-    return 1
-  }
+    is_tty() {
+        return 1
+    }
 fi
 
 # This function uses the logic from supports-hyperlinks[1][2], which is
@@ -54,79 +54,79 @@ fi
 # See the License for the specific language governing permissions and
 # limitations under the License.
 supports_hyperlinks() {
-  # $FORCE_HYPERLINK must be set and be non-zero (this acts as a logic bypass)
-  if [ -n "$FORCE_HYPERLINK" ]; then
-    [ "$FORCE_HYPERLINK" -ne 0 ]
-    return
-  fi
+    # $FORCE_HYPERLINK must be set and be non-zero (this acts as a logic bypass)
+    if [ -n "$FORCE_HYPERLINK" ]; then
+        [ "$FORCE_HYPERLINK" -ne 0 ]
+        return
+    fi
 
-  # If stdout is not a tty, it doesn't support hyperlinks
-  if ! is_tty; then
+    # If stdout is not a tty, it doesn't support hyperlinks
+    if ! is_tty; then
+        return 1
+    fi
+
+    # DomTerm terminal emulator (domterm.org)
+    if [ -n "$DOMTERM" ]; then
+        return 0
+    fi
+
+    # VTE-based terminals above v0.50 (Gnome Terminal, Guake, ROXTerm, etc)
+    if [ -n "$VTE_VERSION" ]; then
+        [ "$VTE_VERSION" -ge 5000 ]
+        return
+    fi
+
+    # If $TERM_PROGRAM is set, these terminals support hyperlinks
+    case "$TERM_PROGRAM" in
+    Hyper | iTerm.app | terminology | WezTerm) return 0 ;;
+    esac
+
+    # kitty supports hyperlinks
+    if [ "$TERM" = xterm-kitty ]; then
+        return 0
+    fi
+
+    # Windows Terminal or Konsole also support hyperlinks
+    if [ -n "$WT_SESSION" ] || [ -n "$KONSOLE_VERSION" ]; then
+        return 0
+    fi
+
+    # In all other cases do not support hyperlinks
     return 1
-  fi
-
-  # DomTerm terminal emulator (domterm.org)
-  if [ -n "$DOMTERM" ]; then
-    return 0
-  fi
-
-  # VTE-based terminals above v0.50 (Gnome Terminal, Guake, ROXTerm, etc)
-  if [ -n "$VTE_VERSION" ]; then
-    [ "$VTE_VERSION" -ge 5000 ]
-    return
-  fi
-
-  # If $TERM_PROGRAM is set, these terminals support hyperlinks
-  case "$TERM_PROGRAM" in
-    Hyper|iTerm.app|terminology|WezTerm) return 0 ;;
-  esac
-
-  # kitty supports hyperlinks
-  if [ "$TERM" = xterm-kitty ]; then
-    return 0
-  fi
-
-  # Windows Terminal or Konsole also support hyperlinks
-  if [ -n "$WT_SESSION" ] || [ -n "$KONSOLE_VERSION" ]; then
-    return 0
-  fi
-
-  # In all other cases do not support hyperlinks
-  return 1
 }
 
 fmt_link() {
-  # $1: text, $2: url, $3: fallback mode
-  if supports_hyperlinks; then
-    printf '\033]8;;%s\a%s\033]8;;\a\n' "$2" "$1"
-    return
-  fi
+    # $1: text, $2: url, $3: fallback mode
+    if supports_hyperlinks; then
+        printf '\033]8;;%s\a%s\033]8;;\a\n' "$2" "$1"
+        return
+    fi
 
-  case "$3" in
+    case "$3" in
     --text) printf '%s\n' "$1" ;;
-    --url|*) fmt_underline "$2" ;;
-  esac
+    --url | *) fmt_underline "$2" ;;
+    esac
 }
 
 fmt_underline() {
-  if is_tty; then
-    printf '\033[4m%s\033[24m\n' "$*"
-  else
-    printf '%s\n' "$*"
-  fi
+    if is_tty; then
+        printf '\033[4m%s\033[24m\n' "$*"
+    else
+        printf '%s\n' "$*"
+    fi
 }
 
 # shellcheck disable=SC2016 # backtick in single-quote
 fmt_code() {
-  if is_tty; then
-    printf '`\033[2m%s\033[22m`\n' "$*"
-  else
-    printf '`%s`\n' "$*"
-  fi
+    if is_tty; then
+        printf '`\033[2m%s\033[22m`\n' "$*"
+    else
+        printf '`%s`\n' "$*"
+    fi
 }
 
 fmt_error() {
-  printf '%sError: %s%s\n' "$BOLD$RED" "$*" "$RESET" 1>&2
+    printf '%sError: %s%s\n' "$BOLD$RED" "$*" "$RESET" 1>&2
 }
 
 ############################################################################################################
@@ -148,7 +148,7 @@ check_for_updates() {
         perform_upgrade $latest_release
     else
         printf "${BOLD}${GREEN}✅ No updates needed!${RESET} \"spin\" is up-to-date. Now get back to work! \n"
-        date "+%s" > "${SPIN_HOME}/conf/last_update_check.lock"
+        date "+%s" >"${SPIN_HOME}/conf/last_update_check.lock"
     fi
 }
 
@@ -160,7 +160,7 @@ get_latest_release() {
     source "$SPIN_CONFIG_FILE_LOCATION"
 
     if [ "$TRACK" == beta ]; then
-        # Get the latest release (including pre-releases). We just want the 
+        # Get the latest release (including pre-releases). We just want the
         # absolute latest release, regardless of pre-release or stable
         curl --silent --header "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/repos/serversideup/spin/releases" \
@@ -181,13 +181,13 @@ perform_upgrade() {
     # Accepts parameters. Whatever is passed to this function the version that gets installed.
 
     printf "${BOLD}${YELLOW}🤠 Hey partner, an update is available for \"spin\"! Before running any commands, let's get you updated first...${RESET} \n"
-    
+
     local new_version
     new_version=$1
 
     echo "${BLUE}Updating spin Spin...${RESET}"
 
-    git -C $SPIN_HOME fetch --all --tags > /dev/null
+    git -C $SPIN_HOME fetch --all --tags >/dev/null
 
     # Set git-config values known to fix git errors
     # Line endings (#4069)
@@ -204,17 +204,17 @@ perform_upgrade() {
         exit 1
     fi
 
-    printf '%s      ___     %s      ___   %s            %s      ___     %s\n'      $RAINBOW $RESET
-    printf '%s     /  /\    %s     /  /\  %s    ___     %s     /__/\    %s\n'      $RAINBOW $RESET
-    printf '%s    /  /:/_   %s    /  /::\ %s   /  /\    %s     \  \:\   %s\n'      $RAINBOW $RESET
-    printf '%s   /  /:/ /\  %s   /  /:/\:\%s  /  /:/    %s      \  \:\  %s\n'      $RAINBOW $RESET
-    printf '%s  /  /:/ /::\ %s  /  /:/~/:/%s /__/::\    %s  _____\__\:\ %s\n'      $RAINBOW $RESET
-    printf '%s /__/:/ /:/\:\%s /__/:/ /:/ %s \__\/\:\__ %s /__/::::::::\%s\n'      $RAINBOW $RESET
-    printf '%s \  \:\/:/~/:/%s \  \:\/:/  %s    \  \:\/\%s \  \:\~~\~~\/%s\n'      $RAINBOW $RESET
-    printf '%s  \  \::/ /:/ %s  \  \::/   %s     \__\::/%s  \  \:\  ~~~ %s\n'      $RAINBOW $RESET
-    printf '%s   \__\/ /:/  %s   \  \:\   %s     /__/:/ %s   \  \:\     %s\n'      $RAINBOW $RESET
-    printf '%s     /__/:/   %s    \  \:\  %s     \__\/  %s    \  \:\    %s\n'      $RAINBOW $RESET
-    printf '%s     \__\/    %s     \__\/  %s            %s     \__\/    %s\n'      $RAINBOW $RESET
+    printf '%s      ___     %s      ___   %s            %s      ___     %s\n' $RAINBOW $RESET
+    printf '%s     /  /\    %s     /  /\  %s    ___     %s     /__/\    %s\n' $RAINBOW $RESET
+    printf '%s    /  /:/_   %s    /  /::\ %s   /  /\    %s     \  \:\   %s\n' $RAINBOW $RESET
+    printf '%s   /  /:/ /\  %s   /  /:/\:\%s  /  /:/    %s      \  \:\  %s\n' $RAINBOW $RESET
+    printf '%s  /  /:/ /::\ %s  /  /:/~/:/%s /__/::\    %s  _____\__\:\ %s\n' $RAINBOW $RESET
+    printf '%s /__/:/ /:/\:\%s /__/:/ /:/ %s \__\/\:\__ %s /__/::::::::\%s\n' $RAINBOW $RESET
+    printf '%s \  \:\/:/~/:/%s \  \:\/:/  %s    \  \:\/\%s \  \:\~~\~~\/%s\n' $RAINBOW $RESET
+    printf '%s  \  \::/ /:/ %s  \  \::/   %s     \__\::/%s  \  \:\  ~~~ %s\n' $RAINBOW $RESET
+    printf '%s   \__\/ /:/  %s   \  \:\   %s     /__/:/ %s   \  \:\     %s\n' $RAINBOW $RESET
+    printf '%s     /__/:/   %s    \  \:\  %s     \__\/  %s    \  \:\    %s\n' $RAINBOW $RESET
+    printf '%s     \__\/    %s     \__\/  %s            %s     \__\/    %s\n' $RAINBOW $RESET
     printf '\n'
     printf '%s\n' "• See what\'s new by reading the release notes: $(fmt_link "View the latest release notes" https://github.com/serversideup/spin/releases)"
     printf '%s\n' "• Get latest news and updates by follow on Twitter: $(fmt_link @serversideup https://twitter.com/serversideup)"
