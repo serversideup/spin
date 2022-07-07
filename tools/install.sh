@@ -55,13 +55,13 @@ TRACK=${TRACK:-stable}
 # function at the top level to always return false when stdout is not
 # a tty.
 if [ -t 1 ]; then
-  is_tty() {
-    true
-  }
+    is_tty() {
+        true
+    }
 else
-  is_tty() {
-    false
-  }
+    is_tty() {
+        false
+    }
 fi
 
 # This function uses the logic from supports-hyperlinks[1][2], which is
@@ -83,94 +83,94 @@ fi
 # See the License for the specific language governing permissions and
 # limitations under the License.
 supports_hyperlinks() {
-  # $FORCE_HYPERLINK must be set and be non-zero (this acts as a logic bypass)
-  if [ -n "$FORCE_HYPERLINK" ]; then
-    [ "$FORCE_HYPERLINK" != 0 ]
-    return $?
-  fi
+    # $FORCE_HYPERLINK must be set and be non-zero (this acts as a logic bypass)
+    if [ -n "$FORCE_HYPERLINK" ]; then
+        [ "$FORCE_HYPERLINK" != 0 ]
+        return $?
+    fi
 
-  # If stdout is not a tty, it doesn't support hyperlinks
-  is_tty || return 1
+    # If stdout is not a tty, it doesn't support hyperlinks
+    is_tty || return 1
 
-  # DomTerm terminal emulator (domterm.org)
-  if [ -n "$DOMTERM" ]; then
-    return 0
-  fi
+    # DomTerm terminal emulator (domterm.org)
+    if [ -n "$DOMTERM" ]; then
+        return 0
+    fi
 
-  # VTE-based terminals above v0.50 (Gnome Terminal, Guake, ROXTerm, etc)
-  if [ -n "$VTE_VERSION" ]; then
-    [ $VTE_VERSION -ge 5000 ]
-    return $?
-  fi
+    # VTE-based terminals above v0.50 (Gnome Terminal, Guake, ROXTerm, etc)
+    if [ -n "$VTE_VERSION" ]; then
+        [ $VTE_VERSION -ge 5000 ]
+        return $?
+    fi
 
-  # If $TERM_PROGRAM is set, these terminals support hyperlinks
-  case "$TERM_PROGRAM" in
-  Hyper|iTerm.app|terminology|WezTerm) return 0 ;;
-  esac
+    # If $TERM_PROGRAM is set, these terminals support hyperlinks
+    case "$TERM_PROGRAM" in
+    Hyper | iTerm.app | terminology | WezTerm) return 0 ;;
+    esac
 
-  # kitty supports hyperlinks
-  if [ "$TERM" = xterm-kitty ]; then
-    return 0
-  fi
+    # kitty supports hyperlinks
+    if [ "$TERM" = xterm-kitty ]; then
+        return 0
+    fi
 
-  # Windows Terminal or Konsole also support hyperlinks
-  if [ -n "$WT_SESSION" ] || [ -n "$KONSOLE_VERSION" ]; then
-    return 0
-  fi
+    # Windows Terminal or Konsole also support hyperlinks
+    if [ -n "$WT_SESSION" ] || [ -n "$KONSOLE_VERSION" ]; then
+        return 0
+    fi
 
-  return 1
+    return 1
 }
 
 fmt_link() {
-  # $1: text, $2: url, $3: fallback mode
-  if supports_hyperlinks; then
-    printf '\033]8;;%s\a%s\033]8;;\a\n' "$2" "$1"
-    return
-  fi
+    # $1: text, $2: url, $3: fallback mode
+    if supports_hyperlinks; then
+        printf '\033]8;;%s\a%s\033]8;;\a\n' "$2" "$1"
+        return
+    fi
 
-  case "$3" in
-  --text) printf '%s\n' "$1" ;;
-  --url|*) fmt_underline "$2" ;;
-  esac
+    case "$3" in
+    --text) printf '%s\n' "$1" ;;
+    --url | *) fmt_underline "$2" ;;
+    esac
 }
 
 fmt_underline() {
-  is_tty && printf '\033[4m%s\033[24m\n' "$*" || printf '%s\n' "$*"
+    is_tty && printf '\033[4m%s\033[24m\n' "$*" || printf '%s\n' "$*"
 }
 
-# shellcheck disable=SC2016 # backtick in single-quote
 fmt_code() {
-  is_tty && printf '`\033[2m%s\033[22m`\n' "$*" || printf '`%s`\n' "$*"
+    # shellcheck disable=SC2016 # backtick in single-quote
+    is_tty && printf '`\033[2m%s\033[22m`\n' "$*" || printf '`%s`\n' "$*"
 }
 
 fmt_error() {
-  printf '%sError: %s%s\n' "$BOLD$RED" "$*" "$RESET" >&2
+    printf '%sError: %s%s\n' "$BOLD$RED" "$*" "$RESET" >&2
 }
 
 setup_color() {
-  # Only use colors if connected to a terminal
-  if is_tty; then
-    RAINBOW="
+    # Only use colors if connected to a terminal
+    if is_tty; then
+        RAINBOW="
       $(printf '\033[38;5;196m')
       $(printf '\033[38;5;202m')
       $(printf '\033[38;5;226m')
       $(printf '\033[38;5;082m')
     "
-    RED=$(printf '\033[31m')
-    GREEN=$(printf '\033[32m')
-    YELLOW=$(printf '\033[33m')
-    BLUE=$(printf '\033[34m')
-    BOLD=$(printf '\033[1m')
-    RESET=$(printf '\033[m')
-  else
-    RAINBOW=""
-    RED=""
-    GREEN=""
-    YELLOW=""
-    BLUE=""
-    BOLD=""
-    RESET=""
-  fi
+        RED=$(printf '\033[31m')
+        GREEN=$(printf '\033[32m')
+        YELLOW=$(printf '\033[33m')
+        BLUE=$(printf '\033[34m')
+        BOLD=$(printf '\033[1m')
+        RESET=$(printf '\033[m')
+    else
+        RAINBOW=""
+        RED=""
+        GREEN=""
+        YELLOW=""
+        BLUE=""
+        BOLD=""
+        RESET=""
+    fi
 }
 
 ############################################################################################################
@@ -178,88 +178,88 @@ setup_color() {
 ############################################################################################################
 
 command_exists() {
-  command -v "$@" >/dev/null 2>&1
+    command -v "$@" >/dev/null 2>&1
 }
 
 get_latest_release() {
-  if [ "$TRACK" = "beta" ]; then
-    # Get the latest release (including pre-releases). We just want the 
-    # absolute latest release, regardless of pre-release or stable
-    curl --silent \
-      -H "Accept: application/vnd.github.v3+json" \
-      "https://api.github.com/repos/serversideup/spin/releases" | \
-    grep '"tag_name":' | \
-    sed -E 's/.*"([^"]+)".*/\1/' | \
-    head -n 1
-  else
-    # Get latest stable release
-    curl --silent \
-      -H 'Accept: application/vnd.github.v3.sha' \
-      "https://api.github.com/repos/serversideup/spin/releases/latest" | \
-    grep '"tag_name":' | \
-    sed -E 's/.*"([^"]+)".*/\1/'
-  fi
+    if [ "$TRACK" = "beta" ]; then
+        # Get the latest release (including pre-releases). We just want the
+        # absolute latest release, regardless of pre-release or stable
+        curl --silent \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/serversideup/spin/releases" \
+            | grep '"tag_name":' \
+            | sed -E 's/.*"([^"]+)".*/\1/' \
+            | head -n 1
+    else
+        # Get latest stable release
+        curl --silent \
+            -H 'Accept: application/vnd.github.v3.sha' \
+            "https://api.github.com/repos/serversideup/spin/releases/latest" \
+            | grep '"tag_name":' \
+            | sed -E 's/.*"([^"]+)".*/\1/'
+    fi
 }
 
 set_configuration_file() {
-  mkdir -p $SPIN_HOME/conf/
-  echo "TRACK=$TRACK" > $SPIN_HOME/conf/spin.conf
+    mkdir -p $SPIN_HOME/conf/
+    echo "TRACK=$TRACK" >$SPIN_HOME/conf/spin.conf
 }
 
 set_last_updated__check_lock_file() {
-  mkdir -p $SPIN_HOME/conf/
-  echo $(date +"%s") > $SPIN_HOME/conf/last_update_check.lock
+    mkdir -p $SPIN_HOME/conf/
+    echo $(date +"%s") >$SPIN_HOME/conf/last_update_check.lock
 }
 
 setup_spin() {
-  # Prevent the cloned repository from having insecure permissions. Failing to do
-  # so causes compinit() calls to fail with "command not found: compdef" errors
-  # for users with insecure umasks (e.g., "002", allowing group writability). Note
-  # that this will be ignored under Cygwin by default, as Windows ACLs take
-  # precedence over umasks except for filesystems mounted with option "noacl".
-  umask g-w,o-w
+    # Prevent the cloned repository from having insecure permissions. Failing to do
+    # so causes compinit() calls to fail with "command not found: compdef" errors
+    # for users with insecure umasks (e.g., "002", allowing group writability). Note
+    # that this will be ignored under Cygwin by default, as Windows ACLs take
+    # precedence over umasks except for filesystems mounted with option "noacl".
+    umask g-w,o-w
 
-  command_exists git || {
-    fmt_error "git is not installed"
-    exit 1
-  }
+    command_exists git || {
+        fmt_error "git is not installed"
+        exit 1
+    }
 
-  local latest_release
-  latest_release=$(get_latest_release)
+    local latest_release
+    latest_release=$(get_latest_release)
 
-  echo "${BLUE}Cloning Spin...${RESET}"
+    echo "${BLUE}Cloning Spin...${RESET}"
 
-  git clone -c core.eol=lf -c core.autocrlf=false \
-    -c fsck.zeroPaddedFilemode=ignore \
-    -c fetch.fsck.zeroPaddedFilemode=ignore \
-    -c receive.fsck.zeroPaddedFilemode=ignore \
-    -c advice.detachedHead=false \
-    -c spin.remote=origin \
-    --depth=1 --branch "$latest_release" "$REMOTE" "$SPIN_HOME" || {
-    fmt_error "git clone of spin repo failed"
-    exit 1
-  }
+    git clone -c core.eol=lf -c core.autocrlf=false \
+        -c fsck.zeroPaddedFilemode=ignore \
+        -c fetch.fsck.zeroPaddedFilemode=ignore \
+        -c receive.fsck.zeroPaddedFilemode=ignore \
+        -c advice.detachedHead=false \
+        -c spin.remote=origin \
+        --depth=1 --branch "$latest_release" "$REMOTE" "$SPIN_HOME" || {
+        fmt_error "git clone of spin repo failed"
+        exit 1
+    }
 
-  set_configuration_file
+    set_configuration_file
 
-  set_last_updated__check_lock_file
+    set_last_updated__check_lock_file
 
-  echo #Empty line
+    echo #Empty line
 }
 
 # shellcheck disable=SC2183  # printf string has more %s than arguments ($RAINBOW expands to multiple arguments)
 print_success() {
-    printf '%s      ___     %s      ___   %s            %s      ___     %s\n'      $RAINBOW $RESET
-    printf '%s     /  /\    %s     /  /\  %s    ___     %s     /__/\    %s\n'      $RAINBOW $RESET
-    printf '%s    /  /:/_   %s    /  /::\ %s   /  /\    %s     \  \:\   %s\n'      $RAINBOW $RESET
-    printf '%s   /  /:/ /\  %s   /  /:/\:\%s  /  /:/    %s      \  \:\  %s\n'      $RAINBOW $RESET
-    printf '%s  /  /:/ /::\ %s  /  /:/~/:/%s /__/::\    %s  _____\__\:\ %s\n'      $RAINBOW $RESET
-    printf '%s /__/:/ /:/\:\%s /__/:/ /:/ %s \__\/\:\__ %s /__/::::::::\%s\n'      $RAINBOW $RESET
-    printf '%s \  \:\/:/~/:/%s \  \:\/:/  %s    \  \:\/\%s \  \:\~~\~~\/%s\n'      $RAINBOW $RESET
-    printf '%s  \  \::/ /:/ %s  \  \::/   %s     \__\::/%s  \  \:\  ~~~ %s\n'      $RAINBOW $RESET
-    printf '%s   \__\/ /:/  %s   \  \:\   %s     /__/:/ %s   \  \:\     %s\n'      $RAINBOW $RESET
-    printf '%s     /__/:/   %s    \  \:\  %s     \__\/  %s    \  \:\    %s\n'      $RAINBOW $RESET
-    printf '%s     \__\/    %s     \__\/  %s            %s     \__\/    %s\n'      $RAINBOW $RESET
+    printf '%s      ___     %s      ___   %s            %s      ___     %s\n' $RAINBOW $RESET
+    printf '%s     /  /\    %s     /  /\  %s    ___     %s     /__/\    %s\n' $RAINBOW $RESET
+    printf '%s    /  /:/_   %s    /  /::\ %s   /  /\    %s     \  \:\   %s\n' $RAINBOW $RESET
+    printf '%s   /  /:/ /\  %s   /  /:/\:\%s  /  /:/    %s      \  \:\  %s\n' $RAINBOW $RESET
+    printf '%s  /  /:/ /::\ %s  /  /:/~/:/%s /__/::\    %s  _____\__\:\ %s\n' $RAINBOW $RESET
+    printf '%s /__/:/ /:/\:\%s /__/:/ /:/ %s \__\/\:\__ %s /__/::::::::\%s\n' $RAINBOW $RESET
+    printf '%s \  \:\/:/~/:/%s \  \:\/:/  %s    \  \:\/\%s \  \:\~~\~~\/%s\n' $RAINBOW $RESET
+    printf '%s  \  \::/ /:/ %s  \  \::/   %s     \__\::/%s  \  \:\  ~~~ %s\n' $RAINBOW $RESET
+    printf '%s   \__\/ /:/  %s   \  \:\   %s     /__/:/ %s   \  \:\     %s\n' $RAINBOW $RESET
+    printf '%s     /__/:/   %s    \  \:\  %s     \__\/  %s    \  \:\    %s\n' $RAINBOW $RESET
+    printf '%s     \__\/    %s     \__\/  %s            %s     \__\/    %s\n' $RAINBOW $RESET
     printf '\n'
     printf "%s %s %s\n" "${BOLD}${GREEN}✅ You are now ready to rock!${RESET} Check out the documentation to get started."
     printf '\n'
@@ -271,17 +271,17 @@ print_success() {
 }
 
 main() {
-  # Parse arguments passed to install script
-  while [ $# -gt 0 ]; do
-    case $1 in
-      --beta) TRACK=beta ;;
-      *)
-    esac
-    shift
-  done
-  setup_color
-  setup_spin
-  print_success
+    # Parse arguments passed to install script
+    while [ $# -gt 0 ]; do
+        case $1 in
+        --beta) TRACK=beta ;;
+        *) ;;
+        esac
+        shift
+    done
+    setup_color
+    setup_spin
+    print_success
 }
 
 main $@
