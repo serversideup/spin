@@ -1,9 +1,8 @@
 name: Generate Sponsors README
 on:
-  push
-  # workflow_dispatch:
-  # schedule:
-  #   - cron: 30 15 * * 0-6
+  workflow_dispatch:
+  schedule:
+    - cron: 30 15 * * 0-6
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -14,9 +13,8 @@ jobs:
       - name: Generate Sponsors 💖
         uses: JamesIves/github-sponsors-readme-action@v1
         with:
+          organization: true
           token: ${{ secrets.SPONSORS_README_ACTION_PERSONAL_ACCESS_TOKEN }}
-          marker: 'supporters'
-          template: '<a href="https://github.com/{{{ login }}}"><img src="https://github.com/{{{ login }}}.png" width="80px" alt="{{{ login }}}" /></a>&nbsp;&nbsp;'
           file: 'README.md'
 
       - name: Deploy to GitHub Pages 🚀
