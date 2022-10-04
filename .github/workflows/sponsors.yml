@@ -14,7 +14,7 @@ jobs:
         uses: JamesIves/github-sponsors-readme-action@v1
         with:
           organization: true
-          minimum: 1
+          maximum: 5
           fallback: '<p align="center"><a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-empty-state.png" alt="Sponsors"></a></p>'
           token: ${{ secrets.SPONSORS_README_ACTION_PERSONAL_ACCESS_TOKEN }}
           marker: 'supporters'
