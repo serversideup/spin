@@ -14,10 +14,10 @@ jobs:
         uses: JamesIves/github-sponsors-readme-action@v1
         with:
           organization: true
-          minimum: 5
+          maximum: 5
           token: ${{ secrets.SPONSORS_README_ACTION_PERSONAL_ACCESS_TOKEN }}
           marker: 'supporters'
-          template: '<a href="https://github.com/{{{ login }}}"><img src="https://github.com/{{{ login }}}.png" width="80px" alt="{{{ login }}}" /></a>&nbsp;&nbsp;'
+          template: '<a href="https://github.com/{{{ login }}}"><img src="https://github.com/{{{ login }}}.png" width="40px" alt="{{{ login }}}" /></a>&nbsp;&nbsp;'
           file: 'README.md'
 
       - name: Deploy to GitHub Pages 🚀
