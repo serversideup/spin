@@ -34,7 +34,7 @@ All of our software is free an open to the world. None of this can be brought to
 
 #### Individual Supporters
 <p align="center">
-<!-- supporters --><!-- supporters -->
+<!-- supporters --><a href="https://github.com/SnapShooterLimited"><img src="https://github.com/SnapShooterLimited.png" width="80px" alt="SnapShooterLimited" /></a>&nbsp;&nbsp;<a href="https://github.com/deligoez"><img src="https://github.com/deligoez.png" width="80px" alt="deligoez" /></a>&nbsp;&nbsp;<!-- supporters -->
 </p>
 
 # What's `spin`?
