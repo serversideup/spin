@@ -33,7 +33,7 @@ All of our software is free an open to the world. None of this can be brought to
 </a>
 
 #### Individual Supporters
-<!-- supporters --><a href="https://github.com/SnapShooterLimited"><img src="https://github.com/SnapShooterLimited.png" width="40px" alt="SnapShooterLimited" /></a>&nbsp;&nbsp;<a href="https://github.com/deligoez"><img src="https://github.com/deligoez.png" width="40px" alt="deligoez" /></a>&nbsp;&nbsp;<!-- supporters -->
+<!-- supporters --><!-- supporters -->
 
 # What's `spin`?
 **Stop wasting time fixing production issues you've already solved.** Spin is a bash utility that improves the user-experience for teams using Docker. Replicate any environment on any machine, regardless if they are running MacOS, Windows, or Linux. Centralize your infrastructure from a single configuration file using Docker.
