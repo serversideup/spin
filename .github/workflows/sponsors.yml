@@ -15,7 +15,6 @@ jobs:
         with:
           organization: true
           minimum: 1
-          maximum: 6
           fallback: '<p align="center"><a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-empty-state.png" alt="Sponsors"></a></p>'
           token: ${{ secrets.SPONSORS_README_ACTION_PERSONAL_ACCESS_TOKEN }}
           marker: 'supporters'
