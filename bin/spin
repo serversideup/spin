@@ -147,7 +147,7 @@ action_debug(){
   
   print_version
 
-    # Show operating system version
+  # Show operating system version
   printf "\n${BOLD}${YELLOW}Operating System Version:${RESET} \n"
   case "$(uname -s)" in
       Linux*)     cat /etc/os-release;;
@@ -197,6 +197,28 @@ action_logs(){
 
   $COMPOSE logs "$@"
 }
+
+action_new(){
+  shift 1
+
+  # Check that an argument is passed
+    if [ $# -gt 0 ]; then
+      # Check the first argument and pass the user to proper action, Only some actions need arguments passed.
+      case $1 in
+        laravel)
+          shift 1
+          docker run --rm -v $(pwd):/var/www/html -e "S6_LOGGING=1" serversideup/php:8.1-cli composer create-project laravel/laravel "$@"
+        ;;
+        *)
+          echo "\"$1\" is not a valid command. Below are the commands available."
+          action_help
+        ;;
+      esac
+    else
+      printf "${BOLD}${YELLOW}\🤔 You didn't pass \"spin new\" any arguments. Run \"spin help\" if you want to see the documentation.${RESET}"
+    fi
+
+  }
 
 action_run(){
   shift 1
@@ -279,6 +301,9 @@ main() {
       ;;
       logs)
         action_logs "$@"
+      ;;
+      new)
+        action_new "$@"
       ;;
       run)
         action_run "$@"
