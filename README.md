@@ -35,8 +35,6 @@ All of our software is free an open to the world. None of this can be brought to
 # What's `spin`?
 **Stop wasting time fixing production issues you've already solved.** Spin is a bash utility that improves the user-experience for teams using Docker. Replicate any environment on any machine, regardless if they are running MacOS, Windows, or Linux. Centralize your infrastructure from a single configuration file using Docker.
 
-
-
 Spin is a wrapper script that dramatically improves the developer experience when working with Docker. Spin uses officially supported features and best practices from Docker. It takes 70 character commands and simplifies them down to 7 characters.
 
 ## Features
