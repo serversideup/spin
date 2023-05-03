@@ -1,3 +1,6 @@
 tools/
 conf/
 docs/
+.env*
+.github/
+tools/
