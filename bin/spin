@@ -207,7 +207,7 @@ action_new(){
       case $1 in
         laravel)
           shift 1
-          docker run --rm -v $(pwd):/var/www/html -e "S6_LOGGING=1" serversideup/php:8.1-cli composer create-project laravel/laravel "$@"
+          docker run --rm -v $(pwd):/var/www/html -e "S6_LOGGING=1" serversideup/php:8.2-cli composer create-project laravel/laravel "$@"
         ;;
         *)
           echo "\"$1\" is not a valid command. Below are the commands available."
