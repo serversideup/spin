@@ -33,7 +33,7 @@ useHead({
     bodyAttrs: {
         class: 'antialiased'
     },
-    title: 'PHP Docker Images - Server Side Up'
+    title: 'Spin: 100% replication from Development to Production - Server Side Up'
 })
 
 const route = useRoute();
@@ -48,13 +48,13 @@ useSeoMeta({
     ogImageWidth: 1200,
     ogImageHeight: 627,
     ogImageType: 'image/png',
-    ogDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
-    ogTitle: 'Server Side Up - Docker PHP',
+    ogDescription: 'The ultimate open-source solution for managing your server environments from development to production. Simple, lightweight, and fast. Based on Docker.',
+    ogTitle: 'Server Side Up - Spin',
     twitterCard: 'summary_large_image',
-    twitterDescription: 'Stop the headache from debugging. Get production-ready PHP Docker Images that help you replicate your application, no matter the environment.',
+    twitterDescription: 'The ultimate open-source solution for managing your server environments from development to production. Simple, lightweight, and fast. Based on Docker.',
     twitterImage: domain+basePath+'/images/social-image.jpg',
     twitterSite: '@serversideup',
-    twitterTitle: 'Server Side Up - Docker PHP'
+    twitterTitle: 'Server Side Up - Spin'
 })
 
 </script>
