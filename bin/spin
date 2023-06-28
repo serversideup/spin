@@ -13,7 +13,7 @@ SPIN_CONFIG_FILE_LOCATION="$SPIN_HOME/conf/spin.conf"
 
 check_for_upgrade() {
   # Perform upgrades when not within update threshold, or if "--force" is passed
-  if [ ! is_within_update_threshold ] || [ "$1" == "--force" ] ; then
+  if ! is_within_update_threshold || [ "$1" == "--force" ] ; then
     send_to_upgrade_script
   else
     # Silence is golden. We won't bug the user if everything looks good.
@@ -231,7 +231,7 @@ action_run(){
     $COMPOSE run --no-deps --rm \
       -e "AUTORUN_ENABLED=false" \
       -e "S6_LOGGING=1" \
-      $PULL_PROCESSED_COMMANDS
+      "$PULL_PROCESSED_COMMANDS"
 
 }
 
