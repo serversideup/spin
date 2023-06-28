@@ -32,7 +32,7 @@ current_time_minus() {
   case "$(uname -s)" in
     Linux*)     DATE_THRESHOLD=$(date -d "now - ${days_to_subtract} days" +%s);;
     Darwin*)    DATE_THRESHOLD=$(date -v -${days_to_subtract}d +%s);;
-    *)          echo "This operating system is not supported." && exit 2
+    *)          echo "We're unsure how to calculate a date on your operating system." && exit 2
   esac
 
   echo $DATE_THRESHOLD
@@ -60,19 +60,17 @@ docker_pull_check() {
 }
 
 is_within_update_threshold() {
-  if [ -f $SPIN_HOME/conf/last_update_check.lock ]; then
-
-    CURRENT_EPOCH_SECONDS=$(date +%s)
-    if (( $(cat $SPIN_HOME/conf/last_update_check.lock) <= $(current_time_minus $AUTO_UPDATE_INTERVAL_IN_DAYS) )); then
+  if [ -f "$SPIN_HOME/conf/last_update_check.lock" ]; then
+    if (( $(cat "$SPIN_HOME/conf/last_update_check.lock") <= $(current_time_minus "$AUTO_UPDATE_INTERVAL_IN_DAYS") )); then
       return 1
     else
       return 0
     fi
-
   else
     return 1
   fi
 }
+
 
 is_installed_to_user() {
   if [ -f "$SPIN_HOME/conf/spin.conf" ]; then
