@@ -1,21 +1,13 @@
 version: '3.8'
 services:
   traefik:
-    restart: "no"
     networks:
       development:
         aliases:
           - laravel.dev.test
     ports:
-      - target: 80
-        published: 80
-        mode: host
-      - target: 443
-        published: 443
-        mode: host
-      - target: 8080
-        published: 8080
-        mode: host
+      - "80:80"
+      - "443:443"
     volumes:
       # Add Docker as a mounted volume, so that Traefik can read the labels of other services
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -48,14 +40,7 @@ services:
     working_dir: /usr/src/app/
     networks: 
       - development
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.vite.rule=HostRegexp(`vite.dev.test`)"
-      - "traefik.http.routers.vite.entrypoints=websecure"
-      - "traefik.http.routers.vite.tls=true"
-      - "traefik.http.services.vite.loadbalancer.server.port=5173"
-      - "traefik.http.services.vite.loadbalancer.server.scheme=https"
-      
+
   mariadb:
     networks:
       - development
@@ -67,21 +52,19 @@ services:
         MYSQL_USER: "mysqluser"
         MYSQL_PASSWORD: "mysqlpassword"
     ports:
-      - target: 3306
-        published: 3306
-        mode: host
+      - "3306:3306"
 
-  mailhog:
-      image: mailhog/mailhog
+  mailpit:
+      image: axllent/mailpit
       networks:
         - development
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.mailhog.rule=Host(`mailhog.dev.test`)"
-        - "traefik.http.routers.mailhog.entrypoints=websecure"
-        - "traefik.http.routers.mailhog.tls=true"
-        - "traefik.http.services.mailhog.loadbalancer.server.port=8025"
-        - "traefik.http.services.mailhog.loadbalancer.server.scheme=http"
+        - "traefik.http.routers.mailpit.rule=Host(`mailpit.dev.test`)"
+        - "traefik.http.routers.mailpit.entrypoints=websecure"
+        - "traefik.http.routers.mailpit.tls=true"
+        - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
+        - "traefik.http.services.mailpit.loadbalancer.server.scheme=http"
       depends_on:
         - traefik
 
