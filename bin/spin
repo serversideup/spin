@@ -231,7 +231,7 @@ action_run(){
     $COMPOSE run --no-deps --rm \
       -e "AUTORUN_ENABLED=false" \
       -e "S6_LOGGING=1" \
-      "$PULL_PROCESSED_COMMANDS"
+      $PULL_PROCESSED_COMMANDS
 
 }
 
