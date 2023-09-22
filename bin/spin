@@ -39,55 +39,55 @@ main() {
     # Check the first argument and pass the user to proper action, Only some actions need arguments passed.
     case $1 in
       build)
-        source "$SPIN_HOME/actions/build.sh"
+        source "$SPIN_HOME/lib/actions/build.sh"
         action_build "$@"
       ;;
       debug)
-        source "$SPIN_HOME/actions/debug.sh"
+        source "$SPIN_HOME/lib/actions/debug.sh"
         action_debug "$@"
       ;;
       down)
-        source "$SPIN_HOME/actions/down.sh"
+        source "$SPIN_HOME/lib/actions/down.sh"
         action_down "$@"
       ;;
       exec)
-        source "$SPIN_HOME/actions/exec.sh"
+        source "$SPIN_HOME/lib/actions/exec.sh"
         action_exec "$@"
       ;;
       help)
-        source "$SPIN_HOME/actions/help.sh"
+        source "$SPIN_HOME/lib/actions/help.sh"
         action_help
       ;;
       kill)
-        source "$SPIN_HOME/actions/kill.sh"
+        source "$SPIN_HOME/lib/actions/kill.sh"
         action_kill
       ;;
       logs)
-        source "$SPIN_HOME/actions/logs.sh"
+        source "$SPIN_HOME/lib/actions/logs.sh"
         action_logs "$@"
       ;;
       new)
-        source "$SPIN_HOME/actions/new.sh"
+        source "$SPIN_HOME/lib/actions/new.sh"
         action_new "$@"
       ;;
       run)
-        source "$SPIN_HOME/actions/run.sh"
+        source "$SPIN_HOME/lib/actions/run.sh"
         action_run "$@"
       ;;
       stop)
-        source "$SPIN_HOME/actions/stop.sh"
+        source "$SPIN_HOME/lib/actions/stop.sh"
         action_stop
       ;;
       up)
-        source "$SPIN_HOME/actions/up.sh"
+        source "$SPIN_HOME/lib/actions/up.sh"
         action_up "$@"
       ;;
       update)
-        source "$SPIN_HOME/actions/update.sh"
+        source "$SPIN_HOME/lib/actions/update.sh"
         action_update
       ;;
       version)
-        source "$SPIN_HOME/actions/version.sh"
+        source "$SPIN_HOME/lib/actions/version.sh"
         action_version
       ;;
       *)
