@@ -148,7 +148,7 @@ check_for_updates() {
         perform_upgrade $latest_release
     else
         printf "${BOLD}${GREEN}✅ No updates needed!${RESET} \"spin\" is up-to-date. Now get back to work! \n"
-        date "+%s" > "${SPIN_HOME}/conf/last_update_check.lock"
+        date "+%s" > "${SPIN_HOME}/cache/last_update_check.lock"
     fi
 }
 

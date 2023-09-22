@@ -207,8 +207,8 @@ set_configuration_file() {
 }
 
 set_last_updated__check_lock_file() {
-  mkdir -p $SPIN_HOME/conf/
-  echo $(date +"%s") > $SPIN_HOME/conf/last_update_check.lock
+  mkdir -p $SPIN_HOME/cache/
+  echo $(date +"%s") > $SPIN_HOME/cache/last_update_check.lock
 }
 
 setup_spin() {
