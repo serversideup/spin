@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+SPIN_CONFIG_FILE_LOCATION="$SPIN_HOME/conf/spin.conf"
+
 check_for_upgrade() {
   # Perform upgrades when not within update threshold, or if "--force" is passed
   if ! is_within_update_threshold || [ "$1" == "--force" ] ; then
