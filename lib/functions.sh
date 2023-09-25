@@ -2,6 +2,42 @@
 
 SPIN_CONFIG_FILE_LOCATION="$SPIN_HOME/conf/spin.conf"
 
+add_spin_to_project() {
+  read -p "Do you want to add Spin to your project? (Y/n)" -n 1 -r
+  echo
+  if [[ $REPLY =~ ^[Yy]$ ]]
+  then
+    project_dir="$(pwd)/$2"
+    case "$1" in
+      "php")
+        docker run --rm -v $project_dir:/var/www/html -e "S6_LOGGING=1" $(get_latest_image php) composer --working-dir=/var/www/html/ require serversideup/spin --dev
+        ;;
+      "node")
+        if [[ -f "$project_dir/package-lock.json" && -f "$project_dir/package.json" ]]; then
+            echo "🧐 I detected a package-lock.json file, so I'll use npm."
+            docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $(get_latest_image node) npm install @serversideup/spin --save-dev
+        elif [[ -f "$project_dir/pnpm-lock.yaml" ]]; then
+            echo "🧐 I detected a pnpm-lock.yaml file, so I'll use pnpm."
+            docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $(get_latest_image node) pnpm add -D @serversideup/spin
+        elif [[ -f "$project_dir/yarn.lock" ]]; then
+            echo "🧐 I detected a yarn.lock file, so I'll use yarn."
+            docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $(get_latest_image node) yarn add @serversideup/spin --dev
+        elif [[ -f "$project_dir/Bunfile" || -f "$project_dir/Bunfile.lock" ]]; then
+            echo "🧐 I detected a Bunfile or Bunfile.lock file, so I'll use bun."
+            docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $(get_latest_image node) bun add -d @serversideup/spin
+        else
+            echo "Unknown Node project type."
+            exit 1
+        fi
+        ;;
+      *)
+        echo "Invalid argument. Supported arguments are: php, node."
+        return 1
+        ;;
+    esac
+  fi
+}
+
 check_for_upgrade() {
   # Perform upgrades when not within update threshold, or if "--force" is passed
   if ! is_within_update_threshold || [ "$1" == "--force" ] ; then
@@ -48,6 +84,21 @@ docker_pull_check() {
   fi
 
   return
+}
+
+get_latest_image() {
+    case "$1" in
+        "php")
+            echo "serversideup/php:8.2-cli"
+            ;;
+        "node")
+            echo "node:18"
+            ;;
+        *)
+            echo "Invalid argument. Supported arguments are: php, node."
+            return 1
+            ;;
+    esac
 }
 
 is_within_update_threshold() {

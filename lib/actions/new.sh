@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
 action_new(){
   shift 1
-
   # Check that an argument is passed
     if [ $# -gt 0 ]; then
       # Check the first argument and pass the user to proper action, Only some actions need arguments passed.
       case $1 in
         laravel)
           shift 1
-          docker run --rm -v $(pwd):/var/www/html -e "S6_LOGGING=1" serversideup/php:8.2-cli composer create-project laravel/laravel "$@"
+          latest_image=$(get_latest_image php)
+          docker pull $latest_image
+          docker run --rm -v $(pwd):/var/www/html -e "S6_LOGGING=1" $latest_image composer create-project laravel/laravel "$@"
+          add_spin_to_project php ${@:-laravel}
+        ;;
+        nuxt)
+          shift 1
+          latest_image=$(get_latest_image node)
+          docker pull $latest_image
+          docker run --rm -it -v $(pwd):/usr/src/app -w /usr/src/app $latest_image npx nuxi@latest init "$@"
+          add_spin_to_project node ${@:-"nuxt-app"}
         ;;
         *)
           echo "\"$1\" is not a valid command. Below are the commands available."

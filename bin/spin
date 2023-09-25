@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # set -o xtrace
+set -e
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 SPIN_HOME=$(dirname "$SCRIPT_DIR") #Assume the parent directory of this script is the home
@@ -10,7 +11,7 @@ AUTO_UPDATE_INTERVAL_IN_DAYS=${AUTO_UPDATE_INTERVAL_IN_DAYS:-14}
 # Sanity Check
 if ! docker info > /dev/null 2>&1; then
   printf "${BOLD}${RED}❌ Docker is not running.${RESET} "
-  printf "You need to start Docker Desktop or install it before using \"spin\".\n"
+  printf "You need to start Docker Desktop or install Docker before using \"spin\".\n"
   exit 1
 fi
 
@@ -60,6 +61,10 @@ main() {
       kill)
         source "$SPIN_HOME/lib/actions/kill.sh"
         action_kill
+      ;;
+      latest)
+        source "$SPIN_HOME/lib/actions/latest.sh"
+        action_latest "$@"
       ;;
       logs)
         source "$SPIN_HOME/lib/actions/logs.sh"
