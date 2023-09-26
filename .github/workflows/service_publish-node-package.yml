@@ -1,0 +1,36 @@
+on:
+    workflow_call:
+      inputs:
+        runs-on:
+          required: false
+          type: string
+          default: 'ubuntu-22.04'
+        node-version:
+          required: false
+          type: string
+          default: '18'
+        release-tag:
+          required: true
+          type: string
+  
+jobs:
+    publish:
+      runs-on: ${{ inputs.runs-on }}
+  
+      steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node-version }}
+          registry-url: https://registry.npmjs.org/
+  
+      - name: checkout
+        uses: actions/checkout@v4
+    
+      - name: Set NPM version (${{ github.ref_name }}).
+        run: npm version --git-tag-version=false --commit-hooks=false ${{ github.ref_name }}
+  
+      - name: Publish release (${{ inputs.release-tag }})
+        run: npm publish --access public --tag ${{ inputs.release-tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NODE_AUTH_TOKEN_SECRET}}
