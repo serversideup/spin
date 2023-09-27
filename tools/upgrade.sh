@@ -219,7 +219,7 @@ perform_upgrade() {
     printf '\n'
     printf '%s\n' "• See what\'s new by reading the release notes: $(fmt_link "View the latest release notes" https://github.com/serversideup/spin/releases)"
     printf '%s\n' "• Get latest news and updates by follow on Twitter: $(fmt_link @serversideup https://twitter.com/serversideup)"
-    printf '%s\n' "• Meet friends and get help on our community: $(fmt_link "Join our Discourse Community" https://community.serversideup.net/)"
+    printf '%s\n' "• Meet friends and get help on our community: $(fmt_link "Join our Discord Community" https://serversideup.net/discord)"
     printf '%s\n' "• Get sweet perks, exclusive access, and professional support: $(fmt_link "Become a sponsor" https://serversideup.net/sponsor)"
     printf '%s\n' $RESET
     printf '\n'
