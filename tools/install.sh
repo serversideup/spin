@@ -41,6 +41,7 @@ set -e
 
 # Default settings
 SPIN_HOME=${SPIN_HOME:-~/.spin}
+SPIN_CACHE_DIR=${SPIN_CACHE_DIR:-$SPIN_HOME/cache}
 REPO=${REPO:-serversideup/spin}
 REMOTE=${REMOTE:-https://github.com/${REPO}.git}
 BRANCH=${BRANCH:-main}
@@ -206,9 +207,8 @@ set_configuration_file() {
   echo "TRACK=$TRACK" > $SPIN_HOME/conf/spin.conf
 }
 
-set_last_updated__check_lock_file() {
-  mkdir -p $SPIN_HOME/cache/
-  echo $(date +"%s") > $SPIN_HOME/cache/last_update_check.lock
+save_last_update_check_time() {
+  echo $(date +"%s") > $SPIN_CACHE_DIR/.spin-last-update
 }
 
 setup_spin() {
@@ -242,7 +242,7 @@ setup_spin() {
 
   set_configuration_file
 
-  set_last_updated__check_lock_file
+  save_last_update_check_time
 
   echo #Empty line
 }

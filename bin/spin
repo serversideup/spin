@@ -5,6 +5,7 @@ set -e
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 SPIN_HOME=$(dirname "$SCRIPT_DIR") #Assume the parent directory of this script is the home
+SPIN_CACHE_DIR=${SPIN_CACHE_DIR:-$SPIN_HOME/cache}
 AUTO_UPDATE_INTERVAL_IN_DAYS=${AUTO_UPDATE_INTERVAL_IN_DAYS:-14}
 
 
