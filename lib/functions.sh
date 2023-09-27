@@ -60,9 +60,23 @@ check_connection_with_tool() {
 }
 
 check_for_upgrade() {
-  # Perform upgrades when not within update threshold, or if "--force" is passed
-  if ! is_within_update_threshold || [ "$1" == "--force" ] ; then
-    send_to_upgrade_script
+  if ! is_within_update_threshold || [ "$1" == "--force" ]; then
+
+    if [ "$1" != "--force" ]; then
+      read -p "${BOLD}${YELLOW}\[spin] 🤔 Would you like to check for updates? [Y/n]${RESET}" response
+      case "$response" in
+        [yY$'\n'])
+          send_to_upgrade_script
+          ;;
+        * )
+          # Do nothing if the answer is not yes.
+          save_last_update_check_time
+          echo "[spin] You can update manually by running \`spin update\`"
+          ;;
+      esac
+    else
+      send_to_upgrade_script
+    fi
   else
     # Silence is golden. We won't bug the user if everything looks good.
     :
@@ -123,15 +137,14 @@ get_latest_image() {
 }
 
 is_within_update_threshold() {
-  if [ -f "$SPIN_HOME/cache/last_update_check.lock" ]; then
-    if (( $(cat "$SPIN_HOME/cache/last_update_check.lock") <= $(current_time_minus "$AUTO_UPDATE_INTERVAL_IN_DAYS") )); then
-      return 1
-    else
-      return 0
-    fi
-  else
+  if [ ! -f "$SPIN_CACHE_DIR/.spin-last-update" ]; then
     return 1
   fi
+
+  local last_update_time=$(cat "$SPIN_HOME/cache/.spin-last-update")
+  local threshold_time=$(current_time_minus "$AUTO_UPDATE_INTERVAL_IN_DAYS")
+
+  (( last_update_time <= threshold_time )) && return 1 || return 0
 }
 
 
@@ -166,7 +179,7 @@ is_internet_connected() {
         else
           printf "${BOLD}${YELLOW}\"spin\" tried to check for updates, but we couldn't connect to Github.com. We'll try again tomorrow.${RESET} \n"
           # Take the current time and subtract just one day short of the auto update interval so we check again tomorrow
-          echo $(current_time_minus $(expr $AUTO_UPDATE_INTERVAL_IN_DAYS - 1)) > $SPIN_HOME/cache/last_update_check.lock
+          echo $(current_time_minus $(expr $AUTO_UPDATE_INTERVAL_IN_DAYS - 1)) > $SPIN_CACHE_DIR/.spin-last-update
           return 1
         fi
     done
@@ -190,6 +203,10 @@ print_version() {
   else
     printf "(Project Installed)\n"
   fi
+}
+
+save_last_update_check_time() {
+  echo $(date +"%s") > $SPIN_HOME/cache/.spin-last-update
 }
 
 send_to_upgrade_script () {
