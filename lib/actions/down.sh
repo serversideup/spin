@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 action_down() {
-  shift 1
+  local args=($(filter_out_spin_arguments "$@"))
 
-  # Bring down the containers with `docker-compose`
-  $COMPOSE down --remove-orphans "$@"
+  $COMPOSE_CMD down --remove-orphans "${args[@]}"
 }

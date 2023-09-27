@@ -7,6 +7,7 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 SPIN_HOME=$(dirname "$SCRIPT_DIR") #Assume the parent directory of this script is the home
 SPIN_CACHE_DIR=${SPIN_CACHE_DIR:-$SPIN_HOME/cache}
 AUTO_UPDATE_INTERVAL_IN_DAYS=${AUTO_UPDATE_INTERVAL_IN_DAYS:-14}
+AUTO_PULL_INTERVAL_IN_DAYS=${AUTO_UPDATE_PULL_IN_DAYS:-1}
 
 
 # Sanity Check
@@ -31,14 +32,18 @@ main() {
   # Allows overriding with standard `COMPOSE_FILE` environment variable
   # or defaults to building compound from base and environment files
   export COMPOSE_FILE=${COMPOSE_FILE:-"docker-compose.yml:docker-compose.$SPIN_ENV.yml"}
+  check_if_compose_files_exist "$COMPOSE_FILE"
+
 
   # Set up our structure for our re-used commands
-  COMPOSE="docker compose"
+  export COMPOSE_CMD=${COMPOSE_CMD:-"docker compose"}
  
   # Check that an argument is passed
   if [ $# -gt 0 ]; then
-    # Check the first argument and pass the user to proper action, Only some actions need arguments passed.
-    case $1 in
+    local action=$1
+    shift 1 # Remove the action from the arguments
+
+    case $action in
       build)
         source "$SPIN_HOME/lib/actions/build.sh"
         action_build "$@"

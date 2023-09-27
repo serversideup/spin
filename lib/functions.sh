@@ -3,7 +3,7 @@
 SPIN_CONFIG_FILE_LOCATION="$SPIN_HOME/conf/spin.conf"
 
 add_spin_to_project() {
-  read -p "Do you want to add Spin to your project? (Y/n)" -n 1 -r
+  read -n 1 -r -p "Do you want to add Spin to your project? (Y/n)"
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]
   then
@@ -62,13 +62,13 @@ check_connection_with_tool() {
 check_for_upgrade() {
   if ! is_within_interval_threshold ".spin-last-update" $AUTO_UPDATE_INTERVAL_IN_DAYS  || [ "$1" == "--force" ]; then
     if [ "$1" != "--force" ]; then
-      read -p "${BOLD}${YELLOW}\[spin] 🤔 Would you like to check for updates? [Y/n]${RESET}" response
+      read -n 1 -r -p "${BOLD}${YELLOW}[spin] 🤔 Would you like to check for updates? [Y/n]${RESET} " response
       case "$response" in
         [yY$'\n'])
           send_to_upgrade_script
           ;;
         * )
-          # Do nothing if the answer is not yes.
+          echo
           save_current_time_to_cache_file ".spin-last-update"
           echo "[spin] You can update manually by running \`spin update\`"
           ;;
@@ -80,6 +80,24 @@ check_for_upgrade() {
     # Silence is golden. We won't bug the user if everything looks good.
     :
   fi
+}
+
+check_if_compose_files_exist() {
+    local compose_files=$1
+    local IFS=:
+    local -a files
+
+    read -ra files <<< "$compose_files"
+
+    # Iterate through each file and check for its existence
+    for file in "${files[@]}"; do
+      if [[ ! -f "$file" ]]; then
+        printf '%s\n' "${BOLD}${YELLOW}[spin] 🛑 Cannot find $file!${RESET}"
+        echo "👉 Be sure you're running 'spin' from your project root."
+        echo "👉 If you set COMPOSE_FILE, ensure you set the variable correctly and the files exist."
+        exit 1
+      fi
+    done
 }
 
 current_time_minus() {
@@ -102,22 +120,52 @@ current_time_minus() {
 
 docker_pull_check() {
   if is_internet_connected; then
-
-    if [ "$1" == "--no-pull" ]; then
-      printf "${BOLD}${YELLOW}❗️ Skipping automatic docker image pull.${RESET}\n"
-      shift 1
-      PULL_PROCESSED_COMMANDS="$@"
-      return
+    local no_pull=0
+    
+    for arg in "$@"; do
+      case "$arg" in
+        --no-pull)
+          no_pull=1
+          printf '%s\n' "${BOLD}${YELLOW}[spin] ❗️ Skipping automatic docker image pull because of '--no-pull' was set.${RESET}"
+          ;;
+      esac
+    done
+    
+    if ! is_within_interval_threshold ".spin-last-pull" "$AUTO_PULL_INTERVAL_IN_DAYS" && [ "$no_pull" != "1" ]; then
+      $COMPOSE_CMD pull
+      save_current_time_to_cache_file ".spin-last-pull"
     fi
-    $COMPOSE pull --ignore-pull-failures
-    PULL_PROCESSED_COMMANDS="$@"
-    save_current_time_to_cache_file ".spin-last-pull"
   else
-      printf "${BOLD}${YELLOW}❗️ Skipping automatic docker image pull.${RESET}\n"
-      PULL_PROCESSED_COMMANDS="$@"
+    printf '%s\n' "${BOLD}${YELLOW}[spin] ❗️ Skipping automatic docker image pull.${RESET}"
   fi
+}
 
-  return
+filter_out_spin_arguments() {
+    non_docker_args=(
+        "--no-pull"
+        # Add more non-Docker arguments as needed
+    )
+
+    # Declare an array to hold the filtered arguments
+    local filtered_args=()
+
+    # Loop through all passed arguments
+    for arg in "$@"; do
+        local is_non_docker_arg=false
+        for non_docker_arg in "${non_docker_args[@]}"; do
+            if [[ "$arg" == "$non_docker_arg" ]]; then
+                is_non_docker_arg=true
+                break
+            fi
+        done
+
+        if ! $is_non_docker_arg; then
+            filtered_args+=("$arg")
+        fi
+    done
+
+    # Return the filtered arguments as an array
+    echo "${filtered_args[@]}"
 }
 
 get_latest_image() {

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-action_latest(){
-  shift 1
-  
+action_latest(){  
   # Check that an argument is passed
     if [ $# -gt 0 ]; then
       # Check the first argument and pass the user to proper action, Only some actions need arguments passed.

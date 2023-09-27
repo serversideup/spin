@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 action_new(){
-  shift 1
   # Check that an argument is passed
     if [ $# -gt 0 ]; then
       # Check the first argument and pass the user to proper action, Only some actions need arguments passed.

@@ -2,5 +2,5 @@
 action_exec(){
   shift 1
 
-  $COMPOSE exec $@ 
+  $COMPOSE_CMD exec $@ 
 }
