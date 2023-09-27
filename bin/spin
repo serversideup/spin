@@ -96,6 +96,7 @@ main() {
       ;;
       *)
         echo "\"$1\" is not a valid command. Below are the commands available."
+        source "$SPIN_HOME/lib/actions/help.sh"
         action_help
       ;;
     esac
