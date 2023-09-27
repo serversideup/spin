@@ -60,8 +60,7 @@ check_connection_with_tool() {
 }
 
 check_for_upgrade() {
-  if ! is_within_update_threshold || [ "$1" == "--force" ]; then
-
+  if ! is_within_interval_threshold ".spin-last-update" $AUTO_UPDATE_INTERVAL_IN_DAYS  || [ "$1" == "--force" ]; then
     if [ "$1" != "--force" ]; then
       read -p "${BOLD}${YELLOW}\[spin] 🤔 Would you like to check for updates? [Y/n]${RESET}" response
       case "$response" in
@@ -70,7 +69,7 @@ check_for_upgrade() {
           ;;
         * )
           # Do nothing if the answer is not yes.
-          save_last_update_check_time
+          save_current_time_to_cache_file ".spin-last-update"
           echo "[spin] You can update manually by running \`spin update\`"
           ;;
       esac
@@ -102,7 +101,6 @@ current_time_minus() {
 }
 
 docker_pull_check() {
-  # Check for Internet connection before running a Docker pull
   if is_internet_connected; then
 
     if [ "$1" == "--no-pull" ]; then
@@ -113,6 +111,7 @@ docker_pull_check() {
     fi
     $COMPOSE pull --ignore-pull-failures
     PULL_PROCESSED_COMMANDS="$@"
+    save_current_time_to_cache_file ".spin-last-pull"
   else
       printf "${BOLD}${YELLOW}❗️ Skipping automatic docker image pull.${RESET}\n"
       PULL_PROCESSED_COMMANDS="$@"
@@ -136,13 +135,17 @@ get_latest_image() {
     esac
 }
 
-is_within_update_threshold() {
-  if [ ! -f "$SPIN_CACHE_DIR/.spin-last-update" ]; then
+is_within_interval_threshold() {
+  local spin_cache_file="$SPIN_CACHE_DIR/$1"
+  local interval="$2"
+
+  if [ ! -f $spin_cache_file ]; then
+    # If the file doesn't exist, we're not within the threshold
     return 1
   fi
 
-  local last_update_time=$(cat "$SPIN_HOME/cache/.spin-last-update")
-  local threshold_time=$(current_time_minus "$AUTO_UPDATE_INTERVAL_IN_DAYS")
+  local last_update_time=$(cat $spin_cache_file)
+  local threshold_time=$(current_time_minus $interval)
 
   (( last_update_time <= threshold_time )) && return 1 || return 0
 }
@@ -152,7 +155,7 @@ is_installed_to_user() {
 if [[ "$SPIN_HOME" =~ (/vendor/bin|/node_modules/.bin) ]]; then
     return 1  # Installed by a project (via composer or npm/yarn/bun)
   else
-    return 0  # Assume installed to system
+    return 0  # Assume installed to system/user
   fi
 }
 
@@ -165,7 +168,6 @@ if [[ "$SPIN_HOME" =~ (\.spin) ]]; then
 }
 
 is_internet_connected() {
-    # Define the repo and API URL like in Oh My ZSH
     local repo="serversideup/spin"
     local branch="main"
     local api_url="https://api.github.com/repos/${repo}/commits/${branch}"
@@ -205,8 +207,9 @@ print_version() {
   fi
 }
 
-save_last_update_check_time() {
-  echo $(date +"%s") > $SPIN_HOME/cache/.spin-last-update
+save_current_time_to_cache_file() {
+  mkdir -p $SPIN_CACHE_DIR
+  date +"%s" > $SPIN_CACHE_DIR/$2
 }
 
 send_to_upgrade_script () {
