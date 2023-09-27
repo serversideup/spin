@@ -209,7 +209,7 @@ print_version() {
 
 save_current_time_to_cache_file() {
   mkdir -p $SPIN_CACHE_DIR
-  date +"%s" > $SPIN_CACHE_DIR/$2
+  date +"%s" > $SPIN_CACHE_DIR/$1
 }
 
 send_to_upgrade_script () {
