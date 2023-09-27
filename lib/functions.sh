@@ -38,6 +38,27 @@ add_spin_to_project() {
   fi
 }
 
+check_connection_with_tool() {
+    local tool="$1"
+    local api_url="$2"
+
+    case "$tool" in
+        curl)
+            curl --connect-timeout 2 -fsSL -H 'Accept: application/vnd.github.v3.sha' "$api_url" &>/dev/null
+            ;;
+        wget)
+            wget -T 2 -O- --header='Accept: application/vnd.github.v3.sha' "$api_url" &>/dev/null
+            ;;
+        fetch)
+            HTTP_ACCEPT='Accept: application/vnd.github.v3.sha' fetch -T 2 -o - "$api_url" &>/dev/null
+            ;;
+        *)
+            echo "Invalid argument. Supported arguments are: curl, wget, fetch."
+            return 1
+            ;;
+    esac
+}
+
 check_for_upgrade() {
   # Perform upgrades when not within update threshold, or if "--force" is passed
   if ! is_within_update_threshold || [ "$1" == "--force" ] ; then
@@ -115,25 +136,44 @@ is_within_update_threshold() {
 
 
 is_installed_to_user() {
-  if [ -f "$SPIN_HOME/conf/spin.conf" ]; then
-    return 0
+if [[ "$SPIN_HOME" =~ (/vendor/bin|/node_modules/.bin) ]]; then
+    return 1  # Installed by a project (via composer or npm/yarn/bun)
+  else
+    return 0  # Assume installed to system
+  fi
+}
+
+not_in_active_development() {
+if [[ "$SPIN_HOME" =~ (\.spin) ]]; then
+    return 0 # If .spin is found in SPIN_HOME, assume it's not in active development
   else
     return 1
   fi
 }
 
 is_internet_connected() {
-  local response
-  response=$(curl https://github.com/serversideup/spin/ --write-out %{http_code} --silent --output /dev/null --max-time 1)
+    # Define the repo and API URL like in Oh My ZSH
+    local repo="serversideup/spin"
+    local branch="main"
+    local api_url="https://api.github.com/repos/${repo}/commits/${branch}"
 
-  if [ $response -eq 200 ]; then
-    return 0
-  else
-    printf "${BOLD}${YELLOW}\"spin\" tried to check for updates, but we couldn't connect to Github.com. We'll try again tomorrow.${RESET} \n"
-    # Take the current time and subtract just one day short of the auto update interval so we check again tomorrow
-    echo $(current_time_minus $(expr $AUTO_UPDATE_INTERVAL_IN_DAYS - 1)) > $SPIN_HOME/conf/last_update_check.lock
+    # Tools to be checked in order
+    local tools=("curl" "wget" "fetch")
+
+    for tool in "${tools[@]}"; do
+        if command -v "$tool" &>/dev/null && check_connection_with_tool "$tool" "$api_url"; then
+            return 0
+        else
+          printf "${BOLD}${YELLOW}\"spin\" tried to check for updates, but we couldn't connect to Github.com. We'll try again tomorrow.${RESET} \n"
+          # Take the current time and subtract just one day short of the auto update interval so we check again tomorrow
+          echo $(current_time_minus $(expr $AUTO_UPDATE_INTERVAL_IN_DAYS - 1)) > $SPIN_HOME/cache/last_update_check.lock
+          return 1
+        fi
+    done
+
+    # If none of the tools are available, print an error
+    printf "${BOLD}${RED}Automatic updates are not available because curl, wget, or fetch are not installed.${RESET}\n"
     return 1
-  fi
 }
 
 print_version() {
