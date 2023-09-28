@@ -38,11 +38,11 @@ add_spin_to_project() {
   fi
 }
 
-check_connection_with_tool() {
-    local tool="$1"
+check_connection_with_cmd() {
+    local cmd="$1"
     local api_url="$2"
 
-    case "$tool" in
+    case "$cmd" in
         curl)
             curl --connect-timeout 2 -fsSL -H 'Accept: application/vnd.github.v3.sha' "$api_url" &>/dev/null
             ;;
@@ -116,6 +116,16 @@ current_time_minus() {
 
   echo $DATE_THRESHOLD
 
+}
+
+detect_installation_type() {
+  if [[ "$SPIN_HOME" =~ (/vendor/bin|/node_modules/.bin) ]]; then
+    echo "project"
+  elif [[ "$SPIN_HOME" =~ (\.spin) ]]; then
+    echo "user"
+  else
+    echo "development"
+  fi
 }
 
 docker_pull_check() {
@@ -199,14 +209,6 @@ is_within_interval_threshold() {
 }
 
 
-is_installed_to_user() {
-if [[ "$SPIN_HOME" =~ (/vendor/bin|/node_modules/.bin) ]]; then
-    return 1  # Installed by a project (via composer or npm/yarn/bun)
-  else
-    return 0  # Assume installed to system/user
-  fi
-}
-
 is_internet_connected() {
     local repo="serversideup/spin"
     local branch="main"
@@ -216,7 +218,7 @@ is_internet_connected() {
     local tools=("curl" "wget" "fetch")
 
     for tool in "${tools[@]}"; do
-        if command -v "$tool" &>/dev/null && check_connection_with_tool "$tool" "$api_url"; then
+        if command -v "$tool" &>/dev/null && check_connection_with_cmd "$tool" "$api_url"; then
             return 0
         else
           printf "${BOLD}${YELLOW}\"spin\" tried to check for updates, but we couldn't connect to Github.com. We'll try again tomorrow.${RESET} \n"
@@ -231,28 +233,24 @@ is_internet_connected() {
     return 1
 }
 
-not_in_active_development() {
-if [[ "$SPIN_HOME" =~ (\.spin) ]]; then
-    return 0 # If .spin is found in SPIN_HOME, assume it's not in active development
-  else
-    return 1
-  fi
-}
-
 print_version() {
 
   # Use the local Git repo to show our version
   printf "${BOLD}${YELLOW}Spin Version:${RESET} \n"
   printf "$(git -C $SPIN_HOME describe --tags) "
   
-  # Show the track (if installed to the user)
-  if is_installed_to_user; then
+  local installation_type=$(detect_installation_type)
+
+  if [[ $installation_type == "user" ]]; then
     source $SPIN_CONFIG_FILE_LOCATION
     printf "[$TRACK] "
     printf "(User Installed)\n"
-  else
+  elif [[ $installation_type == "project" ]]; then
     printf "(Project Installed)\n"
+  else
+    printf "(Development)\n"
   fi
+  unset installation_type
 }
 
 save_current_time_to_cache_file() {
