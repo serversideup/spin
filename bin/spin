@@ -32,7 +32,13 @@ main() {
   # Allows overriding with standard `COMPOSE_FILE` environment variable
   # or defaults to building compound from base and environment files
   export COMPOSE_FILE=${COMPOSE_FILE:-"docker-compose.yml:docker-compose.$SPIN_ENV.yml"}
-  check_if_compose_files_exist "$COMPOSE_FILE"
+
+  # Prevent some commands from checking for a compose file
+  if [[ $# -gt 0  || "$1" != "debug" && "$1" != "version" && "$1" != "help" ]]; then
+    : # Silent output for the user, but we're skipping the compose check too.
+  else
+    check_if_compose_files_exist "$COMPOSE_FILE"
+  fi
 
 
   # Set up our structure for our re-used commands
@@ -107,7 +113,10 @@ main() {
       ;;
     esac
   else
-    printf "${BOLD}${YELLOW}\🤔 You didn't pass \"spin\" any arguments. Run \"spin help\" if you want to see the documentation.${RESET}"
+    printf "${BOLD}${YELLOW}🤔 You didn't pass \"spin\" any arguments.${RESET}"
+    echo
+    source "$SPIN_HOME/lib/actions/help.sh"
+    action_help
   fi
 }
 
