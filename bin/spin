@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# set -o xtrace
+#set -o xtrace
 set -e
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -126,11 +126,11 @@ main() {
 
 setup_color
 
-if is_installed_to_user; then
-  # Prevent "spin update" from running updates twice
-  if [ "$1" != "update" ]; then
-    check_for_upgrade
-  fi
+installation_type=$(detect_installation_type)
+if [[ $installation_type == "development" && "$1" != "update" ]]; then
+  check_for_upgrade
 fi
+
+unset installation_type
 
 main "$@" #Passing the original arguments to `main`

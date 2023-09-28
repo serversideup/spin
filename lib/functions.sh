@@ -250,7 +250,6 @@ print_version() {
   else
     printf "(Development)\n"
   fi
-  unset installation_type
 }
 
 save_current_time_to_cache_file() {
