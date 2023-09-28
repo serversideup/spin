@@ -34,7 +34,7 @@ main() {
   export COMPOSE_FILE=${COMPOSE_FILE:-"docker-compose.yml:docker-compose.$SPIN_ENV.yml"}
 
   # Prevent some commands from checking for a compose file
-  if [[ $# -gt 0  || "$1" != "debug" && "$1" != "version" && "$1" != "help" ]]; then
+  if [[ $# -eq 0  || "$1" == "debug" || "$1" == "version" || "$1" == "help" ]]; then
     : # Silent output for the user, but we're skipping the compose check too.
   else
     check_if_compose_files_exist "$COMPOSE_FILE"
