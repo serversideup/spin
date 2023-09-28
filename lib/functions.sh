@@ -207,14 +207,6 @@ if [[ "$SPIN_HOME" =~ (/vendor/bin|/node_modules/.bin) ]]; then
   fi
 }
 
-not_in_active_development() {
-if [[ "$SPIN_HOME" =~ (\.spin) ]]; then
-    return 0 # If .spin is found in SPIN_HOME, assume it's not in active development
-  else
-    return 1
-  fi
-}
-
 is_internet_connected() {
     local repo="serversideup/spin"
     local branch="main"
@@ -237,6 +229,14 @@ is_internet_connected() {
     # If none of the tools are available, print an error
     printf "${BOLD}${RED}Automatic updates are not available because curl, wget, or fetch are not installed.${RESET}\n"
     return 1
+}
+
+not_in_active_development() {
+if [[ "$SPIN_HOME" =~ (\.spin) ]]; then
+    return 0 # If .spin is found in SPIN_HOME, assume it's not in active development
+  else
+    return 1
+  fi
 }
 
 print_version() {
