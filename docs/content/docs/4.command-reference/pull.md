@@ -5,7 +5,7 @@ description: 'Command reference for "spin pull"'
 layout: docs
 ---
 ## Pull
-Trigger a pull of your docker-compose files.
+Trigger a pull of your Docker Compose images.
 
 ## Usage
 ::code-panel
