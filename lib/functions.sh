@@ -130,29 +130,34 @@ detect_installation_type() {
 }
 
 docker_pull_check() {
-  local no_pull=0
+  local pull=0
+  local output=$(printf '%s\n' "${BOLD}${BLUE}[spin] ⚡️ Skipping docker image pull because it ran earlier.${RESET}")
 
   for arg in "$@"; do
     case "$arg" in
-      --no-pull)
-        no_pull=1
-        printf '%s\n' "${BOLD}${YELLOW}[spin] ❗️ Skipping automatic docker image pull because of '--no-pull' was set.${RESET}"
+      --skip-pull)
+        pull=1
+        output=$(printf '%s\n' "${BOLD}${YELLOW}[spin] ❗️ Skipping automatic docker image pull because of '--skip-pull' was set.${RESET}")
+        ;;
+      --force-pull)
+        pull=2
+        output=$(printf '%s\n' "${BOLD}${YELLOW}[spin] ❗️ Forcing a pull of Docker Compose images because '--force-pull' was set.${RESET}")
         ;;
     esac
   done
   
-  if ! is_within_interval_threshold ".spin-last-pull" "$AUTO_PULL_INTERVAL_IN_DAYS" && [ "$no_pull" != "1" ]; then
+  if ! is_within_interval_threshold ".spin-last-pull" "$AUTO_PULL_INTERVAL_IN_DAYS" || [ "$pull" == "2" ]; then
     $COMPOSE_CMD pull
     update_last_pull_timestamp
   else
-    printf '%s\n' "${BOLD}${YELLOW}[spin] ❗️ Skipping automatic docker image pull.${RESET}"
+    echo "$output"
   fi
 }
 
 filter_out_spin_arguments() {
     non_docker_args=(
-        "--no-pull"
-        # Add more non-Docker arguments as needed
+        "--skip-pull"
+        "--force-pull"
     )
 
     # Declare an array to hold the filtered arguments

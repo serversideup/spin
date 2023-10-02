@@ -43,7 +43,8 @@ COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml docker compose up
 ## Official Documentation & Additional Options
 
 #### Spin Specific Options
-- `--no-pull`: Do not automatically pull docker images.
+- `--skip-pull`: Do not automatically pull docker images.
+- `--force-pull`: Pull Docker Compose images, regardless of cache settings.
 
 ### Official Docker Options
 This command is a shortcut for [`docker compose up`](https://docs.docker.com/compose/reference/up/) and can accept additional options that you pass to it. It also does a number of other special things.

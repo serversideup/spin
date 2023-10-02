@@ -28,7 +28,8 @@ spin run php composer install
 ::
 
 #### Spin Specific Options
-- `--no-pull`: Do not automatically pull docker images.
+- `--skip-pull`: Do not automatically pull docker images.
+- `--force-pull`: Pull Docker Compose images, regardless of cache settings.
 
 ### Official Docker Options
 This command is a shortcut for [`docker-compose run`](https://docs.docker.com/compose/reference/run/) and can accept additional options that you pass to it.
