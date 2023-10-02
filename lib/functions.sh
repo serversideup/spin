@@ -2,6 +2,7 @@
 
 SPIN_CONFIG_FILE_LOCATION="$SPIN_HOME/conf/spin.conf"
 
+
 add_spin_to_project() {
   read -n 1 -r -p "Do you want to add Spin to your project? (Y/n)"
   echo
@@ -129,22 +130,20 @@ detect_installation_type() {
 }
 
 docker_pull_check() {
-  if is_internet_connected; then
-    local no_pull=0
-    
-    for arg in "$@"; do
-      case "$arg" in
-        --no-pull)
-          no_pull=1
-          printf '%s\n' "${BOLD}${YELLOW}[spin] ❗️ Skipping automatic docker image pull because of '--no-pull' was set.${RESET}"
-          ;;
-      esac
-    done
-    
-    if ! is_within_interval_threshold ".spin-last-pull" "$AUTO_PULL_INTERVAL_IN_DAYS" && [ "$no_pull" != "1" ]; then
-      $COMPOSE_CMD pull
-      save_current_time_to_cache_file ".spin-last-pull"
-    fi
+  local no_pull=0
+
+  for arg in "$@"; do
+    case "$arg" in
+      --no-pull)
+        no_pull=1
+        printf '%s\n' "${BOLD}${YELLOW}[spin] ❗️ Skipping automatic docker image pull because of '--no-pull' was set.${RESET}"
+        ;;
+    esac
+  done
+  
+  if ! is_within_interval_threshold ".spin-last-pull" "$AUTO_PULL_INTERVAL_IN_DAYS" && [ "$no_pull" != "1" ]; then
+    $COMPOSE_CMD pull
+    update_last_pull_timestamp
   else
     printf '%s\n' "${BOLD}${YELLOW}[spin] ❗️ Skipping automatic docker image pull.${RESET}"
   fi
@@ -194,6 +193,8 @@ get_latest_image() {
 }
 
 is_within_interval_threshold() {
+  # Accepts parameters: The first passed argument should be the name of the cache file
+  # The second argument should be the number of days to check against
   local spin_cache_file="$SPIN_CACHE_DIR/$1"
   local interval="$2"
 
@@ -202,10 +203,18 @@ is_within_interval_threshold() {
     return 1
   fi
 
-  local last_update_time=$(cat $spin_cache_file)
-  local threshold_time=$(current_time_minus $interval)
+  case "$1" in
+    ".spin-last-pull")
+        local last_update_time=$(last_pull_timestamp)
+        local threshold_time=$(current_time_minus $interval)
+        ;;
+    *)
+        local last_update_time=$(cat $spin_cache_file)
+        local threshold_time=$(current_time_minus $interval)
+        ;;
+  esac
 
-  (( last_update_time <= threshold_time )) && return 1 || return 0
+  (( threshold_time <= last_update_time )) && return 0 || return 1
 }
 
 
@@ -231,6 +240,17 @@ is_internet_connected() {
     # If none of the tools are available, print an error
     printf "${BOLD}${RED}Automatic updates are not available because curl, wget, or fetch are not installed.${RESET}\n"
     return 1
+}
+
+last_pull_timestamp() {
+    local project_dir="$(pwd)"
+    local cache_file="$SPIN_CACHE_DIR/.spin-last-pull"
+    
+    # Escape special characters in the directory path to safely use it in regular expressions
+    # sed is used to add a backslash before characters that have special meaning in regex
+    local escaped_project_dir=$(printf '%s' "$project_dir" | sed 's/[][\.|$(){}?+*^]/\\&/g')
+
+    grep "^$escaped_project_dir " $cache_file | awk '{print $2}'
 }
 
 print_version() {
@@ -276,4 +296,38 @@ setup_color() {
     BLUE=$(printf '\033[34m')
     BOLD=$(printf '\033[1m')
     RESET=$(printf '\033[m')
+}
+
+update_last_pull_timestamp() {
+    local file="$SPIN_CACHE_DIR/.spin-last-pull"
+    local project_dir="$(pwd)"
+    local current_time="$(date +"%s")"
+
+    # Comments explaining the awk script:
+    # If the first field of the line ($1) matches the current project directory:
+    #   - Print the project directory and the new timestamp.
+    #   - Mark that we've found a match with the variable 'found'.
+    #   - Skip further processing for this line and move to the next line.
+    # For all other lines:
+    #   - Print them as they are.
+    # After processing all lines:
+    #   - If we did not find a match for the project directory in the file:
+    #       - Add a new entry with the project directory and current timestamp.
+    awk -v dir="$project_dir" -v time="$current_time" '
+        $1 == dir { 
+            print dir, time; 
+            found=1; 
+            next 
+        }
+
+        { print }
+        
+        END { 
+            if(!found) 
+                print dir, time 
+        }
+    ' "$file" > "$file.tmp" # Redirect the output of the awk command to a temporary file
+
+    # Replace the original .spin-last-pull file with the updated temporary file
+    mv "$file.tmp" "$file"
 }
