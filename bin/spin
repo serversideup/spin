@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -o xtrace
+#set -o xtrace
 set -e
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -85,6 +85,10 @@ main() {
       new)
         source "$SPIN_HOME/lib/actions/new.sh"
         action_new "$@"
+      ;;
+      pull)
+        source "$SPIN_HOME/lib/actions/pull.sh"
+        action_pull "$@"
       ;;
       run)
         source "$SPIN_HOME/lib/actions/run.sh"
