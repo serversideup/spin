@@ -33,12 +33,14 @@ main() {
   # or defaults to building compound from base and environment files
   export COMPOSE_FILE=${COMPOSE_FILE:-"docker-compose.yml:docker-compose.$SPIN_ENV.yml"}
 
-  # Prevent some commands from checking for a compose file
-  if [[ $# -eq 0  || "$1" == "debug" || "$1" == "version" || "$1" == "help" || "$1" == "kill" ]]; then
-    : # Silent output for the user, but we're skipping the compose check too.
-  else
-    check_if_compose_files_exist "$COMPOSE_FILE"
-  fi
+  case "$1" in
+    "" | debug | help | kill | prune | version)
+      : # Silent output for the user, but we're skipping the compose check too.
+      ;;
+    *)
+      check_if_compose_files_exist "$COMPOSE_FILE"
+      ;;
+  esac
 
 
   # Set up our structure for our re-used commands
@@ -85,6 +87,10 @@ main() {
       new)
         source "$SPIN_HOME/lib/actions/new.sh"
         action_new "$@"
+      ;;
+      prune)
+        source "$SPIN_HOME/lib/actions/prune.sh"
+        action_prune "$@"
       ;;
       pull)
         source "$SPIN_HOME/lib/actions/pull.sh"
