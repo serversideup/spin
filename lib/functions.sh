@@ -308,6 +308,9 @@ update_last_pull_timestamp() {
     local project_dir="$(pwd)"
     local current_time="$(date +"%s")"
 
+    # Ensure the file exists
+    touch "$file"
+
     # Comments explaining the awk script:
     # If the first field of the line ($1) matches the current project directory:
     #   - Print the project directory and the new timestamp.
