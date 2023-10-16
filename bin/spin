@@ -137,7 +137,7 @@ main() {
 setup_color
 
 installation_type=$(detect_installation_type)
-if [[ $installation_type == "development" && "$1" != "update" ]]; then
+if [[ $installation_type != "development" && "$1" != "update" ]]; then
   check_for_upgrade
 fi
 
