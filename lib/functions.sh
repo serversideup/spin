@@ -90,15 +90,43 @@ check_if_compose_files_exist() {
 
     read -ra files <<< "$compose_files"
 
+    # Flags to track if default and env-specific files are missing
+    local default_missing=false
+    local env_missing_file=""
+
     # Iterate through each file and check for its existence
     for file in "${files[@]}"; do
-      if [[ ! -f "$file" ]]; then
-        printf '%s\n' "${BOLD}${YELLOW}[spin] 🛑 Cannot find $file!${RESET}"
-        echo "👉 Be sure you're running 'spin' from your project root."
-        echo "👉 If you set COMPOSE_FILE, ensure you set the variable correctly and the files exist."
-        exit 1
-      fi
+        if [[ ! -f "$file" ]]; then
+            if [[ "$file" == "docker-compose.yml" ]]; then
+                default_missing=true
+            else
+                env_missing_file="$file"
+            fi
+        fi
     done
+
+    # Handle the missing file scenarios
+    if $default_missing && [[ -n "$env_missing_file" ]]; then
+        printf '%s\n' "${BOLD}${YELLOW}[spin] 🛑 Missing files: docker-compose.yml and $env_missing_file!${RESET}"
+        echo "👉 Be sure you're running 'spin' from your project root."
+        exit 1
+    elif [[ -n "$env_missing_file" ]]; then
+        printf '%s\n' "${BOLD}${YELLOW}[spin] 🛑 Missing file: $env_missing_file!${RESET}"
+        printf "Do you want to proceed using just docker-compose.yml? (y/n) "
+        # Read a single character as input
+        read -n 1 decision
+        echo  # Move to a new line for clarity
+        if [[ "$decision" != "y" && "$decision" != "Y" ]]; then
+            echo "👉 Please ensure the environment-specific docker-compose file exists or select a different environment."
+            exit 1
+        else
+            export COMPOSE_FILE="docker-compose.yml"
+        fi
+    elif $default_missing; then
+        printf '%s\n' "${BOLD}${YELLOW}[spin] 🛑 Missing file: docker-compose.yml!${RESET}"
+        echo "👉 Be sure you're running 'spin' from your project root."
+        exit 1
+    fi
 }
 
 current_time_minus() {
