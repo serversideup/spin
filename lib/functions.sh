@@ -174,7 +174,7 @@ docker_pull_check() {
     esac
   done
   
-  if ! is_within_interval_threshold ".spin-last-pull" "$AUTO_PULL_INTERVAL_IN_DAYS" || [ "$pull" == "2" ]; then
+  if [ "$pull" != "1" ] && (! is_within_interval_threshold ".spin-last-pull" "$AUTO_PULL_INTERVAL_IN_DAYS" || [ "$pull" == "2" ]); then
     $COMPOSE_CMD pull
     update_last_pull_timestamp
   else
