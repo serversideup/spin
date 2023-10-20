@@ -111,13 +111,13 @@ check_if_compose_files_exist() {
         echo "👉 Be sure you're running 'spin' from your project root."
         exit 1
     elif [[ -n "$env_missing_file" ]]; then
-        printf '%s\n' "${BOLD}${YELLOW}[spin] 🛑 Missing file: $env_missing_file!${RESET}"
+        printf '%s\n' "${BOLD}${YELLOW}[spin] ⚠️ $env_missing_file is missing, but a docker-compose.yml file exists.${RESET}"
         printf "Do you want to proceed using just docker-compose.yml? (y/n) "
         # Read a single character as input
         read -n 1 decision
         echo  # Move to a new line for clarity
         if [[ "$decision" != "y" && "$decision" != "Y" ]]; then
-            echo "👉 Please ensure the environment-specific docker-compose file exists or select a different environment."
+            echo "🛑 $env_missing_file doesn't exist. Set a different environment with \"SPIN_ENV\"."
             exit 1
         else
             export COMPOSE_FILE="docker-compose.yml"
