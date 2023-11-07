@@ -23,15 +23,24 @@ source "$SPIN_HOME/lib/functions.sh"
 main() {
   ## Set defaults for our environment
 
-  # Select environment to be used, 
-  # Allows passing as `ENV` environment variable,
+  # Select environments to be used
+  # Allows passing as `ENV` environment variable
   # or defaults to `dev`
   SPIN_ENV=${SPIN_ENV:-dev}
 
-  # Export the compose file(s) to be used
-  # Allows overriding with standard `COMPOSE_FILE` environment variable
-  # or defaults to building compound from base and environment files
-  export COMPOSE_FILE=${COMPOSE_FILE:-"docker-compose.yml:docker-compose.$SPIN_ENV.yml"}
+  # Convert the SPIN_ENV variable into an array of environments
+  IFS=',' read -ra ENV_ARRAY <<< "$SPIN_ENV"
+
+  # Initialize the COMPOSE_FILE variable
+  COMPOSE_FILE="docker-compose.yml"
+
+  # Loop over each environment and append the corresponding compose file
+  for env in "${ENV_ARRAY[@]}"; do
+    COMPOSE_FILE="$COMPOSE_FILE:docker-compose.$env.yml"
+  done
+
+  # Export the COMPOSE_FILE variable
+  export COMPOSE_FILE
 
   case "$1" in
     "" | debug | help | kill | prune | version)
