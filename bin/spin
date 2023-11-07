@@ -42,6 +42,10 @@ main() {
   # Export the COMPOSE_FILE variable
   export COMPOSE_FILE
 
+  # Export the Spin USER IDs
+  export SPIN_USER_ID=$(id -u)
+  export SPIN_GROUP_ID=$(id -g)
+
   case "$1" in
     "" | debug | help | kill | prune | version)
       : # Silent output for the user, but we're skipping the compose check too.
