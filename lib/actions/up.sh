@@ -6,8 +6,8 @@ action_up() {
 
   # Check if 'set -x' is enabled
   if [[ $- == *x* ]]; then
-      # If 'set -x' is enabled, echo the COMPOSE_FILES variable
-      echo "COMPOSE_FILES: $COMPOSE_FILES"
+      # If 'set -x' is enabled, echo the COMPOSE_FILE variable
+      echo "COMPOSE_FILE: $COMPOSE_FILE"
   fi
 
   $COMPOSE_CMD up --remove-orphans ${args[@]}
