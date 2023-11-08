@@ -5,7 +5,7 @@ action_run(){
   local args=($(filter_out_spin_arguments "$@"))
 
   # Run Docker Compose without dependencies. Ensure automations and S6 logging are disabled
-  $COMPOSE_CMD run --remove-orphans --no-deps --rm \
-    -e "S6_LOGGING=1" \
+  $COMPOSE_CMD run --user $SPIN_USER_ID --remove-orphans --no-deps --rm \
+    -e "S6_LOGGING=1" -e "LOG_LEVEL=off" \
     "${args[@]}"
 }

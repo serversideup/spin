@@ -46,6 +46,13 @@ main() {
   export SPIN_USER_ID=$(id -u)
   export SPIN_GROUP_ID=$(id -g)
 
+  # Check if 'set -x' is enabled
+  if [[ $- == *x* ]]; then
+      # If 'set -x' is enabled, echo the COMPOSE_FILE variable
+      echo "SPIN_ENV: $SPIN_ENV"
+      echo "COMPOSE_FILE: $COMPOSE_FILE"
+  fi
+
   case "$1" in
     "" | debug | help | kill | prune | version)
       : # Silent output for the user, but we're skipping the compose check too.
