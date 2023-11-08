@@ -61,7 +61,7 @@ check_connection_with_cmd() {
 }
 
 check_for_upgrade() {
-  if ! is_within_interval_threshold ".spin-last-update" $AUTO_UPDATE_INTERVAL_IN_DAYS  || [ "$1" == "--force" ]; then
+  if needs_update ".spin-last-update" $AUTO_UPDATE_INTERVAL_IN_DAYS  || [ "$1" == "--force" ]; then
     if [ "$1" != "--force" ]; then
       read -n 1 -r -p "${BOLD}${YELLOW}[spin] 🤔 Would you like to check for updates? [Y/n]${RESET} " response
       case "$response" in
@@ -174,7 +174,7 @@ docker_pull_check() {
     esac
   done
   
-  if [ "$pull" != "1" ] && (! is_within_interval_threshold ".spin-last-pull" "$AUTO_PULL_INTERVAL_IN_DAYS" || [ "$pull" == "2" ]); then
+  if [ "$pull" != "1" ] && (needs_update ".spin-last-pull" "$AUTO_PULL_INTERVAL_IN_DAYS" || [ "$pull" == "2" ]); then
     $COMPOSE_CMD pull
     update_last_pull_timestamp
   else
@@ -225,32 +225,6 @@ get_latest_image() {
     esac
 }
 
-is_within_interval_threshold() {
-  # Accepts parameters: The first passed argument should be the name of the cache file
-  # The second argument should be the number of days to check against
-  local spin_cache_file="$SPIN_CACHE_DIR/$1"
-  local interval="$2"
-
-  if [ ! -f $spin_cache_file ]; then
-    # If the file doesn't exist, we're not within the threshold
-    return 1
-  fi
-
-  case "$1" in
-    ".spin-last-pull")
-        local last_update_time=$(last_pull_timestamp)
-        local threshold_time=$(current_time_minus $interval)
-        ;;
-    *)
-        local last_update_time=$(cat $spin_cache_file)
-        local threshold_time=$(current_time_minus $interval)
-        ;;
-  esac
-
-  (( threshold_time <= last_update_time )) && return 0 || return 1
-}
-
-
 is_internet_connected() {
     local repo="serversideup/spin"
     local branch="main"
@@ -284,6 +258,42 @@ last_pull_timestamp() {
     local escaped_project_dir=$(printf '%s' "$project_dir" | sed 's/[][\.|$(){}?+*^]/\\&/g')
 
     grep "^$escaped_project_dir " $cache_file | awk '{print $2}'
+}
+
+needs_update() {
+  # Checks if an update is needed based on the last update time and a given interval.
+  # Parameters:
+  #   1: Name of the cache file (relative to $SPIN_CACHE_DIR)
+  #   2: Interval in days to check against
+
+  local cache_file="$SPIN_CACHE_DIR/$1"
+  local interval="$2"
+  local last_update_time
+
+  # Check if the cache file exists
+  if [ ! -f "$cache_file" ]; then
+    printf '%s\n' "${BOLD}${YELLOW}[spin] 🤔 We can't tell when you last checked for updates, so we'll try updating now...${RESET}"
+    return 0
+  fi
+
+  # Determine the time of the last update
+  case "$1" in
+    ".spin-last-pull")
+        last_update_time=$(last_pull_timestamp)
+        ;;
+    *)
+        last_update_time=$(cat "$cache_file")
+        ;;
+  esac
+
+  # Calculate the threshold time for update
+  local threshold_time=$(current_time_minus "$interval")
+  
+  if (( threshold_time <= last_update_time )); then
+    return 1
+  else
+    return 0
+  fi
 }
 
 print_version() {
