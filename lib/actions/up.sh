@@ -7,6 +7,7 @@ action_up() {
   # Check if 'set -x' is enabled
   if [[ $- == *x* ]]; then
       # If 'set -x' is enabled, echo the COMPOSE_FILE variable
+      echo "SPIN_ENV: $SPIN_ENV"
       echo "COMPOSE_FILE: $COMPOSE_FILE"
   fi
 
