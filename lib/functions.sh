@@ -213,7 +213,7 @@ filter_out_spin_arguments() {
 get_latest_image() {
     case "$1" in
         "php")
-            echo "serversideup/php:beta-8.3-cli"
+            echo "serversideup/php:beta-cli"
             ;;
         "node")
             echo "node:18"
