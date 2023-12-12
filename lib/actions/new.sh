@@ -8,7 +8,7 @@ action_new(){
           shift 1
           latest_image=$(get_latest_image php)
           docker pull $latest_image
-          docker run --rm -v $(pwd):/var/www/html -e "S6_LOGGING=1" $latest_image composer create-project laravel/laravel "$@"
+          docker run --rm -v $(pwd):/var/www/html -e "LOG_LEVEL=off" $latest_image composer create-project laravel/laravel "$@"
           add_spin_to_project php ${@:-laravel}
         ;;
         nuxt)

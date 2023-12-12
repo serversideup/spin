@@ -11,7 +11,7 @@ add_spin_to_project() {
     project_dir="$(pwd)/$2"
     case "$1" in
       "php")
-        docker run --rm -v $project_dir:/var/www/html -e "S6_LOGGING=1" $(get_latest_image php) composer --working-dir=/var/www/html/ require serversideup/spin --dev
+        docker run --rm -v $project_dir:/var/www/html -e "LOG_LEVEL=off" $(get_latest_image php) composer --working-dir=/var/www/html/ require serversideup/spin --dev
         ;;
       "node")
         if [[ -f "$project_dir/package-lock.json" && -f "$project_dir/package.json" ]]; then
