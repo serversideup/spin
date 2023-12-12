@@ -1,6 +1,6 @@
 ---
 head.title: 'Stop | Command Reference - Spin by Server Side Up'
-title: 'Stop'
+title: 'stop'
 description: 'Command reference for "spin stop"'
 layout: docs
 ---
