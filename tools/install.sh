@@ -230,7 +230,7 @@ umask g-w,o-w
 
   SPIN_INSTALL_VERSION=$(get_install_version)
 
-  echo "${BLUE}Cloning Spin \"$SPIN_INSTALL_VERSION\" with sparse checkout...${RESET}"
+  echo "${BLUE}Cloning Spin \"$SPIN_INSTALL_VERSION\"...${RESET}"
 
   # Initialize an empty Git repository
   mkdir -p "$SPIN_HOME" > /dev/null 2>&1
@@ -244,7 +244,6 @@ umask g-w,o-w
   git config core.sparseCheckout true > /dev/null 2>&1
   echo "/*" > .git/info/sparse-checkout
   echo "!/docs" >> .git/info/sparse-checkout
-  echo "!/templates" >> .git/info/sparse-checkout
   echo "!/.github" >> .git/info/sparse-checkout
   echo "!/composer.json" >> .git/info/sparse-checkout
   echo "!/package.json" >> .git/info/sparse-checkout
