@@ -44,7 +44,7 @@ SPIN_HOME=${SPIN_HOME:-$HOME/.spin}
 SPIN_CACHE_DIR=${SPIN_CACHE_DIR:-$SPIN_HOME/cache}
 REPO=${REPO:-serversideup/spin}
 REMOTE=${REMOTE:-https://github.com/${REPO}.git}
-BRANCH=${BRANCH:-main}
+BRANCH=''
 TRACK=${TRACK:-stable}
 
 ############################################################################################################
@@ -224,8 +224,12 @@ setup_spin() {
     exit 1
   }
 
-  local latest_release
-  latest_release=$(get_latest_release)
+  local version_to_install
+  if [ -z "$BRANCH" ]; then
+    version_to_install=$(get_latest_release)
+  else
+    version_to_install=$BRANCH
+  fi
 
   echo "${BLUE}Cloning Spin...${RESET}"
 
@@ -235,7 +239,7 @@ setup_spin() {
     -c receive.fsck.zeroPaddedFilemode=ignore \
     -c advice.detachedHead=false \
     -c spin.remote=origin \
-    --depth=1 --branch "$latest_release" "$REMOTE" "$SPIN_HOME" || {
+    --depth=1 --branch "$version_to_install" "$REMOTE" "$SPIN_HOME" || {
     fmt_error "git clone of spin repo failed"
     exit 1
   }
