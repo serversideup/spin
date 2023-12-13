@@ -182,7 +182,10 @@ command_exists() {
   command -v "$@" >/dev/null 2>&1
 }
 
-get_latest_release() {
+get_install_version() {
+  if [ ! -z "$BRANCH" ]; then
+    echo $BRANCH
+  fi
   if [ "$TRACK" = "beta" ]; then
     # Get the latest release (including pre-releases). We just want the 
     # absolute latest release, regardless of pre-release or stable
@@ -223,12 +226,8 @@ setup_spin() {
     fmt_error "git is not installed"
     exit 1
   }
-
-  if [ -z "$BRANCH" ]; then
-    SPIN_INSTALL_VERSION=$(get_latest_release)
-  else
-    SPIN_INSTALL_VERSION=$BRANCH
-  fi
+  
+  SPIN_INSTALL_VERSION=$(get_install_version)
 
   echo "${BLUE}Cloning Spin...${RESET}"
 
