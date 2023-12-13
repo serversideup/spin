@@ -229,7 +229,7 @@ setup_spin() {
 
   SPIN_INSTALL_VERSION=$(get_install_version)
 
-  echo "${BLUE}Cloning Spin...${RESET}"
+  echo "${BLUE}Cloning Spin \"$SPIN_INSTALL_VERSION\"...${RESET}"
 
   git clone -c core.eol=lf -c core.autocrlf=false \
     -c fsck.zeroPaddedFilemode=ignore \
