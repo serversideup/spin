@@ -186,7 +186,7 @@ perform_upgrade() {
     local new_version
     new_version=$1
 
-    echo "${BLUE}Updating spin Spin...${RESET}"
+    echo "${BLUE}Updating Spin to \"$new_version\"...${RESET}"
 
     git -C $SPIN_HOME fetch --all --tags > /dev/null
 

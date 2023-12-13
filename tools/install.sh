@@ -221,7 +221,7 @@ setup_spin() {
   # for users with insecure umasks (e.g., "002", allowing group writability). Note
   # that this will be ignored under Cygwin by default, as Windows ACLs take
   # precedence over umasks except for filesystems mounted with option "noacl".
-  umask g-w,o-w
+umask g-w,o-w
 
   command_exists git || {
     fmt_error "git is not installed"
@@ -230,21 +230,32 @@ setup_spin() {
 
   SPIN_INSTALL_VERSION=$(get_install_version)
 
-  echo "${BLUE}Cloning Spin \"$SPIN_INSTALL_VERSION\"...${RESET}"
+  echo "${BLUE}Cloning Spin \"$SPIN_INSTALL_VERSION\" with sparse checkout...${RESET}"
 
-  git clone -c core.eol=lf -c core.autocrlf=false \
-    -c fsck.zeroPaddedFilemode=ignore \
-    -c fetch.fsck.zeroPaddedFilemode=ignore \
-    -c receive.fsck.zeroPaddedFilemode=ignore \
-    -c advice.detachedHead=false \
-    -c spin.remote=origin \
-    --depth=1 --branch "$SPIN_INSTALL_VERSION" "$REMOTE" "$SPIN_HOME" || {
-    fmt_error "git clone of spin repo failed"
-    exit 1
-  }
+  # Initialize an empty Git repository
+  mkdir -p "$SPIN_HOME"
+  git init "$SPIN_HOME"
+  cd "$SPIN_HOME"
 
+  # Add the remote repository
+  git remote add -f origin "$REMOTE"
+
+  # Enable sparse checkout and configure it
+  git config core.sparseCheckout true
+  echo "/*" > .git/info/sparse-checkout
+  echo "!/docs" >> .git/info/sparse-checkout
+  echo "!/templates" >> .git/info/sparse-checkout
+  echo "!/.github" >> .git/info/sparse-checkout
+  echo "!/composer.json" >> .git/info/sparse-checkout
+  echo "!/package.json" >> .git/info/sparse-checkout
+  echo "!/.npmignore" >> .git/info/sparse-checkout
+
+  # Fetch and checkout the specific branch with depth 1
+  git fetch --depth=1 origin "$SPIN_INSTALL_VERSION"
+  git checkout FETCH_HEAD
+
+  # Additional setup steps
   set_configuration_file
-
   save_last_update_check_time
 
   echo #Empty line
