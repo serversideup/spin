@@ -224,11 +224,10 @@ setup_spin() {
     exit 1
   }
 
-  local version_to_install
   if [ -z "$BRANCH" ]; then
-    version_to_install=$(get_latest_release)
+    SPIN_INSTALL_VERSION=$(get_latest_release)
   else
-    version_to_install=$BRANCH
+    SPIN_INSTALL_VERSION=$BRANCH
   fi
 
   echo "${BLUE}Cloning Spin...${RESET}"
@@ -239,7 +238,7 @@ setup_spin() {
     -c receive.fsck.zeroPaddedFilemode=ignore \
     -c advice.detachedHead=false \
     -c spin.remote=origin \
-    --depth=1 --branch "$version_to_install" "$REMOTE" "$SPIN_HOME" || {
+    --depth=1 --branch "$SPIN_INSTALL_VERSION" "$REMOTE" "$SPIN_HOME" || {
     fmt_error "git clone of spin repo failed"
     exit 1
   }
@@ -265,7 +264,7 @@ print_success() {
     printf '%s     /__/:/   %s    \  \:\  %s     \__\/  %s    \  \:\    %s\n'      $RAINBOW $RESET
     printf '%s     \__\/    %s     \__\/  %s            %s     \__\/    %s\n'      $RAINBOW $RESET
     printf '\n'
-    printf "%s %s %s\n" "${BOLD}${GREEN}✅ You're ready to rock!${RESET} Check out the documentation to get started."
+    printf "%s %s %s\n" "${BOLD}${GREEN}✅ Spin \"$SPIN_INSTALL_VERSION\" installed!${RESET} Check out the documentation to get started."
     printf '\n'
     printf '%s\n' "• See what \"spin\" is capable of: $(fmt_link "Read the Docs" https://serversideup.net/open-source/spin/)"
     printf '%s\n' "• Get latest news and updates by follow on Twitter: $(fmt_link @serversideup https://twitter.com/serversideup)"
