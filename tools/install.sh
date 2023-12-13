@@ -233,15 +233,15 @@ umask g-w,o-w
   echo "${BLUE}Cloning Spin \"$SPIN_INSTALL_VERSION\" with sparse checkout...${RESET}"
 
   # Initialize an empty Git repository
-  mkdir -p "$SPIN_HOME"
-  git init "$SPIN_HOME"
+  mkdir -p "$SPIN_HOME" > /dev/null 2>&1
+  git init "$SPIN_HOME" > /dev/null 2>&1
   cd "$SPIN_HOME"
 
   # Add the remote repository
-  git remote add -f origin "$REMOTE"
+  git remote add -f origin "$REMOTE" > /dev/null 2>&1
 
   # Enable sparse checkout and configure it
-  git config core.sparseCheckout true
+  git config core.sparseCheckout true > /dev/null 2>&1
   echo "/*" > .git/info/sparse-checkout
   echo "!/docs" >> .git/info/sparse-checkout
   echo "!/templates" >> .git/info/sparse-checkout
@@ -251,8 +251,8 @@ umask g-w,o-w
   echo "!/.npmignore" >> .git/info/sparse-checkout
 
   # Fetch and checkout the specific branch with depth 1
-  git fetch --depth=1 origin "$SPIN_INSTALL_VERSION"
-  git checkout FETCH_HEAD
+  git fetch --depth=1 origin "$SPIN_INSTALL_VERSION" > /dev/null 2>&1
+  git checkout FETCH_HEAD > /dev/null 2>&1
 
   # Additional setup steps
   set_configuration_file
