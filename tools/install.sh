@@ -185,7 +185,7 @@ command_exists() {
 get_install_version() {
   if [ ! -z "$BRANCH" ]; then
     echo $BRANCH
-    retrun 0
+    return 0
   fi
   if [ "$TRACK" = "beta" ]; then
     # Get the latest release (including pre-releases). We just want the 
