@@ -54,7 +54,7 @@ main() {
   fi
 
   case "$1" in
-    "" | debug | help | kill | new | prune | version)
+    "" | debug | help | kill | new | prune | update | version)
       : # Silent output for the user, but we're skipping the compose check too.
       ;;
     *)
