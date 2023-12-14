@@ -3,7 +3,7 @@
 SPIN_CONFIG_FILE_LOCATION="$SPIN_HOME/conf/spin.conf"
 
 
-add_spin_to_project() {
+install_spin_package_to_project() {
   read -n 1 -r -p "Do you want to add Spin to your project? (Y/n)"
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]
