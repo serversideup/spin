@@ -8,7 +8,7 @@
 
         <div class="group bg-white/2.5">
             <div class="relative overflow-x-auto p-4 text-xs text-white">
-                <ContentSlot :use="$slots.default" unwrap="pre"/>
+                <ContentSlot :use="$slots.default"/>
                 <CopyButton :code="$slots.default()[0].props.code"/>
             </div>
         </div>
