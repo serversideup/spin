@@ -6,5 +6,3 @@ layout: marketing
 
 ::marketing-follow-along
 ::
-
-# Test
