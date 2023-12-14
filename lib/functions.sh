@@ -83,6 +83,14 @@ check_for_upgrade() {
   fi
 }
 
+check_if_docker_is_running(){
+  if ! docker info > /dev/null 2>&1; then
+    printf "${BOLD}${RED}❌ Docker is not running.${RESET} "
+    printf "You need to start Docker Desktop or install Docker before using \"spin\".\n"
+    exit 1
+  fi
+}
+
 check_if_compose_files_exist() {
     local compose_files=$1
     local IFS=:

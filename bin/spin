@@ -10,13 +10,6 @@ AUTO_UPDATE_INTERVAL_IN_DAYS=${AUTO_UPDATE_INTERVAL_IN_DAYS:-14}
 AUTO_PULL_INTERVAL_IN_DAYS=${AUTO_UPDATE_PULL_IN_DAYS:-1}
 
 
-# Sanity Check
-if ! docker info > /dev/null 2>&1; then
-  printf "${BOLD}${RED}❌ Docker is not running.${RESET} "
-  printf "You need to start Docker Desktop or install Docker before using \"spin\".\n"
-  exit 1
-fi
-
 # Import common functions
 source "$SPIN_HOME/lib/functions.sh"
 
@@ -54,10 +47,11 @@ main() {
   fi
 
   case "$1" in
-    "" | debug | help | kill | new | prune | update | version)
+    "" | debug | help | init | kill | new | prune | update | version)
       : # Silent output for the user, but we're skipping the compose check too.
       ;;
     *)
+      check_if_docker_is_running
       check_if_compose_files_exist "$COMPOSE_FILE"
       ;;
   esac
@@ -91,6 +85,10 @@ main() {
       help)
         source "$SPIN_HOME/lib/actions/help.sh"
         action_help
+      ;;
+      init)
+        source "$SPIN_HOME/lib/actions/init.sh"
+        action_init
       ;;
       kill)
         source "$SPIN_HOME/lib/actions/kill.sh"
