@@ -17,7 +17,7 @@
     "@tailwindcss/typography": "^0.5.9",
     "@vueuse/core": "^9.12.0",
     "@vueuse/nuxt": "^9.12.0",
-    "nuxt": "^3.1.0",
+    "nuxt": "^3.8.0",
     "sitemap": "^7.1.1",
     "surge": "^0.23.1"
   },
