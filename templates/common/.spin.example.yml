@@ -22,7 +22,8 @@ postfix_hostname: "{{ inventory_hostname }}"
 ##############################################################
 
 ### Use the template below to set users and their authorized keys
-## Passwords must be set with an encrypted hash. To do this, see the Ansible FAQ
+## Passwords must be set with an encrypted hash. To do this, see the Ansible FAQ.
+## Your best bet is probably using the `mkpasswd` on a Linux machine.
 ## https://docs.ansible.com/ansible/latest/reference_appendices/faq.html#how-do-i-generate-encrypted-passwords-for-the-user-module
 
 # users:
