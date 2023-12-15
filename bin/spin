@@ -6,14 +6,14 @@ set -e
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 SPIN_HOME=$(dirname "$SCRIPT_DIR") #Assume the parent directory of this script is the home
 SPIN_CACHE_DIR=${SPIN_CACHE_DIR:-$SPIN_HOME/cache}
-SPIN_CONFIG_FILE_LOCATION="$SPIN_HOME/conf/spin.conf"
+SPIN_CONFIG_FILE_LOCATION=${SPIN_CONFIG_FILE_LOCATION:-"$SPIN_HOME/conf/spin.conf"}
 AUTO_UPDATE_INTERVAL_IN_DAYS=${AUTO_UPDATE_INTERVAL_IN_DAYS:-14}
-AUTO_PULL_INTERVAL_IN_DAYS=${AUTO_UPDATE_PULL_IN_DAYS:-1}
+AUTO_PULL_INTERVAL_IN_DAYS=${AUTO_PULL_INTERVAL_IN_DAYS:-1}
 
 ### Default Images
-SPIN_PHP_IMAGE="serversideup/php:beta-cli"
-SPIN_NODE_IMAGE="node:20"
-SPIN_ANSIBLE_IMAGE="willhallonline/ansible:alpine"
+SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:beta-cli"}
+SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
+SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"willhallonline/ansible:alpine"}
 
 # Import common functions
 source "$SPIN_HOME/lib/functions.sh"
