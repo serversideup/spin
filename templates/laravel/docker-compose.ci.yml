@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  mariadb:
+    networks:
+      - ci
+    environment:
+        MYSQL_ROOT_PASSWORD: "rootpassword"
+        MYSQL_DATABASE: "laravel_testing"
+        MYSQL_USER: "mysqluser"
+        MYSQL_PASSWORD: "mysqlpassword"
+
+  php:
+    networks:
+      - ci
+    volumes:
+      - .:/var/www/html/
+    working_dir: /var/www/html/
+    environment:
+      AUTORUN_ENABLED: false
+    depends_on:
+      - mariadb
+
+  node:
+    image: node:20
+    volumes:
+      - .:/usr/src/app/
+    working_dir: /usr/src/app/
+    networks: 
+      - ci
+
+  mailpit:
+    image: axllent/mailpit
+    networks:
+      - ci
+
+networks:
+  ci:

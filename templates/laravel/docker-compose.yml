@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+
+  traefik:
+    image: traefik:v2.10
+
+  mariadb: 
+    image: mariadb:10.11
+
+  php:
+    build:
+      context: .
+      target: base
+    depends_on:
+      - traefik
+      - mariadb
