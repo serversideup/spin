@@ -130,6 +130,10 @@ main() {
         source "$SPIN_HOME/lib/actions/update.sh"
         action_update
       ;;
+      vault)
+        source "$SPIN_HOME/lib/actions/vault.sh"
+        action_vault "$@"
+      ;;
       version)
         source "$SPIN_HOME/lib/actions/version.sh"
         action_version
