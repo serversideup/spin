@@ -88,7 +88,7 @@ main() {
       ;;
       init)
         source "$SPIN_HOME/lib/actions/init.sh"
-        action_init
+        action_init "$@"
       ;;
       kill)
         source "$SPIN_HOME/lib/actions/kill.sh"
