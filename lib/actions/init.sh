@@ -107,7 +107,7 @@ action_init() {
   fi
 
   if [[ ! -f "$project_directory/.vault_password" ]]; then
-    echo "${BOLD}${YELLOW}⚠️ Your \".spin.yml\" is not encrypted. We HIGHLY reccomend encrypting it. Would you like to encrypt it now?${RESET}"
+    echo "${BOLD}${YELLOW}⚠️ Your \".spin.yml\" is not encrypted. We HIGHLY recommend encrypting it. Would you like to encrypt it now?${RESET}"
     echo -n "Enter \"y\" or \"n\": "
     read -n 1 encrypt_response
     echo # move to a new line
