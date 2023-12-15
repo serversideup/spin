@@ -11,5 +11,5 @@ action_vault(){
         echo "${BOLD}${YELLOW}👉 To edit the file, press i.${RESET}"
         echo "${BOLD}${YELLOW}💾 To save your changes and exit, press ESC, then type \":wq\" and press ENTER.${RESET}"
     fi
-    docker run --name spin-ansible --rm -it -v "$(pwd)":/ansible $DEFAULT_ANSIBLE_IMAGE ansible-vault "$@"
+    docker run --name spin-ansible --rm -it -v "$(pwd)":/ansible $SPIN_ANSIBLE_IMAGE ansible-vault "$@"
 }

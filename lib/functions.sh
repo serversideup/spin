@@ -1,13 +1,4 @@
 #!/usr/bin/env bash
-
-SPIN_CONFIG_FILE_LOCATION="$SPIN_HOME/conf/spin.conf"
-
-### Default Images
-DEFAULT_PHP_IMAGE="serversideup/php:beta-cli"
-DEFAULT_NODE_IMAGE="node:20"
-DEFAULT_ANSIBLE_IMAGE="willhallonline/ansible:alpine"
-
-
 install_spin_package_to_project() {
   # Variables for clearer understanding
   framework="$1"
@@ -41,21 +32,21 @@ install_spin_package_to_project() {
   project_dir="$(pwd)/$project_name"
   case "$framework" in
     "php")
-      docker run --rm -v $project_dir:/var/www/html -e "LOG_LEVEL=off" $DEFAULT_PHP_IMAGE composer --working-dir=/var/www/html/ require serversideup/spin:dev-release/2.0 --dev
+      docker run --rm -v $project_dir:/var/www/html -e "LOG_LEVEL=off" $SPIN_PHP_IMAGE composer --working-dir=/var/www/html/ require serversideup/spin:dev-release/2.0 --dev
       ;;
     "node")
       if [[ -f "$project_dir/package-lock.json" && -f "$project_dir/package.json" ]]; then
           echo "🧐 I detected a package-lock.json file, so I'll use npm."
-          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $DEFAULT_NODE_IMAGE npm install @serversideup/spin --save-dev
+          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $SPIN_NODE_IMAGE npm install @serversideup/spin --save-dev
       elif [[ -f "$project_dir/pnpm-lock.yaml" ]]; then
           echo "🧐 I detected a pnpm-lock.yaml file, so I'll use pnpm."
-          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $DEFAULT_NODE_IMAGE pnpm add -D @serversideup/spin
+          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $SPIN_NODE_IMAGE pnpm add -D @serversideup/spin
       elif [[ -f "$project_dir/yarn.lock" ]]; then
           echo "🧐 I detected a yarn.lock file, so I'll use yarn."
-          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $DEFAULT_NODE_IMAGE yarn add @serversideup/spin --dev
+          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $SPIN_NODE_IMAGE yarn add @serversideup/spin --dev
       elif [[ -f "$project_dir/Bunfile" || -f "$project_dir/Bunfile.lock" ]]; then
           echo "🧐 I detected a Bunfile or Bunfile.lock file, so I'll use bun."
-          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $DEFAULT_NODE_IMAGE bun add -d @serversideup/spin
+          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $SPIN_NODE_IMAGE bun add -d @serversideup/spin
       else
           echo "Unknown Node project type."
           exit 1

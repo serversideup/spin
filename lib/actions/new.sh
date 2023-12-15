@@ -6,7 +6,7 @@ action_new(){
       case $1 in
         laravel)
           shift 1
-          latest_image=$DEFAULT_PHP_IMAGE
+          latest_image=$SPIN_PHP_IMAGE
           docker pull $latest_image
           docker run --rm -w /var/www/html -v $(pwd):/var/www/html -e "LOG_LEVEL=off" $latest_image composer create-project laravel/laravel "$@"
           install_spin_package_to_project php "${@:-laravel}" --force
@@ -15,7 +15,7 @@ action_new(){
         ;;
         nuxt)
           shift 1
-          latest_image=$DEFAULT_NODE_IMAGE
+          latest_image=$SPIN_NODE_IMAGE
           docker pull $latest_image
           docker run --rm -it -v $(pwd):/usr/src/app -w /usr/src/app $latest_image npx nuxi@latest init "$@"
           install_spin_package_to_project node "${@:-nuxt-app}" --force

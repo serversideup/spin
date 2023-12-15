@@ -116,7 +116,7 @@ action_init() {
       echo "${BOLD}${BLUE}⚡️ Running Ansible Vault to encrypt \"$project_directory/.spin.yml\"...${RESET}"
       echo "${BOLD}${YELLOW}⚠️ NOTE: This password will be required anytime someone needs to change the \".spin.yml\" file.${RESET}"
       echo "${BOLD}${YELLOW}We recommend using a RANDOM PASSWORD.${RESET}"
-      docker run --name spin-ansible --rm -it -v "$(pwd)/$project_directory":/ansible $DEFAULT_ANSIBLE_IMAGE ansible-vault encrypt .spin.yml
+      docker run --name spin-ansible --rm -it -v "$(pwd)/$project_directory":/ansible $SPIN_ANSIBLE_IMAGE ansible-vault encrypt .spin.yml
       echo "${BOLD}${GREEN}✅ \"$project_directory/.spin.yml\" has been encrypted.${RESET}"
       echo "${BOLD}${YELLOW}👉 NOTE: You can save this password in \".vault_password\" in the root of your project if you want your secret to be remembered.${RESET}"
     elif [[ $encrypt_response =~ ^[Nn]$ ]]; then

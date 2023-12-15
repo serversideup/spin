@@ -6,7 +6,7 @@ action_latest(){
       case $1 in
         php)
           shift 1
-          docker run --rm -v $(pwd):/var/www/html $DEFAULT_PHP_IMAGE "$@"
+          docker run --rm -v $(pwd):/var/www/html $SPIN_PHP_IMAGE "$@"
         ;;
         *)
           echo "\"$1\" is not a valid command. Below are the commands available."
