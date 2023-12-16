@@ -29,8 +29,9 @@ action_init() {
   fi
 
   if [[ $force = 0 ]]; then
-      echo -n "${BOLD}${YELLOW}👉 Heads up: We're about to add our templates to your project.${RESET} Are you good with that? [y/n]: "
-      read -n 1 add_files_response
+      echo "${BOLD}${YELLOW}👉 Heads up: We're about to add our templates to your project.${RESET}"
+      echo -n "Do you want to continue? [y/n]: "
+      read -r -n 1 add_files_response
       echo  # move to a new line
       if [[ $add_files_response =~ ^[Yy]$ ]]; then
           echo "We will add our templates to your project."
@@ -47,8 +48,8 @@ action_init() {
       echo "Select your project type:"
       echo "1) Laravel"
       echo "2) Nuxt"
-      echo -n "Enter the number of your choice (1 for Laravel, 2 for Nuxt): "
-      read -r project_type_number
+      echo -n "Enter the number of your choice: "
+      read -r -n 1 project_type_number
       echo # move to a new line
 
       case $project_type_number in
@@ -89,7 +90,7 @@ action_init() {
     ' bash "$SPIN_HOME/templates/$template" "$project_directory" {} +
   fi
 
-  echo "${BOLD}${BLUE}⚡️ Adding items to your .gitignore for best security...${RESET}"
+  echo "${BOLD}${BLUE}⚡️ Ensuring your .gitignore is up to date for best security...${RESET}"
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     # Check if the line is not already in the .gitignore
@@ -99,6 +100,7 @@ action_init() {
     fi
   done < "$SPIN_HOME/templates/common/.gitignore.example"
 
+  # Create spin.yml
   if [[ -f "$project_directory/.spin.yml" ]]; then
     echo "${BOLD}${YELLOW}⚠️  \"$project_directory/.spin.yml\" already exists. Skipping...${RESET}"
   else
@@ -106,26 +108,36 @@ action_init() {
     cp "$SPIN_HOME/templates/common/.spin.example.yml" "$project_directory/.spin.yml"
   fi
 
-  if [[ ! -f "$project_directory/.vault_password" ]]; then
-    echo "${BOLD}${YELLOW}⚠️ Your \".spin.yml\" is not encrypted. We HIGHLY recommend encrypting it. Would you like to encrypt it now?${RESET}"
+  # Create spin.inventory.ini
+  if [[ -f "$project_directory/.spin.inventory.ini" ]]; then
+    echo "${BOLD}${YELLOW}⚠️  \"$project_directory/.spin.inventory.ini\" already exists. Skipping...${RESET}"
+  else
+    echo "${BOLD}${BLUE}⚡️ Creating \"$project_directory/.spin.inventory.ini\"...${RESET}"
+    cp "$SPIN_HOME/templates/common/.spin.example.yml" "$project_directory/.spin.inventory.ini"
+  fi
+
+  # Encrpytion check
+  if ! head -n 1 "$project_directory/.spin.yml" | grep -q '^\$ANSIBLE_VAULT;1\.1;AES256' || \
+    ! head -n 1 "$project_directory/.spin.inventory.ini" | grep -q '^\$ANSIBLE_VAULT;1\.1;AES256'; then
+    echo "${BOLD}${YELLOW}⚠️ Your Spin configurations are not encrypted. We HIGHLY recommend encrypting it. Would you like to encrypt it now?${RESET}"
     echo -n "Enter \"y\" or \"n\": "
-    read -n 1 encrypt_response
+    read -r -n 1 encrypt_response
     echo # move to a new line
 
     if [[ $encrypt_response =~ ^[Yy]$ ]]; then
-      echo "${BOLD}${BLUE}⚡️ Running Ansible Vault to encrypt \"$project_directory/.spin.yml\"...${RESET}"
-      echo "${BOLD}${YELLOW}⚠️ NOTE: This password will be required anytime someone needs to change the \".spin.yml\" file.${RESET}"
+      echo "${BOLD}${BLUE}⚡️ Running Ansible Vault to encrypt Spin configurations...${RESET}"
+      echo "${BOLD}${YELLOW}⚠️ NOTE: This password will be required anytime someone needs to change these files.${RESET}"
       echo "${BOLD}${YELLOW}We recommend using a RANDOM PASSWORD.${RESET}"
-      docker run --rm -it -v "$(pwd)/$project_directory":/ansible $SPIN_ANSIBLE_IMAGE ansible-vault encrypt .spin.yml
+      docker run --rm -it -v "$project_directory":/ansible $SPIN_ANSIBLE_IMAGE ansible-vault encrypt .spin.yml .spin.inventory.ini
       echo "${BOLD}${GREEN}✅ \"$project_directory/.spin.yml\" has been encrypted.${RESET}"
       echo "${BOLD}${YELLOW}👉 NOTE: You can save this password in \".vault_password\" in the root of your project if you want your secret to be remembered.${RESET}"
     elif [[ $encrypt_response =~ ^[Nn]$ ]]; then
       echo "${BOLD}${BLUE}👋 Ok, we won't encrypt your \".spin.yml\".${RESET} You can always encrypt it later by running \"spin vault encrypt\"."
     else
       echo "${BOLD}${RED}❌ Invalid response. Please respond with \"y\" or \"n\".${RESET} Run \"spin init\" to try again."
-      return 1
+      exit 1
     fi
   fi
 
-  echo "${BOLD}${BLUE}🚀 The project, \"$project_name\", is now ready for \"spin  up\"!${RESET}"
+  echo "${BOLD}${BLUE}🚀 Your project is now ready for \"spin  up\"!${RESET}"
 }
