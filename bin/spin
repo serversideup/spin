@@ -52,9 +52,12 @@ main() {
   fi
 
   case "$1" in
-    "" | debug | help | init | kill | new | prune | update | version)
+    "" | debug | help | update | version)
       : # Silent output for the user, but we're skipping the compose check too.
       ;;
+    init | kill | new | prune)
+      check_if_docker_is_running
+    ;;
     *)
       check_if_docker_is_running
       check_if_compose_files_exist "$COMPOSE_FILE"
