@@ -67,53 +67,54 @@ action_init() {
   fi
 
   if [[ -d "$SPIN_HOME/templates/$template" ]]; then
-    echo "${BOLD}${BLUE}⚡️ Copying spin templates to our project, \"$project_directory\"...${RESET}"
+    echo "⚡️ Copying spin templates to our project..."
 
-    # Check to see if the template file already exists in the project directory
-    find "$SPIN_HOME/templates/$template" -type f -exec bash -c '
-      for file do
-        target_file="$2/${file#$1/}"
-        if [[ -d "$file" ]]; then
+  # Check to see if the template file already exists in the project directory
+  while IFS= read -r file; do
+      target_file="$project_directory/${file#$SPIN_HOME/templates/$template/}"
+      # Compute the relative path for the echo statements
+      relative_target_file="${target_file#$project_directory/}"
+
+      if [[ -d "$file" ]]; then
           continue
-        fi
-        if [[ -f "$target_file" ]]; then
-          echo "${BOLD}${YELLOW}⚠️  \"$target_file\" already exists. Skipping...${RESET}"
-        else
+      fi
+      if [[ -f "$target_file" ]]; then
+          echo "👉 \"$relative_target_file\" already exists. Skipping..."
+      else
           mkdir -p "$(dirname "$target_file")"
           if cp "$file" "$target_file"; then
-            echo "${BOLD}${GREEN}✅ \"$target_file\" has been created.${RESET}"
+              echo "✅ \"$relative_target_file\" has been created."
           else
-            echo "${BOLD}${RED}❌ Error copying \"$file\" to \"$target_file\".${RESET}"
+              echo "${BOLD}${RED}❌ Error copying \"$file\" to \"$relative_target_file\"."
           fi
-        fi
-      done
-    ' bash "$SPIN_HOME/templates/$template" "$project_directory" {} +
-  fi
+      fi
+  done < <(find "$SPIN_HOME/templates/$template" -type f)
 
-  echo "${BOLD}${BLUE}⚡️ Ensuring your .gitignore is up to date for best security...${RESET}"
+  fi
 
   while IFS= read -r line || [[ -n "$line" ]]; do
     # Check if the line is not already in the .gitignore
     if ! grep -Fxq "$line" "$project_directory/.gitignore"; then
         # If the line is not in .gitignore, append it
         echo "$line" >> "$project_directory/.gitignore"
+        echo "✅ \"$line\" has been added to \".gitignore\"."
     fi
   done < "$SPIN_HOME/templates/common/.gitignore.example"
 
   # Create spin.yml
   if [[ -f "$project_directory/.spin.yml" ]]; then
-    echo "${BOLD}${YELLOW}⚠️  \"$project_directory/.spin.yml\" already exists. Skipping...${RESET}"
+    echo "ℹ️  \"$project_directory/.spin.yml\" already exists. Skipping..."
   else
-    echo "${BOLD}${BLUE}⚡️ Creating \"$project_directory/.spin.yml\"...${RESET}"
-    cp "$SPIN_HOME/templates/common/.spin.example.yml" "$project_directory/.spin.yml"
+    echo "⚡️ Creating \"$project_directory/.spin.yml\".."
+    cp "$SPIN_HOME/templates/common/.spin.yml" "$project_directory/.spin.yml"
   fi
 
   # Create spin.inventory.ini
   if [[ -f "$project_directory/.spin.inventory.ini" ]]; then
-    echo "${BOLD}${YELLOW}⚠️  \"$project_directory/.spin.inventory.ini\" already exists. Skipping...${RESET}"
+    echo "ℹ️  \"$project_directory/.spin.inventory.ini\" already exists. Skipping..."
   else
-    echo "${BOLD}${BLUE}⚡️ Creating \"$project_directory/.spin.inventory.ini\"...${RESET}"
-    cp "$SPIN_HOME/templates/common/.spin.example.yml" "$project_directory/.spin.inventory.ini"
+    echo "⚡️ Creating \"$project_directory/.spin.inventory.ini\"..."
+    cp "$SPIN_HOME/templates/common/.spin.inventory.ini" "$project_directory/.spin.inventory.ini"
   fi
 
   # Encrpytion check
@@ -129,7 +130,6 @@ action_init() {
       echo "${BOLD}${YELLOW}⚠️ NOTE: This password will be required anytime someone needs to change these files.${RESET}"
       echo "${BOLD}${YELLOW}We recommend using a RANDOM PASSWORD.${RESET}"
       docker run --rm -it -v "$project_directory":/ansible $SPIN_ANSIBLE_IMAGE ansible-vault encrypt .spin.yml .spin.inventory.ini
-      echo "${BOLD}${GREEN}✅ \"$project_directory/.spin.yml\" has been encrypted.${RESET}"
       echo "${BOLD}${YELLOW}👉 NOTE: You can save this password in \".vault_password\" in the root of your project if you want your secret to be remembered.${RESET}"
     elif [[ $encrypt_response =~ ^[Nn]$ ]]; then
       echo "${BOLD}${BLUE}👋 Ok, we won't encrypt your \".spin.yml\".${RESET} You can always encrypt it later by running \"spin vault encrypt\"."
@@ -139,5 +139,5 @@ action_init() {
     fi
   fi
 
-  echo "${BOLD}${BLUE}🚀 Your project is now ready for \"spin  up\"!${RESET}"
+  echo "${BOLD}${GREEN}🚀 Your project is now ready for \"spin  up\"!${RESET}"
 }
