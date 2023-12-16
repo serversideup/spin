@@ -92,6 +92,7 @@ action_init() {
 
   fi
 
+  # Ensure .gitignore exists and includes line in file
   while IFS= read -r line || [[ -n "$line" ]]; do
     # Check if the line is not already in the .gitignore
     if ! grep -Fxq "$line" "$project_directory/.gitignore"; then
@@ -99,23 +100,34 @@ action_init() {
         echo "$line" >> "$project_directory/.gitignore"
         echo "✅ \"$line\" has been added to \".gitignore\"."
     fi
-  done < "$SPIN_HOME/templates/common/.gitignore.example"
+  done < "$SPIN_HOME/templates/common/.gitignore.lineinfile"
 
-  # Create spin.yml
-  if [[ -f "$project_directory/.spin.yml" ]]; then
-    echo "ℹ️  \"$project_directory/.spin.yml\" already exists. Skipping..."
-  else
-    echo "⚡️ Creating \"$project_directory/.spin.yml\".."
-    cp "$SPIN_HOME/templates/common/.spin.yml" "$project_directory/.spin.yml"
-  fi
+  # Copy common files
+  while IFS= read -r file; do
+      # Skip files that end with .lineinfile
+      if [[ "$file" == *".lineinfile" ]]; then
+          continue
+      fi
 
-  # Create spin.inventory.ini
-  if [[ -f "$project_directory/.spin.inventory.ini" ]]; then
-    echo "ℹ️  \"$project_directory/.spin.inventory.ini\" already exists. Skipping..."
-  else
-    echo "⚡️ Creating \"$project_directory/.spin.inventory.ini\"..."
-    cp "$SPIN_HOME/templates/common/.spin.inventory.ini" "$project_directory/.spin.inventory.ini"
-  fi
+      target_file="$project_directory/${file#$SPIN_HOME/templates/common/}"
+      # Compute the relative path for the echo statements
+      relative_target_file="${target_file#$project_directory/}"
+
+      if [[ -d "$file" ]]; then
+          continue
+      fi
+      if [[ -f "$target_file" ]]; then
+          echo "👉 \"$relative_target_file\" already exists. Skipping..."
+      else
+          mkdir -p "$(dirname "$target_file")"
+          if cp "$file" "$target_file"; then
+              echo "✅ \"$relative_target_file\" has been created."
+          else
+              echo "${BOLD}${RED}❌ Error copying \"$file\" to \"$relative_target_file\"."
+          fi
+      fi
+  done < <(find "$SPIN_HOME/templates/common" -type f)
+
 
   # Encrpytion check
   if ! head -n 1 "$project_directory/.spin.yml" | grep -q '^\$ANSIBLE_VAULT;1\.1;AES256' || \
