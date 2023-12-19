@@ -240,6 +240,34 @@ filter_out_spin_arguments() {
     echo "${filtered_args[@]}"
 }
 
+get_github_release() {
+  release_type="$1"
+  local repo="$2"
+
+  if [[ $release_type == "stable" ]]; then
+    local release=$(curl --silent "https://api.github.com/repos/$repo/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+  else
+    local release=$(curl --silent "https://api.github.com/repos/$repo/releases/" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/') | head -n 1
+  fi
+  echo "$release"
+}
+
+get_file_from_github_release() {
+  local repo="$1"
+  local release_type="$2"
+  local source_file="$3"
+  local destination_file="$4"
+  local trimmed_destination_file=${destination_file#*/}
+
+  if [[ -f "$destination_file" ]]; then
+          echo "👉 \"$trimmed_destination_file\" already exists. Skipping..."
+          return 0
+  fi
+
+  curl --silent --location --output "$destination_file" "https://raw.githubusercontent.com/$repo/$(get_github_release "$release_type" "$repo")/$source_file"
+  echo "✅ \"$trimmed_destination_file\" has been created."
+}
+
 is_encrypted_with_ansible_vault() {
   local file="$1"
 

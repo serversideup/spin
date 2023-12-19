@@ -128,6 +128,9 @@ action_init() {
       fi
   done < <(find "$SPIN_HOME/templates/common" -type f)
 
+  # Download default config and inventory from GitHub
+  get_file_from_github_release "serversideup/ansible-collection-spin" "stable" ".spin-inventory.example.ini" "$project_directory/.spin-inventory.ini"
+  get_file_from_github_release "serversideup/ansible-collection-spin" "stable" ".spin.example.yml" "$project_directory/.spin.yml"
 
   # Encrpytion check
   if ! is_encrypted_with_ansible_vault "$project_directory/.spin.yml" || ! is_encrypted_with_ansible_vault "$project_directory/.spin-inventory.ini"; then
