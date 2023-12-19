@@ -10,7 +10,7 @@ action_vault(){
         vault_run_command="ansible-vault"
         run_type="local"
     else
-        vault_run_command="docker run --rm -it -v $(pwd):/ansible $SPIN_ANSIBLE_IMAGE ansible-vault"
+        vault_run_command="run_ansible ansible-vault"
         run_type="docker"
     fi
 
