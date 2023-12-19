@@ -55,7 +55,7 @@ main() {
     "" | debug | help | update | version)
       : # Silent output for the user, but we're skipping the compose check too.
       ;;
-    init | kill | new | prune | provision)
+    init | kill | new | prune | provision | vault)
       check_if_docker_is_running
     ;;
     *)
