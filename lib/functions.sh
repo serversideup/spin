@@ -240,6 +240,20 @@ filter_out_spin_arguments() {
     echo "${filtered_args[@]}"
 }
 
+is_encrypted_with_ansible_vault() {
+  local file="$1"
+
+  if [ ! -f "$file" ]; then
+    return 1
+  fi
+
+  if head -n 1 "$file" | grep -q '^\$ANSIBLE_VAULT;1\.1;AES256'; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 is_internet_connected() {
     local repo="serversideup/spin"
     local branch="main"
@@ -335,14 +349,14 @@ run_ansible (){
   
   # Mount the SSH Agent for macOS systems
   if [[ "$(uname -s)" == "Darwin" ]]; then
-      ADDITIONAL_DOCKER_CONFIGS="-v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock"
+      local additional_docker_configs="-v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock"
   fi
 
   docker run --rm -it \
     -v "$(pwd):/ansible" \
     -v ~/.ssh/:/root/.ssh/ \
     -v $ansible_collections_path:/root/.ansible/collections \
-    $ADDITIONAL_DOCKER_CONFIGS \
+    $additional_docker_configs \
     $SPIN_ANSIBLE_IMAGE \
     "$@"
 }

@@ -130,8 +130,7 @@ action_init() {
 
 
   # Encrpytion check
-  if ! head -n 1 "$project_directory/.spin.yml" | grep -q '^\$ANSIBLE_VAULT;1\.1;AES256' || \
-    ! head -n 1 "$project_directory/.spin-inventory.ini" | grep -q '^\$ANSIBLE_VAULT;1\.1;AES256'; then
+  if ! is_encrypted_with_ansible_vault "$project_directory/.spin.yml" || ! is_encrypted_with_ansible_vault "$project_directory/.spin-inventory.ini"; then
     echo "${BOLD}${YELLOW}⚠️ Your Spin configurations are not encrypted. We HIGHLY recommend encrypting it. Would you like to encrypt it now?${RESET}"
     echo -n "Enter \"y\" or \"n\": "
     read -r -n 1 encrypt_response
