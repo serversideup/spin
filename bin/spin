@@ -55,7 +55,7 @@ main() {
     "" | debug | help | update | version)
       : # Silent output for the user, but we're skipping the compose check too.
       ;;
-    init | kill | new | prune)
+    init | kill | new | prune | provision)
       check_if_docker_is_running
     ;;
     *)
@@ -113,6 +113,10 @@ main() {
       new)
         source "$SPIN_HOME/lib/actions/new.sh"
         action_new "$@"
+      ;;
+      provision)
+        source "$SPIN_HOME/lib/actions/provision.sh"
+        action_provision "$@"
       ;;
       prune)
         source "$SPIN_HOME/lib/actions/prune.sh"
