@@ -330,6 +330,23 @@ print_version() {
   fi
 }
 
+run_ansible (){
+  ansible_collections_path="./.infrastructure/conf/spin/collections"
+  
+  # Mount the SSH Agent for macOS systems
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+      ADDITIONAL_DOCKER_CONFIGS="-v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock"
+  fi
+
+  docker run --rm -it \
+    -v "$(pwd):/ansible" \
+    -v ~/.ssh/:/root/.ssh/ \
+    -v $ansible_collections_path:/root/.ansible/collections \
+    $ADDITIONAL_DOCKER_CONFIGS \
+    $SPIN_ANSIBLE_IMAGE \
+    "$@"
+}
+
 save_current_time_to_cache_file() {
   mkdir -p $SPIN_CACHE_DIR
   date +"%s" > $SPIN_CACHE_DIR/$1
