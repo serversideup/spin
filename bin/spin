@@ -52,7 +52,7 @@ main() {
   fi
 
   case "$1" in
-    "" | debug | help | update | version)
+    "" | base64 | debug | help | update | version)
       : # Silent output for the user, but we're skipping the compose check too.
       ;;
     init | kill | new | prune | provision | vault)
@@ -74,6 +74,10 @@ main() {
     shift 1 # Remove the action from the arguments
 
     case $action in
+      base64)
+        source "$SPIN_HOME/lib/actions/base64.sh"
+        action_base64 "$@"
+      ;;
       build)
         source "$SPIN_HOME/lib/actions/build.sh"
         action_build "$@"
