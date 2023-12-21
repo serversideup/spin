@@ -96,7 +96,7 @@ action_init() {
         local dest_file="$2"
 
         while IFS= read -r line || [[ -n "$line" ]]; do
-            if ! grep -Fxq "$line" "$dest_file"; then
+            if ! grep -Fxq "$line" "$dest_file" 2>/dev/null; then
                 echo "$line" >> "$dest_file"
                 file_name="${dest_file#"$project_directory/"}"
                 echo "✅ \"$line\" has been added to \"$file_name\"."
@@ -194,5 +194,5 @@ action_init() {
     # Encrypt files if needed
     encrypt_files_if_needed "$project_directory/.spin.yml" "$project_directory/.spin-inventory.ini"
 
-    echo "${BOLD}${GREEN}🚀 Your project is now ready for \"spin  up\"!${RESET}"
+    echo "${BOLD}${GREEN}🚀 Your project is now ready for \"spin up\"!${RESET}"
 }
