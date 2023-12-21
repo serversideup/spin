@@ -384,6 +384,7 @@ run_ansible (){
     -v "$(pwd):/ansible" \
     -v ~/.ssh/:/root/.ssh/ \
     -v $ansible_collections_path:/root/.ansible/collections \
+    --platform linux/amd64 \
     $additional_docker_configs \
     $SPIN_ANSIBLE_IMAGE \
     "$@"
