@@ -1,8 +1,25 @@
 #!/usr/bin/env bash
-
-# set -x
 set -e
 
+# Default Environment
+SPIN_ENV=${SPIN_ENV:-dev}
+
+# Set up our structure for our re-used commands
+export COMPOSE_CMD=${COMPOSE_CMD:-"docker compose"}
+
+# Export the current user and group ID
+export SPIN_USER_ID=$(id -u)
+export SPIN_GROUP_ID=$(id -g)
+
+# Default Images
+SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:beta-cli"}
+SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
+SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"willhallonline/ansible:2.15-alpine-3.18"}
+
+# Default Service Names
+SPIN_DEFAULT_PHP_SERVICE_NAME=${SPIN_DEFAULT_PHP_RUN_SERVICE:-"php"}
+
+# Script Configuration
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 SPIN_HOME=$(dirname "$SCRIPT_DIR") #Assume the parent directory of this script is the home
 SPIN_CACHE_DIR=${SPIN_CACHE_DIR:-$SPIN_HOME/cache}
@@ -10,182 +27,131 @@ SPIN_CONFIG_FILE_LOCATION=${SPIN_CONFIG_FILE_LOCATION:-"$SPIN_HOME/conf/spin.con
 AUTO_UPDATE_INTERVAL_IN_DAYS=${AUTO_UPDATE_INTERVAL_IN_DAYS:-14}
 AUTO_PULL_INTERVAL_IN_DAYS=${AUTO_PULL_INTERVAL_IN_DAYS:-1}
 
-### Default Images
-SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:beta-cli"}
-SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
-SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"willhallonline/ansible:2.15-alpine-3.18"}
-
-### Default Users
-SPIN_DEFAULT_PHP_SERVICE_NAME=${SPIN_DEFAULT_PHP_RUN_SERVICE:-"php"}
-
-# Export the current user and group ID
-export SPIN_USER_ID=$(id -u)
-export SPIN_GROUP_ID=$(id -g)
-
 # Import common functions
 source "$SPIN_HOME/lib/functions.sh"
-
-main() {
-  ## Set defaults for our environment
-
-  # Select environments to be used
-  # Allows passing as `ENV` environment variable
-  # or defaults to `dev`
-  SPIN_ENV=${SPIN_ENV:-dev}
-
-  # Convert the SPIN_ENV variable into an array of environments
-  IFS=',' read -ra ENV_ARRAY <<< "$SPIN_ENV"
-
-  # Initialize the COMPOSE_FILE variable
-  COMPOSE_FILE="docker-compose.yml"
-
-  # Loop over each environment and append the corresponding compose file
-  for env in "${ENV_ARRAY[@]}"; do
-    COMPOSE_FILE="$COMPOSE_FILE:docker-compose.$env.yml"
-  done
-
-  # Export the COMPOSE_FILE variable
-  export COMPOSE_FILE
-
-  # Check if 'set -x' is enabled
-  if [[ $- == *x* ]]; then
-      # If 'set -x' is enabled, echo the COMPOSE_FILE variable
-      echo "SPIN_ENV: $SPIN_ENV"
-      echo "COMPOSE_FILE: $COMPOSE_FILE"
-  fi
-
-  case "$1" in
-    "" | base64 | debug | help | update | version | --version | -v)
-      : # Silent output for the user, but we're skipping the compose check too.
-      ;;
-    init | kill | new | prune | provision | vault)
-      check_if_docker_is_running
-    ;;
-    *)
-      check_if_docker_is_running
-      check_if_compose_files_exist "$COMPOSE_FILE"
-      ;;
-  esac
-
-
-  # Set up our structure for our re-used commands
-  export COMPOSE_CMD=${COMPOSE_CMD:-"docker compose"}
- 
-  # Check that an argument is passed
-  if [ $# -gt 0 ]; then
-    local action=$1
-    shift 1 # Remove the action from the arguments
-
-    case $action in
-      base64)
-        source "$SPIN_HOME/lib/actions/base64.sh"
-        action_base64 "$@"
-      ;;
-      build)
-        source "$SPIN_HOME/lib/actions/build.sh"
-        action_build "$@"
-      ;;
-      debug)
-        source "$SPIN_HOME/lib/actions/debug.sh"
-        action_debug "$@"
-      ;;
-      down)
-        source "$SPIN_HOME/lib/actions/down.sh"
-        action_down "$@"
-      ;;
-      exec)
-        source "$SPIN_HOME/lib/actions/exec.sh"
-        action_exec "$@"
-      ;;
-      help)
-        source "$SPIN_HOME/lib/actions/help.sh"
-        action_help
-      ;;
-      init)
-        source "$SPIN_HOME/lib/actions/init.sh"
-        action_init "$@"
-      ;;
-      kill)
-        source "$SPIN_HOME/lib/actions/kill.sh"
-        action_kill
-      ;;
-      latest)
-        source "$SPIN_HOME/lib/actions/latest.sh"
-        action_latest "$@"
-      ;;
-      logs)
-        source "$SPIN_HOME/lib/actions/logs.sh"
-        action_logs "$@"
-      ;;
-      new)
-        source "$SPIN_HOME/lib/actions/new.sh"
-        action_new "$@"
-      ;;
-      php)
-        source "$SPIN_HOME/lib/actions/php.sh"
-        action_php "$@"
-      ;;
-      provision)
-        source "$SPIN_HOME/lib/actions/provision.sh"
-        action_provision "$@"
-      ;;
-      prune)
-        source "$SPIN_HOME/lib/actions/prune.sh"
-        action_prune "$@"
-      ;;
-      pull)
-        source "$SPIN_HOME/lib/actions/pull.sh"
-        action_pull "$@"
-      ;;
-      run)
-        source "$SPIN_HOME/lib/actions/run.sh"
-        action_run "$@"
-      ;;
-      stop)
-        source "$SPIN_HOME/lib/actions/stop.sh"
-        action_stop
-      ;;
-      up)
-        source "$SPIN_HOME/lib/actions/up.sh"
-        action_up "$@"
-      ;;
-      update)
-        source "$SPIN_HOME/lib/actions/update.sh"
-        action_update
-      ;;
-      vault)
-        source "$SPIN_HOME/lib/actions/vault.sh"
-        action_vault "$@"
-      ;;
-      version | --version | -v)
-        source "$SPIN_HOME/lib/actions/version.sh"
-        action_version
-      ;;
-      *)
-        echo "\"$1\" is not a valid command. Below are the commands available."
-        source "$SPIN_HOME/lib/actions/help.sh"
-        action_help
-      ;;
-    esac
-  else
-    printf "${BOLD}${YELLOW}🤔 You didn't pass \"spin\" any arguments.${RESET}"
-    echo
-    source "$SPIN_HOME/lib/actions/help.sh"
-    action_help
-  fi
-}
-
-################################################
-# 🚀 Where the script actually starts
-################################################
-
 setup_color
 
-installation_type=$(detect_installation_type)
-if [[ $installation_type != "development" && "$1" != "update" ]]; then
+# Check for upgrades, except for development installs and on `spin update`
+if [[ $(detect_installation_type) != "development" && "$1" != "update" ]]; then
   check_for_upgrade
 fi
 
-unset installation_type
+# Set COMPOSE_FILE variable
+export_compose_file_variable
 
-main "$@" #Passing the original arguments to `main`
+# Validate a few things based on the user's intent
+case "$1" in
+  "" | base64 | debug | help | update | version | --version | -v)
+    : # Silent output for the user, but we're skipping the compose check too.
+    ;;
+  init | kill | new | prune | provision | vault)
+    check_if_docker_is_running
+  ;;
+  *)
+    check_if_docker_is_running
+    check_if_compose_files_exist "$COMPOSE_FILE"
+    ;;
+esac
+
+# Check that an argument is passed
+if [ $# -gt 0 ]; then
+  spin_action=$1
+  shift 1 # Remove the action from the arguments
+
+  case $spin_action in
+    base64)
+      source "$SPIN_HOME/lib/actions/base64.sh"
+      action_base64 "$@"
+    ;;
+    build)
+      source "$SPIN_HOME/lib/actions/build.sh"
+      action_build "$@"
+    ;;
+    debug)
+      source "$SPIN_HOME/lib/actions/debug.sh"
+      action_debug "$@"
+    ;;
+    down)
+      source "$SPIN_HOME/lib/actions/down.sh"
+      action_down "$@"
+    ;;
+    exec)
+      source "$SPIN_HOME/lib/actions/exec.sh"
+      action_exec "$@"
+    ;;
+    help)
+      source "$SPIN_HOME/lib/actions/help.sh"
+      action_help
+    ;;
+    init)
+      source "$SPIN_HOME/lib/actions/init.sh"
+      action_init "$@"
+    ;;
+    kill)
+      source "$SPIN_HOME/lib/actions/kill.sh"
+      action_kill
+    ;;
+    latest)
+      source "$SPIN_HOME/lib/actions/latest.sh"
+      action_latest "$@"
+    ;;
+    logs)
+      source "$SPIN_HOME/lib/actions/logs.sh"
+      action_logs "$@"
+    ;;
+    new)
+      source "$SPIN_HOME/lib/actions/new.sh"
+      action_new "$@"
+    ;;
+    php)
+      source "$SPIN_HOME/lib/actions/php.sh"
+      action_php "$@"
+    ;;
+    provision)
+      source "$SPIN_HOME/lib/actions/provision.sh"
+      action_provision "$@"
+    ;;
+    prune)
+      source "$SPIN_HOME/lib/actions/prune.sh"
+      action_prune "$@"
+    ;;
+    pull)
+      source "$SPIN_HOME/lib/actions/pull.sh"
+      action_pull "$@"
+    ;;
+    run)
+      source "$SPIN_HOME/lib/actions/run.sh"
+      action_run "$@"
+    ;;
+    stop)
+      source "$SPIN_HOME/lib/actions/stop.sh"
+      action_stop
+    ;;
+    up)
+      source "$SPIN_HOME/lib/actions/up.sh"
+      action_up "$@"
+    ;;
+    update)
+      source "$SPIN_HOME/lib/actions/update.sh"
+      action_update
+    ;;
+    vault)
+      source "$SPIN_HOME/lib/actions/vault.sh"
+      action_vault "$@"
+    ;;
+    version | --version | -v)
+      source "$SPIN_HOME/lib/actions/version.sh"
+      action_version
+    ;;
+    *)
+      echo "\"$1\" is not a valid command. Below are the commands available."
+      source "$SPIN_HOME/lib/actions/help.sh"
+      action_help
+    ;;
+  esac
+else
+  printf "${BOLD}${YELLOW}🤔 You didn't pass \"spin\" any arguments.${RESET}"
+  echo
+  source "$SPIN_HOME/lib/actions/help.sh"
+  action_help
+fi

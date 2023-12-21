@@ -1,4 +1,28 @@
 #!/usr/bin/env bash
+
+export_compose_file_variable(){
+  # Convert the SPIN_ENV variable into an array of environments
+  IFS=',' read -ra ENV_ARRAY <<< "$SPIN_ENV"
+
+  # Initialize the COMPOSE_FILE variable
+  COMPOSE_FILE="docker-compose.yml"
+
+  # Loop over each environment and append the corresponding compose file
+  for env in "${ENV_ARRAY[@]}"; do
+    COMPOSE_FILE="$COMPOSE_FILE:docker-compose.$env.yml"
+  done
+
+  # Export the COMPOSE_FILE variable
+  export COMPOSE_FILE
+
+  # Check if 'set -x' is enabled
+  if [[ $- == *x* ]]; then
+      # If 'set -x' is enabled, echo the COMPOSE_FILE variable
+      echo "SPIN_ENV: $SPIN_ENV"
+      echo "COMPOSE_FILE: $COMPOSE_FILE"
+  fi
+}
+
 install_spin_package_to_project() {
   framework="$1"
   project_name="$2"
