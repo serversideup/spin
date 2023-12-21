@@ -5,9 +5,8 @@ FROM serversideup/php:beta-8.3-fpm-nginx as base
 
 FROM base as development
 
-# Fix permission issues in development
-# by setting the "www-data" user to the 
-# same user and group that is running docker.
+# Fix permission issues in development by setting the "www-data"
+# user to the same user and group that is running docker.
 ARG USER_ID
 ARG GROUP_ID
 RUN usermod -u $USER_ID www-data && \
