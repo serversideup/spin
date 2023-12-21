@@ -16,10 +16,12 @@ services:
       - ./.infrastructure/conf/traefik/dev/certificates/:/certificates
 
   php:
+    build:
+      target: development
+      args:
+        USER_ID: ${SPIN_USER_ID}
     volumes:
       - .:/var/www/html/
-    environment:
-      SSL_MODE: mixed
     networks:
       - development
     depends_on:
