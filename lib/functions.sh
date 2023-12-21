@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 install_spin_package_to_project() {
-  # Variables for clearer understanding
   framework="$1"
   project_name="$2"
   force=0
