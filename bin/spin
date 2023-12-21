@@ -15,6 +15,10 @@ SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:beta-cli"}
 SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
 SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"willhallonline/ansible:2.15-alpine-3.18"}
 
+### Default Users
+SPIN_DEFAULT_PHP_USER=${SPIN_DEFAULT_RUN_USER_PHP:-"www-data"}
+SPIN_DEFAULT_PHP_SERVICE_NAME=${SPIN_DEFAULT_PHP_RUN_SERVICE:-"php"}
+
 # Import common functions
 source "$SPIN_HOME/lib/functions.sh"
 
@@ -117,6 +121,10 @@ main() {
       new)
         source "$SPIN_HOME/lib/actions/new.sh"
         action_new "$@"
+      ;;
+      php)
+        source "$SPIN_HOME/lib/actions/php.sh"
+        action_php "$@"
       ;;
       provision)
         source "$SPIN_HOME/lib/actions/provision.sh"
