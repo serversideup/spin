@@ -1,0 +1,63 @@
+name: Production Deployment
+on:
+  release:
+    types:
+      - released
+
+########################################################################
+# 🚨 WARNING: You must set the following secrets in GitHub:
+#
+# - DEPLOYMENT_SSH_PRIVATE_KEY
+# - DEPLOYMENT_SSH_HOSTNAME
+# - DB_ROOT_PASSWORD
+# - DB_NAME
+# - DB_USERNAME
+# - DB_PASSWORD
+# - ENV_FILE_BASE64
+#
+# Ensure these secrets match the environment you're deploying to.
+# https://github.com/<your-organization>/<your-repo>/settings/environments
+########################################################################
+
+# 👇 Set these variables to match your application needs. Most of them should work great by default.
+env:
+  DEPLOYMENT_URL_HOSTNAME: example.com
+  DEPLOYMENT_URL: https://example.com
+
+jobs:
+  build:
+    uses: ./.github/workflows/service_docker-build-and-publish.yml
+    with:
+      # 👇 Ensure these are the tags you want to publish to your registry.
+      docker-tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }},ghcr.io/${{ github.repository }}:latest
+      environment: production # 👈 Make sure you created this environment in GitHub with the secrets above.
+    secrets: inherit
+  
+  deploy:
+    needs: build
+    runs-on: ubuntu-22.04
+    environment:
+      name: production # 👈 Make sure you created this environment in GitHub with the secrets above.
+      url: "${{ env.DEPLOYMENT_URL }}"
+    steps:
+
+      - name: Get project name from repository name.
+        run: | 
+          echo "PROJECT_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+
+      - uses: serversideup/github-action-docker-swarm-deploy@main
+        with:
+          # 👇 Ensure these are correct and that you've set the appropriate secrets.
+          deployment_ssh_private_key: "${{ secrets.DEPLOYMENT_SSH_PRIVATE_KEY }}"
+          remote_ssh_server_hostname: "${{ secrets.DEPLOYMENT_SSH_HOSTNAME }}"
+          registry: "ghcr.io"
+          registry-username: "${{ github.actor }}"
+          registry-token: "${{ secrets.GITHUB_TOKEN }}"
+          stack_name: "${{ env.PROJECT_NAME }}"
+        env:
+          # 👇 Ensure this makes sense for your application.
+          TRAEFIK_HOST_RULE: "Host(`${{ env.DEPLOYMENT_URL_HOSTNAME }}`)"
+          DB_ROOT_PASSWORD: "${{ secrets.DB_ROOT_PASSWORD }}"
+          DB_NAME: "${{ secrets.DB_NAME }}"
+          DB_USERNAME: "${{ secrets.DB_USERNAME }}"
+          DB_PASSWORD: "${{ secrets.DB_PASSWORD }}"

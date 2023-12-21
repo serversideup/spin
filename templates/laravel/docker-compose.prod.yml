@@ -14,8 +14,6 @@ services:
           order: stop-first
         placement:
           constraints:
-            # Make the traefik service run only on the node with this label
-            # as the node with it has the volume for the certificates
             - node.role==manager
       volumes:
         # Add Docker as a mounted volume, so that Traefik can read the labels of other services
@@ -36,8 +34,6 @@ services:
     deploy:
       placement:
         constraints:
-          # Make the MySQL service run only on the node with this label
-          # as the node with it has the volume for the database
           - node.role==manager
     volumes:
       - database_data:/var/lib/mysql
@@ -45,19 +41,22 @@ services:
       - database_shared:/shared
 
   ssh:
+    # We use an SSH image so we can securely tunnel into the Docker network with 
+    # tools like Sequel Pro, TablePlus, Sequel Ace, etc.
+    # Learn more how to secure your tunnel here: https://github.com/serversideup/docker-ssh
     image: serversideup/docker-ssh
     ports:
       - target: 2222
         published: 2222
         mode: host
     environment:
-      # Change the keys below to your own keys (see https://github.com/serversideup/docker-ssh)
+      # Change the keys below to your own keys 
       AUTHORIZED_KEYS: >
         "# Start Keys
          ssh-ed25519 1234567890abcdefghijklmnoqrstuvwxyz user-a
          ssh-ed25519 abcdefghijklmnoqrstuvwxyz1234567890 user-b
          # End Keys"
-      # Be sure to configure the allowed IP addresses too (see https://github.com/serversideup/docker-ssh)
+      # Be sure to configure the allowed IP addresses too
       ALLOWED_IPS: "AllowUsers *@127.0.0.1"
     volumes:
       - tunnel_ssh_host_keys:/etc/ssh/ssh_host_keys
@@ -87,13 +86,13 @@ services:
         - "traefik.http.routers.my-php-app.entrypoints=websecure"
         - "traefik.http.routers.my-php-app.tls=true"
         - "traefik.http.routers.my-php-app.tls.certresolver=letsencryptresolver"
-        - "traefik.http.services.my-php-app.loadbalancer.server.port=443"
-        - "traefik.http.services.my-php-app.loadbalancer.server.scheme=https"
+        - "traefik.http.services.my-php-app.loadbalancer.server.port=80"
+        - "traefik.http.services.my-php-app.loadbalancer.server.scheme=http"
         # Health check
         - "traefik.http.services.my-php-app.loadbalancer.healthcheck.path=/ping"
         - "traefik.http.services.my-php-app.loadbalancer.healthcheck.interval=100ms"
         - "traefik.http.services.my-php-app.loadbalancer.healthcheck.timeout=75ms"
-        - "traefik.http.services.my-php-app.loadbalancer.healthcheck.scheme=https"
+        - "traefik.http.services.my-php-app.loadbalancer.healthcheck.scheme=http"
 
 configs:
   traefik:

@@ -30,8 +30,8 @@ services:
       - "traefik.http.routers.laravel.rule=HostRegexp(`laravel.dev.test`)"
       - "traefik.http.routers.laravel.entrypoints=websecure"
       - "traefik.http.routers.laravel.tls=true"
-      - "traefik.http.services.laravel.loadbalancer.server.port=443"
-      - "traefik.http.services.laravel.loadbalancer.server.scheme=https"
+      - "traefik.http.services.laravel.loadbalancer.server.port=80"
+      - "traefik.http.services.laravel.loadbalancer.server.scheme=http"
   
   node:
     image: node:20
