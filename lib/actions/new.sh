@@ -8,7 +8,7 @@ action_new(){
           shift 1
           latest_image=$SPIN_PHP_IMAGE
           docker pull $latest_image
-          docker run --rm -w /var/www/html -v $(pwd):/var/www/html --user ${SPIN_USER_ID} -e "LOG_LEVEL=off" $latest_image composer create-project laravel/laravel "$@"
+          docker run --rm -w /var/www/html -v $(pwd):/var/www/html --user "$SPIN_DEFAULT_PHP_USER:$SPIN_GROUP_ID" -e "LOG_LEVEL=off" $latest_image composer create-project laravel/laravel "$@"
           install_spin_package_to_project php "${@:-laravel}" --force
           source "$SPIN_HOME/lib/actions/init.sh"
           action_init --template=laravel --project-directory="${@:-laravel}" --force
