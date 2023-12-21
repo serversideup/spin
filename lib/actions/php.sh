@@ -8,7 +8,7 @@ action_php(){
   $COMPOSE_CMD run --remove-orphans --no-deps --rm \
     --entrypoint '' \
     -e "LOG_LEVEL=off" \
-    --user "$SPIN_DEFAULT_PHP_USER:$SPIN_GROUP_ID" \
+    --user "${SPIN_USER_ID}:${SPIN_GROUP_ID}" \
     $SPIN_DEFAULT_PHP_SERVICE_NAME \
     "${args[@]}"
 }
