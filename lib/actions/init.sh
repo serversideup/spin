@@ -16,6 +16,9 @@ action_init() {
             --project-directory=*)
                 project_directory="${arg#*=}"
                 ;;
+            --use-gha-templates)
+                use_gha_templates=1
+                ;;
             *)
                 echo "${BOLD}${RED}❌ Invalid argument: $arg ${RESET}"
                 return 1
@@ -31,64 +34,42 @@ action_init() {
 
     copy_template_files(){
         local template_src="$1"
+        additional_find_args=''
+
+        # If the templates are not specifically looking for .github, then be sure to ignore GitHub
+        if [[ $template_src != *".github"* ]]; then
+            additional_find_args="-type d -name '.github' -prune -o"
+        fi
 
         if [[ -d "$spin_templates_directory/$template_src" ]]; then
-        echo "⚡️ Copying spin templates to our project..."
 
-        # Check to see if the template file already exists in the project directory
-        while IFS= read -r file; do
-            target_file="$project_directory/${file#"$spin_templates_directory/$template_src/"}"
-            # Compute the relative path for the echo statements
-            relative_target_file="${target_file#"$project_directory"/}"
-
-            if [[ -d "$file" ]]; then
-                continue
-            fi
-
-            if [[ -f "$target_file" ]]; then
-                echo "👉 \"$relative_target_file\" already exists. Skipping..."
-            else
-                mkdir -p "$(dirname "$target_file")"
-                if cp "$file" "$target_file"; then
-                    echo "✅ \"$relative_target_file\" has been created."
-                else
-                    echo "${BOLD}${RED}❌ Error copying \"$file\" to \"$relative_target_file\"."
+            # Check to see if the template file already exists in the project directory
+            while IFS= read -r file; do
+                # Skip files that end with .lineinfile and directories
+                if [[ "$file" == *".lineinfile" ]] || [[ -d "$file" ]]; then
+                    continue
                 fi
-            fi
-        done < <(find "$spin_templates_directory/$template_src" -type d -name '.github' -prune -o -type f -print) # Ignore .github directory
+
+                target_file="$project_directory/${file#"$spin_templates_directory/$template_src/"}"
+                # Compute the relative path for the echo statements
+                relative_target_file="${target_file#"$project_directory"/}"
+
+                if [[ -f "$target_file" ]]; then
+                    echo "👉 \"$relative_target_file\" already exists. Skipping..."
+                else
+                    mkdir -p "$(dirname "$target_file")"
+                    if cp "$file" "$target_file"; then
+                        echo "✅ \"$relative_target_file\" has been created."
+                    else
+                        echo "${BOLD}${RED}❌ Error copying \"$file\" to \"$relative_target_file\"."
+                    fi
+                fi
+            done < <(find "$spin_templates_directory/$template_src" $additional_find_args -type f -print)
 
         else
             echo "${BOLD}${RED}❌ Invalid template: $template_src ${RESET}"
             return 1
         fi
-    }
-
-    copy_common_files(){
-        # Copy common files
-        while IFS= read -r file; do
-            # Skip files that end with .lineinfile
-            if [[ "$file" == *".lineinfile" ]]; then
-                continue
-            fi
-
-            target_file="$project_directory/${file#"$spin_templates_directory/common/"}"
-            # Compute the relative path for the echo statements
-            relative_target_file="${target_file#"$project_directory/"}"
-
-            if [[ -d "$file" ]]; then
-                continue
-            fi
-            if [[ -f "$target_file" ]]; then
-                echo "👉 \"$relative_target_file\" already exists. Skipping..."
-            else
-                mkdir -p "$(dirname "$target_file")"
-                if cp "$file" "$target_file"; then
-                    echo "✅ \"$relative_target_file\" has been created."
-                else
-                    echo "${BOLD}${RED}❌ Error copying \"$file\" to \"$relative_target_file\"."
-                fi
-            fi
-        done < <(find "$spin_templates_directory/common" -type f)
     }
 
     ensure_line_is_in_file(){
@@ -133,7 +114,41 @@ action_init() {
             fi
         fi
     }
-    
+
+    update_templates_with_domain_name() {
+        local new_domain_name="$1"
+
+        # Define items as an array of strings that include the file path and the strings to search and replace
+        local items=(
+            "$project_directory/.github/workflows/action_deploy-production.yml example.com $new_domain_name"
+            "$project_directory/docker-compose.prod.yml example.com/my-repo/my-image:latest \$\{DEPLOYMENT_IMAGE_PHP\}"
+        )
+
+        for item in "${items[@]}"; do
+            # Use an array to split the item into its components
+            IFS=' ' read -r -a parts <<< "$item"
+            local file=${parts[0]}
+            local string_to_search=${parts[1]}
+            local replace_string=${parts[2]}
+            local relative_file="${file#"$project_directory"/}"
+
+            if [[ -f "$file" ]]; then
+                # Detect the operating system to set the sed command
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    # For macOS, use an empty string as an extension for -i without creating a backup file
+                    sed -i '' -e "s|$string_to_search|$replace_string|g" "$file"
+                else
+                    # For Linux, use -i without any extension
+                    sed -i -e "s|$string_to_search|$replace_string|g" "$file"
+                fi
+                echo "✅ Updated \"$relative_file\" to work with \"$new_domain_name\"."
+            else
+                echo "⚠️ File not found: $file"
+            fi
+        done
+    }
+
+
     ############################################
     # 🚀 Main Part of function
     ############################################
@@ -175,9 +190,32 @@ action_init() {
         fi
     fi
 
+    # Prompt to use GitHub Action templates
+    if [[ -z $use_gha_templates ]]; then
+        echo "${BOLD}${YELLOW}❓ Do you want to use our GitHub Action templates?${RESET}"
+        echo -n "Enter \"y\" or \"n\": "
+        read -r -n 1 response_gha_templates
+        echo # move to a new line
+
+        if [[ $response_gha_templates =~ ^[Yy]$ ]]; then
+            use_gha_templates=1
+        elif [[ $response_gha_templates =~ ^[Nn]$ ]]; then
+            use_gha_templates=0
+        else
+            echo "${BOLD}${RED}❌ Invalid response. Please respond with \"y\" or \"n\".${RESET} Run \"spin init\" to try again."
+            exit 1
+        fi
+    fi
+
+    if [[ $use_gha_templates = 1 ]]; then
+        echo "ℹ️  We need some info from you to help generate templates for you."
+        echo "${BOLD}${YELLOW}👇 Enter the production domain name of your app (example: myapp.example.com):${RESET}"
+        read -r domain_name
+    fi
+
     # Copy template files
+    copy_template_files "common"
     copy_template_files "$template"
-    copy_common_files
 
     # Ensure any "*.lineinfile" files have their lines in the destination file
     while IFS= read -r file; do
@@ -186,6 +224,11 @@ action_init() {
         dest_path="$project_directory/$dest_file_name"  # Construct the destination file path.
         ensure_line_is_in_file "$source_path" "$dest_path"
     done < <(find "$spin_templates_directory/common" -type f -name '*.lineinfile')
+
+    if [[ $use_gha_templates = 1 ]]; then
+        copy_template_files "$template/.github"
+        update_templates_with_domain_name "$domain_name"
+    fi
 
     # Download default config and inventory from GitHub
     get_file_from_github_release "serversideup/ansible-collection-spin" "stable" ".spin-inventory.example.ini" "$project_directory/.spin-inventory.ini"

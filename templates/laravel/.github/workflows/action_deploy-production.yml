@@ -61,3 +61,4 @@ jobs:
           DB_NAME: "${{ secrets.DB_NAME }}"
           DB_USERNAME: "${{ secrets.DB_USERNAME }}"
           DB_PASSWORD: "${{ secrets.DB_PASSWORD }}"
+          DEPLOYMENT_IMAGE_PHP: "ghcr.io/${{ github.repository }}:${{ github.ref_name }}"

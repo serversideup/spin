@@ -64,7 +64,7 @@ services:
         - web-public
 
   php:
-    image: example.com/myrepo/my-php-app:latest
+    image: example.com/my-repo/my-image:latest # 👈 Be sure to change this to your own image
     networks:
       - web-public
     volumes:
