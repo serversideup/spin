@@ -15,7 +15,7 @@ RUN if getent group $GROUP_ID ; then \
         groupmod -g $GROUP_ID www-data ; \
         usermod -g $GROUP_ID www-data ; \
     else \
-        groupadd -g $GROUP_ID www-data ; \
+        groupmod -g $GROUP_ID www-data ; \
     fi && \
     usermod -u $USER_ID www-data
 
