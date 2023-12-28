@@ -9,15 +9,7 @@ FROM base as development
 # user to the same user and group that is running docker.
 ARG USER_ID
 ARG GROUP_ID
-RUN if getent group $GROUP_ID ; then \
-        NEW_GROUP_ID="9$GROUP_ID" ; \
-        groupmod -g $NEW_GROUP_ID $(getent group $GROUP_ID | cut -d: -f1) && \
-        groupmod -g $GROUP_ID www-data ; \
-        usermod -g $GROUP_ID www-data ; \
-    else \
-        groupmod -g $GROUP_ID www-data ; \
-    fi && \
-    usermod -u $USER_ID www-data
+RUN docker-php-serversideup-set-id www-data ${USER_ID} ${GROUP_ID}
 
 FROM base as deploy
 COPY --chown=www-data:www-data . /var/www/html
