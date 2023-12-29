@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # This installer was heavily inspired by talented devs of OhMyZSH https://github.com/ohmyzsh/ohmyzsh
 #
@@ -256,8 +256,56 @@ umask g-w,o-w
   # Additional setup steps
   set_configuration_file
   save_last_update_check_time
+  prompt_to_add_path
 
   echo #Empty line
+}
+
+prompt_to_add_path() {
+    read -p "Would you like to add 'spin' to your path? [y/N] " response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        # Detect the shell type
+        shell_type=$(basename "$SHELL")
+        echo "Detected shell: $shell_type"
+
+        # Determine which file to modify based on the shell type
+        case "$shell_type" in
+            bash)
+                file=~/.bash_profile
+                ;;
+            zsh)
+                file=~/.zshrc
+                ;;
+            *)
+                echo "${RED}${BOLD}❌ Unable to detect shell type.${RESET}"
+                echo "To add 'spin' to your path manually, add the following line to your shell's profile file:"
+                echo 'export PATH="$HOME/.spin/bin:$PATH"'
+                return 1
+                ;;
+        esac
+
+        # Ensure the file exists
+        [ -f "$file" ] || { echo "Creating $file as it does not exist."; touch "$file"; }
+
+        # Check if the path is already in the file
+        if ! grep -q 'export PATH="$HOME/.spin/bin:$PATH"' "$file"; then
+            echo "👉 Detected $shell_type: Adding 'spin' to $file."
+            echo 'export PATH="$HOME/.spin/bin:$PATH"' >> "$file"
+        else
+            echo "✅ 'spin' path is already in $file."
+        fi
+
+        # Source the file to update the path in the current session
+        if [ -f "$file" ]; then
+            source "$file"
+            echo "✅ Spin path added and sourced successfully!"
+        else
+            echo "${YELLOW}${BOLD}❌ Error: Unable to source $file. Please open a new terminal session to apply changes.${RESET}"
+            exit 1
+        fi
+    else
+        echo "${YELLOW}${BOLD}⚠️ Aborted adding 'spin' to the path.${RESET}"
+    fi
 }
 
 # shellcheck disable=SC2183  # printf string has more %s than arguments ($RAINBOW expands to multiple arguments)
