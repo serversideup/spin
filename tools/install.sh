@@ -3,15 +3,15 @@
 # This installer was heavily inspired by talented devs of OhMyZSH https://github.com/ohmyzsh/ohmyzsh
 #
 # This script should be run via curl:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
 # or via wget:
-#   sh -c "$(wget -qO- https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
+#   bash -c "$(wget -qO- https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
 # or via fetch:
-#   sh -c "$(fetch -o - https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
+#   bash -c "$(fetch -o - https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
 #
 # As an alternative, you can first download the install script and run it afterwards:
 #   wget https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh
-#   sh install.sh
+#   bash install.sh
 #
 # You can tweak the install behavior by setting variables when running the script. For
 # example, to change the path to the SPIN repository:
@@ -27,9 +27,9 @@
 # You can also pass some arguments to the install script to set some these options:
 #   --beta: use the latest pre-release
 # For example:
-#   sh install.sh --beta
+#   bash install.sh --beta
 # or:
-#   sh -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)" "" --beta
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)" "" --beta
 #
 
 ############################################################################################################
@@ -262,49 +262,50 @@ umask g-w,o-w
 }
 
 prompt_to_add_path() {
-    read -p "Would you like to add 'spin' to your path? [y/N] " response
-    if [[ "$response" =~ ^[Yy]$ ]]; then
-        # Detect the shell type
-        shell_type=$(basename "$SHELL")
-        echo "Detected shell: $shell_type"
+    # Detect the shell type
+    shell_type=$(basename "$SHELL")
 
-        # Determine which file to modify based on the shell type
-        case "$shell_type" in
-            bash)
-                file=~/.bash_profile
-                ;;
-            zsh)
-                file=~/.zshrc
-                ;;
-            *)
-                echo "${RED}${BOLD}❌ Unable to detect shell type.${RESET}"
-                echo "To add 'spin' to your path manually, add the following line to your shell's profile file:"
-                echo "export PATH=\"${SPIN_HOME}/bin:$PATH\""
-                return 1
-                ;;
-        esac
+    # Determine which file to modify based on the shell type
+    case "$shell_type" in
+        bash)
+            file=~/.bash_profile
+            ;;
+        zsh)
+            file=~/.zshrc
+            ;;
+        *)
+            echo "${RED}${BOLD}❌ Unable to detect shell type.${RESET}"
+            echo "To add 'spin' to your path manually, add the following line to your shell's profile file:"
+            echo 'export PATH="'${SPIN_HOME}'/bin:$PATH"'
+            return 1
+            ;;
+    esac
 
-        # Ensure the file exists
-        [ -f "$file" ] || { echo "Creating $file as it does not exist."; touch "$file"; }
+    # Check if SPIN_HOME is set to the default value
+    if [ "$SPIN_HOME" = "$HOME/.spin" ]; then
+        path_value='$HOME/.spin'
+    else
+        path_value=$SPIN_HOME
+    fi
 
-        # Check if the path is already in the file
-        if ! grep -q "export PATH=\"${SPIN_HOME}/bin:$PATH\"" "$file"; then
-            echo "👉 Detected $shell_type: Adding 'spin' to $file."
-            echo "export PATH=\"${SPIN_HOME}/bin:$PATH\"" >> "$file"
+    # Dynamically build the grep pattern
+    grep_pattern=$(echo 'export PATH="'$path_value'/bin:$PATH"')
+
+    # Check if the path is already in the file
+    if ! grep -qF "$grep_pattern" "$file"; then
+        echo "👉 Spin detected you're using \"$shell_type\"."
+        echo "👉 Spin detected your shell profile file is located at \"$file\"."
+        read -n 1 -p "${BOLD}${YELLOW}Would you like Spin to add itself to your PATH? [y/N] ${RESET}" response
+        echo # Empty line
+
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            echo 'export PATH="'$path_value'/bin:$PATH"' >> "$file"
+            set_path_automatically=1
         else
-            echo "✅ 'spin' path is already in $file."
-        fi
-
-        # Source the file to update the path in the current session
-        if [ -f "$file" ]; then
-            source "$file"
-            echo "✅ Spin path added and sourced successfully!"
-        else
-            echo "${YELLOW}${BOLD}❌ Error: Unable to source $file. Please open a new terminal session to apply changes.${RESET}"
-            exit 1
+            set_path_automatically=0
         fi
     else
-        echo "${YELLOW}${BOLD}⚠️ Aborted adding 'spin' to the path.${RESET}"
+        echo "✅ Correct PATH detected in \"$file\"."
     fi
 }
 
@@ -328,6 +329,17 @@ print_success() {
     printf '%s\n' "• Get latest news and updates by follow on Twitter: $(fmt_link @serversideup https://twitter.com/serversideup)"
     printf '%s\n' "• Meet friends and get help on our Discord community: $(fmt_link "Join our Discord Community" https://serversideup.net/discord)"
     printf '%s\n' "• Get sweet perks, exclusive access, and professional support: $(fmt_link "Become a sponsor" https://serversideup.net/sponsor)"
+    if [ "$set_path_automatically" = 1 ]; then
+        printf '\n'
+        printf '%s\n'"${BOLD}${YELLOW}Spin was automatically added to your path, but you may need to close your terminal and restart it to start using it.${RESET}"
+        printf '%s\n'"Or you can run $(fmt_code "source $file") to reload your profile."
+    elif [ "$set_path_automatically" = 0 ]; then
+        printf '\n'
+        printf '%s\n'"${BOLD}${YELLOW}You will need to add \"spin\" to your path manually.${RESET}"
+        printf '%s\n'"To do so, add the following line to your shell's profile file:"
+        printf '%s\n'"$(fmt_code 'export PATH="'$path_value'/bin:$PATH"')"
+        printf '%s\n'"Then, restart your terminal."
+    fi
     printf '%s\n' $RESET
 }
 
