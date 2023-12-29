@@ -40,7 +40,7 @@
 set -e
 
 # Default settings
-SPIN_HOME=${SPIN_HOME:-$HOME/.spin}
+SPIN_HOME=${SPIN_HOME:-'$HOME/.spin'}
 SPIN_CACHE_DIR=${SPIN_CACHE_DIR:-$SPIN_HOME/cache}
 REPO=${REPO:-serversideup/spin}
 REMOTE=${REMOTE:-https://github.com/${REPO}.git}
@@ -279,7 +279,7 @@ prompt_to_add_path() {
             *)
                 echo "${RED}${BOLD}❌ Unable to detect shell type.${RESET}"
                 echo "To add 'spin' to your path manually, add the following line to your shell's profile file:"
-                echo 'export PATH="$HOME/.spin/bin:$PATH"'
+                echo "export PATH=\"${SPIN_HOME}/bin:$PATH\""
                 return 1
                 ;;
         esac
@@ -288,9 +288,9 @@ prompt_to_add_path() {
         [ -f "$file" ] || { echo "Creating $file as it does not exist."; touch "$file"; }
 
         # Check if the path is already in the file
-        if ! grep -q 'export PATH="$HOME/.spin/bin:$PATH"' "$file"; then
+        if ! grep -q "export PATH=\"${SPIN_HOME}/bin:$PATH\"" "$file"; then
             echo "👉 Detected $shell_type: Adding 'spin' to $file."
-            echo 'export PATH="$HOME/.spin/bin:$PATH"' >> "$file"
+            echo "export PATH=\"${SPIN_HOME}/bin:$PATH\"" >> "$file"
         else
             echo "✅ 'spin' path is already in $file."
         fi
