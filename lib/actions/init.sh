@@ -38,11 +38,13 @@ action_init() {
 
         # If the templates are not specifically looking for .github, then be sure to ignore GitHub
         if [[ $template_src != *".github"* ]]; then
-            additional_find_args="-type d -name '.github' -prune -o"
+            additional_find_args="-type d -name .github -prune -o"
+            prepend_path=''
+        else
+            prepend_path='.github/'
         fi
 
         if [[ -d "$spin_templates_directory/$template_src" ]]; then
-
             # Check to see if the template file already exists in the project directory
             while IFS= read -r file; do
                 # Skip files that end with .lineinfile and directories
@@ -50,7 +52,7 @@ action_init() {
                     continue
                 fi
 
-                target_file="$project_directory/${file#"$spin_templates_directory/$template_src/"}"
+                target_file="$project_directory/$prepend_path${file#"$spin_templates_directory/$template_src/"}"
                 # Compute the relative path for the echo statements
                 relative_target_file="${target_file#"$project_directory"/}"
 
