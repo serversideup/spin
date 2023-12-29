@@ -293,8 +293,9 @@ prompt_to_add_path() {
 
     # Check if the path is already in the file
     if ! grep -qF "$grep_pattern" "$file"; then
-        echo "👉 Spin detected you're using \"$shell_type\"."
-        echo "👉 Spin detected your shell profile file is located at \"$file\"."
+        echo "Spin detected your shell environment:"
+        echo "👉 Shell Type: \"$shell_type\"."
+        echo "👉 Shell Profile: \"$file\"."
         read -n 1 -p "${BOLD}${YELLOW}Would you like Spin to add itself to your PATH? [y/N] ${RESET}" response
         echo # Empty line
 
