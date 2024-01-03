@@ -22,5 +22,6 @@ spin provision
 ## Checklist before executing this command
 Before you execute this command, you should have the following completed:
 
-- You should have a running Ubuntu 22.04 server with properly configured SSH access and DNS
+- You should have a running **Ubuntu 22.04 server** with properly configured SSH access and DNS
 - The `.spin.yml` file should be configured 
+- The `.spin-inventory.ini` file should properly be configured
