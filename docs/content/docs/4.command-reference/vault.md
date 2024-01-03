@@ -27,7 +27,8 @@ The `spin vault` command will intelligently pass any arguments to your local `an
 - `encrypt`: Encrypt an unencrypted file
 - `decrypt`: Decrypt an encrypted file
 
-More actions can be found in the [official documentation](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html).
+## Official Documentation & Additional Options
+More actions and syntax reference can be found in the [official documentation](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html).
 
 ## Examples
 ::code-panel
