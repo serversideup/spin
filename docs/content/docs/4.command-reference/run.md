@@ -4,8 +4,10 @@ title: 'run'
 description: 'Command reference for "spin run"'
 layout: docs
 ---
-## Run
+# spin run
+::lead-p
 Use `run` if you want to run a command with NEW containers. This is helpful for package installers, etc. This command does require a Docker Compose file to run. If you're looking for a command that you can run in any directory, check out [`spin latest`](/docs/command-reference/latest/).
+::
 
 ## Usage
 ::code-panel

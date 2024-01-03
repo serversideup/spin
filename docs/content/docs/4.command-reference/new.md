@@ -4,8 +4,10 @@ title: 'new'
 description: 'Command reference for "spin new"'
 layout: docs
 ---
-## Build
-Create a new project with Spin installed.
+# spin new
+::lead-p
+Create and initialize a new project with Spin.
+::
 
 ## Usage
 ::code-panel

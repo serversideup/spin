@@ -4,8 +4,10 @@ title: 'kill'
 description: 'Command reference for "spin kill"'
 layout: docs
 ---
-## Kill
+# spin kill
+::lead-p
 Send `SIGKILL` to all containers. See the documentation on [docker kill](https://docs.docker.com/engine/reference/commandline/kill/) for more advanced usage.
+::
 
 ## Usage
 ::code-panel

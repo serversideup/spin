@@ -4,8 +4,10 @@ title: 'update'
 description: 'Command reference for "spin update"'
 layout: docs
 ---
-## Update
+# spin update
+::lead-p
 Update `spin` to the latest version (on system/user installs only).
+::
 
 ## Usage
 ::code-panel

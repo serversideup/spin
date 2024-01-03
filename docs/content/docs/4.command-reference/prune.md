@@ -4,8 +4,10 @@ title: 'prune'
 description: 'Command reference for "spin prune"'
 layout: docs
 ---
-## Prune
+# spin prune
+::lead-p
 Clear the local Docker cache on your machine.
+::
 
 ## Usage
 ::code-panel
