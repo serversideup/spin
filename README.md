@@ -49,6 +49,18 @@ Spin has `spin new` to create a new project with Spin installed, as well as `spi
 spin new laravel {{ your project name }}
 ```
 
+# How Spin Works
+Spin serves as a collection of open source technologies, put together in one simple experience.
+
+<p>
+	<img src="./.github/spin-diagram.png" />
+</p>
+
+#### Spin uses these proven technologies
+- [Docker](https://www.docker.com/) (Docker Desktop, Docker Compose, Docker Swarm Mode)
+- [Ansible](https://www.ansible.com/)
+- Includes [GitHub Actions](https://docs.github.com/en/actions) templates (but can work with [GitLab CI](https://docs.gitlab.com/ee/ci/) too)
+
 # Demo
 Here's a demo showing a process of creating a new Laravel project and deploying it to production:
 
