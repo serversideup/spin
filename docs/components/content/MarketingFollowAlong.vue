@@ -26,7 +26,7 @@
                                 </div>
                                 <button
                                     data-element="submit"
-                                    class="formkit-submit formkit-submit w-full md:w-auto font-sans text-base font-semibold py-[14px] px-[18px] rounded-lg border border-[#1CE783] bg-[#1CE783] text-white">
+                                    class="formkit-submit formkit-submit w-full md:w-auto font-sans text-base font-semibold py-[14px] px-[18px] rounded-lg border border-[#1CE783] bg-[#1CE783] text-[#151A1F]">
 
                                     <span class="">Subscribe</span>
                                 </button>
