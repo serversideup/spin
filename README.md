@@ -1,5 +1,5 @@
 <p align="center">
-		<a href="https://serversideup.net/open-source/spin/"><img src="https://serversideup.net/wp-content/uploads/2024/01/spin-demo_spin-up.gif" width="1200" alt="Spin Header"></a>
+		<a href="https://serversideup.net/open-source/spin/"><img src="https://serversideup.net/wp-content/uploads/2024/01/spin-demo_spin-up.gif" width="1200" alt="Spin Header" /></a>
 </p>
 <p align="center">
 	<a href="https://actions-badge.atrox.dev/serversideup/spin/goto?ref=main"><img alt="Build Status" src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fserversideup%2Fspin%2Fbadge%3Fref%3Dmain&style=flat" /></a>
@@ -33,7 +33,7 @@ Spin is a wrapper script that dramatically improves the developer experience whe
 # Installation & Usage
 Spin is flexible and able to be installed via:
 - [macOS](https://serversideup.net/open-source/spin/docs/installation/install-macos)
-- [Windows]((https://serversideup.net/open-source/spin/docs/installation/install-windows))
+- [Windows](https://serversideup.net/open-source/spin/docs/installation/install-windows)
 - [Linux](https://serversideup.net/open-source/spin/docs/installation/install-linux)
 - [Composer](https://serversideup.net/open-source/spin/docs/installation/install-composer)
 - [NPM/Yarn](https://serversideup.net/open-source/spin/docs/installation/install-npm-yarn)
