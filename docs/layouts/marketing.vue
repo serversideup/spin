@@ -33,7 +33,12 @@ useHead({
     bodyAttrs: {
         class: 'antialiased'
     },
-    title: 'Spin: 100% replication from Development to Production - Server Side Up'
+    title: 'Spin: 100% replication from Development to Production - Server Side Up',
+    script: [
+        {
+            src: 'https://f.convertkit.com/ckjs/ck.5.js'
+        }
+    ]
 })
 
 const route = useRoute();
