@@ -4,6 +4,10 @@ action_latest(){
     if [ $# -gt 0 ]; then
       # Check the first argument and pass the user to proper action, Only some actions need arguments passed.
       case $1 in
+        node)
+          shift 1
+          docker run --rm -v $(pwd):/usr/app/src/ -w /usr/src/app $SPIN_NODE_IMAGE "$@"
+        ;;
         php)
           shift 1
           docker run --rm -v $(pwd):/var/www/html $SPIN_PHP_IMAGE "$@"

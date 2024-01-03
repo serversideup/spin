@@ -17,6 +17,10 @@ spin latest [OPTIONS] SERVICE COMMAND
 ```
 ::
 
+### Options
+- `php`: Run the latest stable version of PHP
+- `node`: Run the latest stable LTS version of Node
+
 ## Example
 ::code-panel
 ---
