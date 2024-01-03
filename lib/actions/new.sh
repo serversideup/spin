@@ -17,7 +17,7 @@ action_new(){
           shift 1
           latest_image=$SPIN_NODE_IMAGE
           docker pull $latest_image
-          docker run --rm -it -v $(pwd):/usr/src/app -w /usr/src/app $latest_image npx nuxi@latest init "$@"
+          docker run --rm --user "${SPIN_USER_ID}:${SPIN_GROUP_ID}" -it -v $(pwd):/usr/src/app -w /usr/src/app $latest_image npx nuxi@latest init "$@"
           install_spin_package_to_project node "${@:-nuxt-app}" --force
         ;;
         *)
