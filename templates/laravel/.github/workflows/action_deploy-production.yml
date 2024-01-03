@@ -45,7 +45,7 @@ jobs:
         run: | 
           echo "PROJECT_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
 
-      - uses: serversideup/github-action-docker-swarm-deploy@main
+      - uses: serversideup/github-action-docker-swarm-deploy@v1
         with:
           # 👇 Ensure these are correct and that you've set the appropriate secrets.
           deployment_ssh_private_key: "${{ secrets.DEPLOYMENT_SSH_PRIVATE_KEY }}"

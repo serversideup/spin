@@ -62,7 +62,7 @@ jobs:
           BASE_64_SECRET: ${{ secrets.ENV_FILE_BASE64 }}
       
       - name: docker-build-action
-        uses: serversideup/github-action-docker-build@main
+        uses: serversideup/github-action-docker-build@v5
         with:
           tags: "${{ inputs.docker-tags }}"
           dockerfile: "${{ inputs.dockerfile }}"
