@@ -18,6 +18,15 @@ label: Usage for "spin build"
 spin new <app-type> <project-name>
 ```
 ::
+
+## Live Demo
+Here is a live demo that covers creating a new project from start-to-finish with Laravel.
+::video-embed
+---
+src: "https://www.youtube.com/watch?v=I_dq-kRDztI"
+---
+::
+
 ## Create a new project with Spin installed
 Getting started with a new project is easy with Spin. Simply run the `spin new` command followed by your project name and Spin will create a new project for you with Spin installed.
 
