@@ -43,7 +43,8 @@ export default defineNuxtConfig({
               sepia: 'monokai'
             },
             preload: [
-                'dockerfile'
+                'dockerfile',
+                'ini'
             ]        
         }
     },
