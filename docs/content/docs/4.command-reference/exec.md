@@ -4,8 +4,10 @@ title: 'exec'
 description: 'Command reference for "spin exec"'
 layout: docs
 ---
-## Exec
+# spin exec
+::lead-p
 Use `exec` if you want to run a command in **currently running** containers.
+::
 
 ## Usage
 ::code-panel

@@ -4,8 +4,10 @@ title: 'logs'
 description: 'Command reference for "spin logs"'
 layout: docs
 ---
-## Logs
+# spin logs
+::lead-p
 View the logs of your docker project. Helpful if you need to go back in time on your own machine.
+::
 
 ## Usage
 ::code-panel

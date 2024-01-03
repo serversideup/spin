@@ -4,8 +4,10 @@ title: 'build'
 description: 'Command reference for "spin build"'
 layout: docs
 ---
-## Build
+# spin build
+::lead-p
 Trigger a build of your docker-compose files.
+::
 
 ## Usage
 ::code-panel

@@ -4,8 +4,10 @@ title: 'pull'
 description: 'Command reference for "spin pull"'
 layout: docs
 ---
-## Pull
+# spin pull
+::lead-p
 Trigger a pull of your Docker Compose images.
+::
 
 ## Usage
 ::code-panel

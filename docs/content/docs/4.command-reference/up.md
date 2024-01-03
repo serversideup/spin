@@ -4,8 +4,10 @@ title: 'up'
 description: 'Command reference for "spin up"'
 layout: docs
 ---
-## Up
+# spin up
+::lead-p
 Bring up all containers defined in `docker-compose.yml` and `docker-compose.$SPIN_ENV.yml` (`$SPIN_ENV` defaults to `dev`).
+::
 
 ## Usage
 ::code-panel

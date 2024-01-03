@@ -103,10 +103,6 @@ if [ $# -gt 0 ]; then
       source "$SPIN_HOME/lib/actions/new.sh"
       action_new "$@"
     ;;
-    php)
-      source "$SPIN_HOME/lib/actions/php.sh"
-      action_php "$@"
-    ;;
     provision)
       source "$SPIN_HOME/lib/actions/provision.sh"
       action_provision "$@"

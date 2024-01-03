@@ -4,8 +4,10 @@ title: 'latest'
 description: 'Command reference for "spin latest"'
 layout: docs
 ---
-## Latest
+# spin latest
+::lead-p
 Run a one-off container to perform a task with the latest version of the container type you specify. This is great when you need to run composer or npm commands outside of a project directory.
+::
 
 ## Usage
 ::code-panel
@@ -16,6 +18,10 @@ label: Usage for "spin latest"
 spin latest [OPTIONS] SERVICE COMMAND 
 ```
 ::
+
+### Options
+- `php`: Run the latest stable version of PHP
+- `node`: Run the latest stable LTS version of Node
 
 ## Example
 ::code-panel

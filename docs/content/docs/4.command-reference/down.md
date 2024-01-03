@@ -4,8 +4,10 @@ title: 'down'
 description: 'Command reference for "spin down"'
 layout: docs
 ---
-## Down
+# spin down
+::lead-p
 Stops containers and removes containers, networks, volumes, and images created by up.
+::
 
 ## Usage
 ::code-panel

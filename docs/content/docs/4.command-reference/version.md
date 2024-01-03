@@ -4,8 +4,10 @@ title: 'version'
 description: 'Command reference for "spin version"'
 layout: docs
 ---
-## Version
+# spin version
+::lead-p
 Print the version of `spin` that you are running. Similar to `spin debug`, but with less output.
+::
 
 ## Usage
 ::code-panel
