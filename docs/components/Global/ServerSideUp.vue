@@ -14,7 +14,7 @@
 
                     <div v-show="showMenu"
                         ref="menuRef"
-                        class="absolute shadow-sm z-10 bg-white rounded-b-lg p-4 w-64 top-[28px] flex flex-col content-left text-left">
+                        class="absolute shadow-sm z-50 bg-white rounded-b-lg p-4 w-64 top-[28px] flex flex-col content-left text-left">
                             <span class="font-inter font-bold text-black text-[14px]">Books</span>
                             <NuxtLink
                                 @click="showMenu = false"
