@@ -1,5 +1,5 @@
 <template>
-    <img :src="src" :alt="alt" :style="{
+    <img :src="( basePath != '/' ? basePath : '' )+src" :alt="alt" :style="{
         maxWidth: maxWidth + 'px',
         maxHeight: maxHeight + 'px'
     }"
@@ -7,6 +7,8 @@
 </template>
 
 <script setup>
+const { basePath, domain } = useRuntimeConfig().public;
+
 const props = defineProps({
     src: {
         type: String,
