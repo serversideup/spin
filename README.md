@@ -15,7 +15,7 @@
   <a href="https://serversideup.net/discord"><img alt="Discord" src="https://img.shields.io/discord/910287105714954251?color=blueviolet"></a>
 </p>
 
-# Introduction
+## Introduction
 
 **Stop wasting time fixing production issues you've already solved.** Spin is a bash utility that improves the user-experience for teams using Docker. Replicate any environment on any machine, regardless if they are running MacOS, Windows, or Linux. Centralize your infrastructure from a single configuration file using Docker.
 
@@ -33,7 +33,7 @@ Spin is a wrapper script that dramatically improves the developer experience whe
 
 </details>
 
-# Installation & Usage
+## Installation & Usage
 Spin is flexible and able to be installed via:
 - [macOS](https://serversideup.net/open-source/spin/docs/installation/install-macos)
 - [Windows](https://serversideup.net/open-source/spin/docs/installation/install-windows)
@@ -52,7 +52,7 @@ Spin has `spin new` to create a new project with Spin installed, as well as `spi
 spin new laravel {{ your project name }}
 ```
 
-# How Spin Works
+## How Spin Works
 Spin serves as a collection of open source technologies, put together in one simple experience.
 
 <p>
@@ -64,7 +64,7 @@ Spin serves as a collection of open source technologies, put together in one sim
 - [Ansible](https://www.ansible.com/)
 - Includes [GitHub Actions](https://docs.github.com/en/actions) templates (but can work with [GitLab CI](https://docs.gitlab.com/ee/ci/) too)
 
-# Demo
+## Demo
 Here's a demo showing a process of creating a new Laravel project and deploying it to production:
 
 <a href="https://www.youtube.com/watch?v=I_dq-kRDztI"><img src="https://serversideup.net/wp-content/uploads/2024/01/Youtube-player.png" /></a>
