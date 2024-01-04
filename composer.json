@@ -16,5 +16,8 @@
     ],
     "type": "library",
     "license": "GPL-3.0-or-later",
-    "require": {}
+    "require": {},
+    "archive": {
+        "exclude": [".github", "docs", "tools"]
+    }
 }

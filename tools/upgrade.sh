@@ -1,3 +1,4 @@
+#!/bin/bash
 # This upgrade script was heavily inspired by talented devs of OhMyZSH https://github.com/ohmyzsh/ohmyzsh
 
 ############################################################################################################
@@ -148,7 +149,7 @@ check_for_updates() {
         perform_upgrade $latest_release
     else
         printf "${BOLD}${GREEN}✅ No updates needed!${RESET} \"spin\" is up-to-date. Now get back to work! \n"
-        date "+%s" > "${SPIN_HOME}/conf/last_update_check.lock"
+        date "+%s" > "${SPIN_HOME}/cache/.spin-last-update"
     fi
 }
 
@@ -185,7 +186,7 @@ perform_upgrade() {
     local new_version
     new_version=$1
 
-    echo "${BLUE}Updating spin Spin...${RESET}"
+    echo "${BLUE}Updating Spin to \"$new_version\"...${RESET}"
 
     git -C $SPIN_HOME fetch --all --tags > /dev/null
 
@@ -216,9 +217,9 @@ perform_upgrade() {
     printf '%s     /__/:/   %s    \  \:\  %s     \__\/  %s    \  \:\    %s\n'      $RAINBOW $RESET
     printf '%s     \__\/    %s     \__\/  %s            %s     \__\/    %s\n'      $RAINBOW $RESET
     printf '\n'
-    printf '%s\n' "• See what\'s new by reading the release notes: $(fmt_link "View the latest release notes" https://github.com/serversideup/spin/releases)"
+    printf '%s\n' "• See what's new by reading the release notes: $(fmt_link "View the latest release notes" https://github.com/serversideup/spin/releases)"
     printf '%s\n' "• Get latest news and updates by follow on Twitter: $(fmt_link @serversideup https://twitter.com/serversideup)"
-    printf '%s\n' "• Meet friends and get help on our community: $(fmt_link "Join our Discourse Community" https://community.serversideup.net/)"
+    printf '%s\n' "• Meet friends and get help on our community: $(fmt_link "Join our Discord Community" https://serversideup.net/discord)"
     printf '%s\n' "• Get sweet perks, exclusive access, and professional support: $(fmt_link "Become a sponsor" https://serversideup.net/sponsor)"
     printf '%s\n' $RESET
     printf '\n'

@@ -1,5 +1,5 @@
 <p align="center">
-		<img src=".github/header.png" width="1200" alt="Spin Header">
+		<a href="https://serversideup.net/open-source/spin/"><img src="https://raw.githubusercontent.com/serversideup/media-assets/main/spin/spin-demo_spin-up.gif" width="1200" alt="Spin Header" /></a>
 </p>
 <p align="center">
 	<a href="https://actions-badge.atrox.dev/serversideup/spin/goto?ref=main"><img alt="Build Status" src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fserversideup%2Fspin%2Fbadge%3Fref%3Dmain&style=flat" /></a>
@@ -12,19 +12,81 @@
   <a href="https://serversideup.net/discord"><img alt="Discord" src="https://img.shields.io/discord/910287105714954251?color=blueviolet"></a>
 </p>
 
-Hi! We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers). We're a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
+# Introduction
 
-### Find us at:
+**Stop wasting time fixing production issues you've already solved.** Spin is a bash utility that improves the user-experience for teams using Docker. Replicate any environment on any machine, regardless if they are running MacOS, Windows, or Linux. Centralize your infrastructure from a single configuration file using Docker.
 
-* 📖 [Blog](https://serversideup.net) - get the latest guides and free courses on all things web/mobile development.
-* 🙋 [Community](https://community.serversideup.net) - get friendly help from our community members.
-* 🤵‍♂️ [Get Professional Help](https://serversideup.net/get-help) - get guaranteed responses within next business day.
-* 💻 [GitHub](https://github.com/serversideup) - check out our other open source projects
-* 📫 [Newsletter](https://serversideup.net/subscribe) - skip the algorithms and get quality content right to your inbox
-* 🐥 [Twitter](https://twitter.com/serversideup) - you can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers)
-* ❤️ [Sponsor Us](https://github.com/sponsors/serversideup) - please consider sponsoring us so we can create more helpful resources
+Spin is a wrapper script that dramatically improves the developer experience when working with Docker. Spin uses officially supported features and best practices from Docker.
 
-### Our Sponsors
+<details open>
+<summary>
+ <b>Features</b>
+</summary> <br />
+
+|<picture><img width="100%" alt="Replicate in any Environment" src="https://serversideup.net/wp-content/uploads/2024/01/replicate.png"></picture>|<picture><img width="100%" alt="Runs on Mac, Windows, Linux" src="https://serversideup.net/wp-content/uploads/2024/01/run-on-anything.png"></picture>|<picture><img width="100%" alt="Choose Any Host" src="https://serversideup.net/wp-content/uploads/2024/01/choose-any-host.png"></picture>|
+|:---:|:---:|:---:|
+|<picture><img width="100%" alt="Framework Agnostic" src="https://serversideup.net/wp-content/uploads/2024/01/framework-agnostic.png"></picture>|<picture><img width="100%" alt="Zero-downtime Deployments" src="https://serversideup.net/wp-content/uploads/2024/01/zero-downtime-deployments.png"></picture>|<picture><img width="100%" alt="Docker Syntax Simplified" src="https://serversideup.net/wp-content/uploads/2024/01/docker-simplified.png"></picture>|
+|<picture><img width="100%" alt="Simple Server Management" src="https://serversideup.net/wp-content/uploads/2024/01/simple-server-management.png"></picture>|<picture><img width="100%" alt="GitHub Action Support" src="https://serversideup.net/wp-content/uploads/2024/01/github-action-support.png"></picture>|<picture><img width="100%" alt="Automated SSL" src="https://serversideup.net/wp-content/uploads/2024/01/automated-ssl.png"></picture>|
+
+</details>
+
+# Installation & Usage
+Spin is flexible and able to be installed via:
+- [macOS](https://serversideup.net/open-source/spin/docs/installation/install-macos)
+- [Windows](https://serversideup.net/open-source/spin/docs/installation/install-windows)
+- [Linux](https://serversideup.net/open-source/spin/docs/installation/install-linux)
+- [Composer](https://serversideup.net/open-source/spin/docs/installation/install-composer)
+- [NPM/Yarn](https://serversideup.net/open-source/spin/docs/installation/install-npm-yarn)
+
+### Simple Install Command
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/serversideup/spin/main/tools/install.sh)"
+```
+### Create a new project
+Spin has `spin new` to create a new project with Spin installed, as well as `spin init` to add Spin to an existing project.
+
+```
+spin new laravel {{ your project name }}
+```
+
+# How Spin Works
+Spin serves as a collection of open source technologies, put together in one simple experience.
+
+<p>
+	<img src="./.github/spin-diagram.png" />
+</p>
+
+#### Spin uses these proven technologies
+- [Docker](https://www.docker.com/) (Docker Desktop, Docker Compose, Docker Swarm Mode)
+- [Ansible](https://www.ansible.com/)
+- Includes [GitHub Actions](https://docs.github.com/en/actions) templates (but can work with [GitLab CI](https://docs.gitlab.com/ee/ci/) too)
+
+# Demo
+Here's a demo showing a process of creating a new Laravel project and deploying it to production:
+
+<a href="https://www.youtube.com/watch?v=I_dq-kRDztI"><img src="https://serversideup.net/wp-content/uploads/2024/01/Youtube-player.png" /></a>
+
+## Resources
+- **[Website](https://serversideup.net/open-source/spin/)** overview of the product.
+- **[Docs](https://serversideup.net/open-source/spin/docs)** for a deep-dive on how to use the product.
+- **[Discord](https://serversideup.net/discord)** for friendly support from the community and the team.
+- **[GitHub](https://github.com/serversideup/spin)** for source code, bug reports, and project management.
+- **[Get Professional Help](https://serversideup.net/professional-support)** - Get video + screen-sharing help directly from the core contributors.
+
+## Contributing
+As an open-source project, we strive for transparency and collaboration in our development process. We greatly appreciate any contributions members of our community can provide. Whether you're fixing bugs, proposing features, improving documentation, or spreading awareness - your involvement strengthens the project. Please review our [contribution guidelines](https://serversideup.net/open-source/spin/docs/community/contributing) and [code of conduct](./.github/code_of_conduct.md) to understand how we work together respectfully.
+
+- **Bug Report**: If you're experiencing an issue while using these images, please [create an issue](https://github.com/serversideup/spin/issues/new/choose).
+- **Feature Request**: Make this project better by [submitting a feature request](https://github.com/serversideup/spin/discussions/9).
+- **Documentation**: Improve our documentation by [submitting a documentation change](./docs/README.md).
+- **Community Support**: Help others on [GitHub Discussions](https://github.com/serversideup/spin/discussions) or [Discord](https://serversideup.net/discord).
+- **Security Report**: Report critical security issues via [our responsible disclosure policy](https://www.notion.so/Responsible-Disclosure-Policy-421a6a3be1714d388ebbadba7eebbdc8).
+
+Need help getting started? Join our Discord community and we'll help you out!
+
+<a href="https://serversideup.net/discord"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/join-discord.svg" title="Join Discord"></a>
+
+## Our Sponsors
 All of our software is free an open to the world. None of this can be brought to you without the financial backing of our sponsors.
 
 <p align="center"><a href="https://github.com/sponsors/serversideup"><img src="https://521public.s3.amazonaws.com/serversideup/sponsors/sponsor-box.png" alt="Sponsors"></a></p>
@@ -32,49 +94,38 @@ All of our software is free an open to the world. None of this can be brought to
 #### Individual Supporters
 <!-- supporters --><a href="https://github.com/deligoez"><img src="https://github.com/deligoez.png" width="40px" alt="deligoez" /></a>&nbsp;&nbsp;<a href="https://github.com/alexjustesen"><img src="https://github.com/alexjustesen.png" width="40px" alt="alexjustesen" /></a>&nbsp;&nbsp;<a href="https://github.com/jeremykenedy"><img src="https://github.com/jeremykenedy.png" width="40px" alt="jeremykenedy" /></a>&nbsp;&nbsp;<a href="https://github.com/GeekDougle"><img src="https://github.com/GeekDougle.png" width="40px" alt="GeekDougle" /></a>&nbsp;&nbsp;<!-- supporters -->
 
-# What's `spin`?
-**Stop wasting time fixing production issues you've already solved.** Spin is a bash utility that improves the user-experience for teams using Docker. Replicate any environment on any machine, regardless if they are running MacOS, Windows, or Linux. Centralize your infrastructure from a single configuration file using Docker.
+## About Us
+We're [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers) - a two person team with a passion for open source products. We created [Server Side Up](https://serversideup.net) to help share what we learn.
 
+<div align="center">
 
+| <div align="center">Dan Pastori</div>                  | <div align="center">Jay Rogers</div>                                 |
+| ----------------------------- | ------------------------------------------ |
+| <div align="center"><a href="https://twitter.com/danpastori"><img src="https://serversideup.net/wp-content/uploads/2023/08/dan.jpg" title="Dan Pastori" width="150px"></a><br /><a href="https://twitter.com/danpastori"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/twitter.svg" title="Twitter" width="24px"></a><a href="https://github.com/danpastori"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/github.svg" title="GitHub" width="24px"></a></div>                        | <div align="center"><a href="https://twitter.com/jaydrogers"><img src="https://serversideup.net/wp-content/uploads/2023/08/jay.jpg" title="Jay Rogers" width="150px"></a><br /><a href="https://twitter.com/jaydrogers"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/twitter.svg" title="Twitter" width="24px"></a><a href="https://github.com/jaydrogers"><img src="https://serversideup.net/wp-content/themes/serversideup/images/open-source/github.svg" title="GitHub" width="24px"></a></div>                                       |
 
-Spin is a wrapper script that dramatically improves the developer experience when working with Docker. Spin uses officially supported features and best practices from Docker. It takes 70 character commands and simplifies them down to 7 characters.
+</div>
 
-## Features
-- ✅ Works on Windows, Mac, and Linux (using Docker)
-- ✅ Language independent (works with PHP, Node, Ruby, Python, etc)
-- ✅ Install as project dependency or to your system
-- ✅ Intelligent & Automated docker image updates on every startup
-- ✅ Follows Docker standards, so there's no extra syntax to learn 
+### Find us at:
 
-# Comparisons
-We understand that spin isn't the first tool on the planet that solves the pain of managing development environments. Here is how it compares:
+* **📖 [Blog](https://serversideup.net)** - Get the latest guides and free courses on all things web/mobile development.
+* **🙋 [Community](https://community.serversideup.net)** - Get friendly help from our community members.
+* **🤵‍♂️ [Get Professional Help](https://serversideup.net/professional-support)** - Get video + screen-sharing support from the core contributors.
+* **💻 [GitHub](https://github.com/serversideup)** - Check out our other open source projects.
+* **📫 [Newsletter](https://serversideup.net/subscribe)** - Skip the algorithms and get quality content right to your inbox.
+* **🐥 [Twitter](https://twitter.com/serversideup)** - You can also follow [Dan](https://twitter.com/danpastori) and [Jay](https://twitter.com/jaydrogers).
+* **❤️ [Sponsor Us](https://github.com/sponsors/serversideup)** - Please consider sponsoring us so we can create more helpful resources.
 
-### Laravel Sail
-We love Laravel Sail, but it focuses specifically on development. Sail uses Docker, but you won't be able to run Sail's configurations in production.
+## Our products
+If you appreciate this project, be sure to check out our other projects.
 
-Although spin is not specifically designed for production ([read more](https://serversideup.net/open-source/spin/getting-started/introduction#do-i-run-spin-in-production)), Spin enables the system administrator to easily re-use the configurations of Spin in production if you use Docker Swarm.
+### 📚 Books
+- **[The Ultimate Guide to Building APIs & SPAs](https://serversideup.net/ultimate-guide-to-building-apis-and-spas-with-laravel-and-nuxt3/)**: Build web & mobile apps from the same codebase.
 
-You should consider `spin` over Laravel Sail if:
-- You want your production environment and development environment to be 100% the same
-- You want to use `spin` on other projects that do not use PHP or Laravel
+### 🛠️ Software-as-a-Service
+- **[Bugflow](https://bugflow.io/)**: Get visual bug reports directly in GitHub, GitLab, and more.
+- **[SelfHost Pro](https://selfhostpro.com/)**: Connect Stripe or Lemonsqueezy to a private docker registry for self-hosted apps.
 
-### Vagrant
-* Vagrant is intended for development machines only
-* Vagrant is pretty heavy when it comes to image size and performance requirements
-
-### MAMP & MAMP PRO
-* You would **never** run MAMP in production
-
-### Kubernetes
-Kubernetes is great, but over complicated for most apps. If you need greater than [99.999% uptime](https://uptime.is/99.999) (and it makes business sense to pay the price for that uptime), then Kubernetes might be a great fit for you.
-
-# Installation
-We suggest reading our [Introduction & Concepts](https://serversideup.net/open-source/spin/getting-started/introduction) to learn how to install `spin.
-
-# Documentation Site
-All of our documentation is located at [https://serversideup.net/open-source/spin/](https://serversideup.net/open-source/spin/)
-
-The docs and site are run under a different repository. [View the Docs repository →](https://github.com/serversideup/spin-site)
-
-### Security Disclosures
-If you find a critical security flaw, please open an issue or learn more about [our responsible disclosure policy](https://www.notion.so/Responsible-Disclosure-Policy-421a6a3be1714d388ebbadba7eebbdc8).
+### 🌍 Open Source
+- **[serversideup/php Docker Images](https://serversideup.net/open-source/docker-php/)**: PHP Docker images optimized for Laravel and running PHP applications in production.
+- **[Financial Freedom](https://github.com/serversideup/financial-freedom)**: Open source alternative to Mint, YNAB, & Monarch Money.
+- **[AmplitudeJS](https://521dimensions.com/open-source/amplitudejs)**: Open-source HTML5 & JavaScript Web Audio Library.

@@ -1,2 +1,7 @@
 tools/
 conf/
+cache/
+docs/
+.env*
+.github/
+tools/
