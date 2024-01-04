@@ -1,6 +1,6 @@
 <template>
     <div class="mx-auto max-w-[940px] flex flex-col mt-8 md:mt-16">
-        <h2 class="w-full text-center font-inter text-white text-3xl md:text-5xl font-bold max-w-xl mx-auto">💪 Manage servers right from your terminal</h2>
+        <h2 class="w-full text-center font-inter text-white text-3xl md:text-5xl font-bold max-w-xl mx-auto">💪 Manage servers right from your project</h2>
         <p class="w-full text-center mt-6 text-slate-300 font-inter text-xl md:text-2xl">Control and own your infrastructure without the headache.</p>
 
         <div class="px-4">
