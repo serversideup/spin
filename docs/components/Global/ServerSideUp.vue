@@ -124,10 +124,10 @@
                                 :to="'https://serversideup.net/open-source/spin'"
                                 class="flex items-center text-[12px] font-medium font-inter py-2 group">
                                     <div class="w-3 h-3 flex items-center justify-center mr-2">
-                                        <svg width="106" height="105" class="w-full max-h-full" viewBox="0 0 106 105" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <rect y="52.7411" width="34.9627" height="34.9627" transform="rotate(-45 0 52.7411)" fill="#3B82F6"/>
-                                            <rect x="28.0186" y="24.7224" width="34.9627" height="34.9627" transform="rotate(-45 28.0186 24.7224)" fill="#3B82F6"/>
-                                            <rect x="56.0374" y="52.7411" width="34.9627" height="34.9627" transform="rotate(-45 56.0374 52.7411)" fill="#3B82F6"/>
+                                        <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect y="32" width="16.5728" height="16.5728" transform="rotate(-45 0 32)" fill="#1CE783"/>
+                                            <rect x="13.2812" y="18.7188" width="16.5728" height="16.5728" transform="rotate(-45 13.2812 18.7188)" fill="#1CE783"/>
+                                            <rect x="26.5625" y="32" width="16.5728" height="16.5728" transform="rotate(-45 26.5625 32)" fill="#1CE783"/>
                                         </svg>
                                     </div>
                                     <span class="group-hover:underline">Spin</span>
