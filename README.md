@@ -64,6 +64,13 @@ Spin serves as a collection of open source technologies, put together in one sim
 - [Ansible](https://www.ansible.com/)
 - Includes [GitHub Actions](https://docs.github.com/en/actions) templates (but can work with [GitLab CI](https://docs.gitlab.com/ee/ci/) too)
 
+#### We also use a number of our other open source projects in Spin
+- [Spin Ansible Collection](https://github.com/serversideup/ansible-collection-spin) - Used to provision and maintain your production server.
+- [serversideup/docker-build-action](https://github.com/marketplace/actions/docker-build-action) - A simplified syntax to build and publish your Docker images with GitHub Actions.
+- [serversideup/docker-swarm-deploy-github-action](https://github.com/marketplace/actions/docker-swarm-deploy-github-action) - A simplified syntax to deploy to Docker Swarm Mode via GitHub Actions.
+- [serversideup/php](https://serversideup.net/open-source/docker-php/) - PHP Docker images highly optimized to work with Laravel + Spin.
+- [serversideup/docker-ssh](https://github.com/serversideup/docker-ssh) - A lightweight docker image that runs SSH. This is a fantastic method on using a secure SSH tunnel into your database cluster.
+
 ## Demo
 Here's a demo showing a process of creating a new Laravel project and deploying it to production:
 
