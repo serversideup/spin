@@ -20,8 +20,5 @@ layout: marketing
 ::marketing-get-started
 ::
 
-::marketing-signup
-::
-
 ::marketing-follow-along
 ::
