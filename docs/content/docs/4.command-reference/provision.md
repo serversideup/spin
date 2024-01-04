@@ -25,3 +25,6 @@ Before you execute this command, you should have the following completed:
 - You should have a running **Ubuntu 22.04 server** with properly configured SSH access and DNS
 - The `.spin.yml` file should be configured 
 - The `.spin-inventory.ini` file should properly be configured
+
+## Learn More
+[Configuring your servers for "spin provision" →](/docs/guide/preparing-your-servers-for-spin)
