@@ -1,9 +1,12 @@
 <template>
-    <img :src="( basePath != '/' ? basePath : '' )+src" :alt="alt" :style="{
-        maxWidth: maxWidth + 'px',
-        maxHeight: maxHeight + 'px'
-    }"
-    class="mx-auto" />
+    <img 
+        :src="( basePath != '/' ? basePath : '' )+src" 
+        :alt="alt" 
+        :class="'max-w-full md:max-w-[' + maxWidth + 'px]'"
+        :style="{
+            maxHeight: maxHeight + 'px'
+        }"
+        class="mx-auto" />
 </template>
 
 <script setup>
