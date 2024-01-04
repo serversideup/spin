@@ -1,4 +1,7 @@
 <p align="center">
+		<a href="https://serversideup.net/open-source/spin/"><img src=".github/small-header.png" width="1200" alt="Spin Header" /></a>
+</p>
+<p align="center">
 		<a href="https://serversideup.net/open-source/spin/"><img src="https://raw.githubusercontent.com/serversideup/media-assets/main/spin/spin-demo_spin-up.gif" width="1200" alt="Spin Header" /></a>
 </p>
 <p align="center">
