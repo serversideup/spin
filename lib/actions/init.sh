@@ -2,7 +2,7 @@
 action_init() {
     set -e
     force=0
-    project_directory="$(pwd)"
+    project_directory="."
     spin_templates_directory="$SPIN_HOME/templates"
 
     for arg in "$@"; do
@@ -111,7 +111,7 @@ action_init() {
                 run_ansible ansible-vault encrypt "${files_to_encrypt[@]}"
 
                 # Ensure the files are owned by the current user
-                docker run --rm --platform linux/amd64 -v "$(pwd)/$project_directory:/ansible" $SPIN_ANSIBLE_IMAGE chown -R "${SPIN_USER_ID}:${SPIN_GROUP_ID}" /ansible
+                docker run --rm --platform linux/amd64 -v "$(pwd)/$project_directory:/ansible" $SPIN_ANSIBLE_IMAGE chown "${SPIN_USER_ID}:${SPIN_GROUP_ID}" /ansible/.spin.yml /ansible/.spin-inventory.ini
                 echo "${BOLD}${YELLOW}👉 NOTE: You can save this password in \".vault-password\" in the root of your project if you want your secret to be remembered.${RESET}"
             elif [[ $encrypt_response =~ ^[Nn]$ ]]; then
                 echo "${BOLD}${BLUE}👋 Ok, we won't encrypt these files.${RESET} You can always encrypt it later by running \"spin vault encrypt\"."
