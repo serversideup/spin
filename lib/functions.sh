@@ -55,7 +55,7 @@ install_spin_package_to_project() {
   project_dir="$(pwd)/$project_name"
   case "$framework" in
     "php")
-      docker run --rm -v $project_dir:/var/www/html -e "LOG_LEVEL=off" $SPIN_PHP_IMAGE composer --working-dir=/var/www/html/ require serversideup/spin --dev
+      docker run --rm -v $project_dir:/var/www/html -e "LOG_LEVEL=off" $SPIN_PHP_IMAGE composer --working-dir=/var/www/html/ require serversideup/spin:^2.0@beta --dev
       ;;
     "node")
       if [[ -f "$project_dir/package-lock.json" && -f "$project_dir/package.json" ]]; then
