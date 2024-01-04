@@ -12,7 +12,7 @@ Create and initialize a new project with Spin.
 ## Usage
 ::code-panel
 ---
-label: Usage for "spin build"
+label: Usage for "spin new"
 ---
 ```bash
 spin new <app-type> <project-name>
