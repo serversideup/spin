@@ -80,7 +80,7 @@ action_init() {
 
         while IFS= read -r line || [[ -n "$line" ]]; do
             if ! grep -Fxq "$line" "$dest_file" 2>/dev/null; then
-                echo "$line" >> "$dest_file"
+                printf "%s\n" "$line" >> "$dest_file"
                 file_name="${dest_file#"$project_directory/"}"
                 echo "✅ \"$line\" has been added to \"$file_name\"."
             fi
