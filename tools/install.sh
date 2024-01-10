@@ -296,17 +296,24 @@ prompt_to_add_path() {
         echo "Spin detected your shell environment:"
         echo "👉 Shell Type: \"$shell_type\"."
         echo "👉 Shell Profile: \"$file\"."
-        read -n 1 -p "${BOLD}${YELLOW}Would you like Spin to add itself to your PATH? [y/N] ${RESET}" response
-        echo # Empty line
 
-        if [[ "$response" =~ ^[Yy]$ ]]; then
-            echo 'export PATH="'$path_value'/bin:$PATH"' >> "$file"
-            set_path_automatically=1
-        else
-            set_path_automatically=0
+        if [ -z "$set_path_automatically" ]; then
+            read -n 1 -p "${BOLD}${YELLOW}Would you like Spin to add itself to your PATH? [y/N] ${RESET}" response
+            echo # Empty line
+
+            if [[ "$response" =~ ^[Yy]$ ]]; then
+                set_path_automatically=1
+            else
+                set_path_automatically=0
+            fi
         fi
     else
         echo "✅ Correct PATH detected in \"$file\"."
+    fi
+
+    if [ "$set_path_automatically" = 1 ]; then
+        echo "👉 Adding Spin to your PATH in \"$file\"."
+        echo 'export PATH="'$path_value'/bin:$PATH"' >> "$file"
     fi
 }
 
@@ -349,7 +356,9 @@ main() {
   while [ $# -gt 0 ]; do
     case $1 in
       --beta) TRACK=beta ;;
+      --force) set_path_automatically=1 ;;
       *)
+
     esac
     shift
   done
