@@ -13,8 +13,8 @@
                 'bg-zinc-900/10 dark:bg-white/10' : isInsideMobileNavigation || !mobileNavIsOpen
             }"></div>
 
-            <DocsSearch/>
-
+            <!-- <DocsSearch/> -->
+            
             <div class="flex items-center gap-5 lg:hidden"></div>
 
             <div class="flex items-center gap-5">
