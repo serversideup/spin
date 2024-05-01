@@ -16,9 +16,6 @@ SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:cli"}
 SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
 SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"willhallonline/ansible:2.15-alpine-3.18"}
 
-# Default Service Names
-SPIN_DEFAULT_PHP_SERVICE_NAME=${SPIN_DEFAULT_PHP_RUN_SERVICE:-"php"}
-
 # Script Configuration
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 SPIN_HOME=$(dirname "$SCRIPT_DIR") #Assume the parent directory of this script is the home
