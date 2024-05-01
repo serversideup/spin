@@ -23,67 +23,6 @@ export_compose_file_variable(){
   fi
 }
 
-install_spin_package_to_project() {
-  framework="$1"
-  project_name="$2"
-  force=0
-
-  # Loop through arguments
-  for arg in "$@"; do
-      case $arg in
-          --force)
-              force=1
-              break
-              ;;
-          *)
-              # Handle other arguments or do nothing
-              ;;
-      esac
-  done
-
-  # Ask for confirmation if not forced
-  if [[ $force -eq 0 ]]; then
-    read -n 1 -r -p "Do you want to add Spin to your project? (Y/n) "
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-      return 0
-    fi
-  fi
-
-  echo "${BOLD}${BLUE}⚡️ Adding spin as a $framework development dependency...${RESET}"
-
-  project_dir="$(pwd)/$project_name"
-  case "$framework" in
-    "php")
-      docker run --rm -v "$project_dir:/var/www/html" -e "LOG_LEVEL=off" $SPIN_PHP_IMAGE composer --working-dir=/var/www/html/ require serversideup/spin:^2.0@beta --dev
-      ;;
-    "node")
-      if [[ -f "$project_dir/package-lock.json" && -f "$project_dir/package.json" ]]; then
-          echo "🧐 I detected a package-lock.json file, so I'll use npm."
-          docker run --rm -v "$project_dir:/usr/src/app" -w /usr/src/app $SPIN_NODE_IMAGE npm install @serversideup/spin --save-dev
-      elif [[ -f "$project_dir/pnpm-lock.yaml" ]]; then
-          echo "🧐 I detected a pnpm-lock.yaml file, so I'll use pnpm."
-          docker run --rm -v "$project_dir:/usr/src/app" -w /usr/src/app $SPIN_NODE_IMAGE pnpm add -D @serversideup/spin
-      elif [[ -f "$project_dir/yarn.lock" ]]; then
-          echo "🧐 I detected a yarn.lock file, so I'll use yarn."
-          docker run --rm -v "$project_dir:/usr/src/app" -w /usr/src/app $SPIN_NODE_IMAGE yarn add @serversideup/spin --dev
-      elif [[ -f "$project_dir/Bunfile" || -f "$project_dir/Bunfile.lock" ]]; then
-          echo "🧐 I detected a Bunfile or Bunfile.lock file, so I'll use bun."
-          docker run --rm -v "$project_dir:/usr/src/app" -w /usr/src/app $SPIN_NODE_IMAGE bun add -d @serversideup/spin
-      else
-          echo "Unknown Node project type."
-          exit 1
-      fi
-      ;;
-    *)
-      echo "Invalid argument. Supported arguments are: php, node."
-      return 1
-      ;;
-  esac
-
-  echo "${BOLD}${BLUE}🥳 The project, $project_name, has been created with Spin installed as a development dependency!${RESET}"
-}
-
 check_connection_with_cmd() {
     local cmd="$1"
     local api_url="$2"
