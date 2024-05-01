@@ -12,7 +12,7 @@ export SPIN_USER_ID=$(id -u)
 export SPIN_GROUP_ID=$(id -g)
 
 # Default Images
-SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:beta-cli"}
+SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:cli"}
 SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
 SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"willhallonline/ansible:2.15-alpine-3.18"}
 
