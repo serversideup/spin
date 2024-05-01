@@ -55,21 +55,21 @@ install_spin_package_to_project() {
   project_dir="$(pwd)/$project_name"
   case "$framework" in
     "php")
-      docker run --rm -v $project_dir:/var/www/html -e "LOG_LEVEL=off" $SPIN_PHP_IMAGE composer --working-dir=/var/www/html/ require serversideup/spin:^2.0@beta --dev
+      docker run --rm -v "$project_dir:/var/www/html" -e "LOG_LEVEL=off" $SPIN_PHP_IMAGE composer --working-dir=/var/www/html/ require serversideup/spin:^2.0@beta --dev
       ;;
     "node")
       if [[ -f "$project_dir/package-lock.json" && -f "$project_dir/package.json" ]]; then
           echo "🧐 I detected a package-lock.json file, so I'll use npm."
-          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $SPIN_NODE_IMAGE npm install @serversideup/spin --save-dev
+          docker run --rm -v "$project_dir:/usr/src/app" -w /usr/src/app $SPIN_NODE_IMAGE npm install @serversideup/spin --save-dev
       elif [[ -f "$project_dir/pnpm-lock.yaml" ]]; then
           echo "🧐 I detected a pnpm-lock.yaml file, so I'll use pnpm."
-          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $SPIN_NODE_IMAGE pnpm add -D @serversideup/spin
+          docker run --rm -v "$project_dir:/usr/src/app" -w /usr/src/app $SPIN_NODE_IMAGE pnpm add -D @serversideup/spin
       elif [[ -f "$project_dir/yarn.lock" ]]; then
           echo "🧐 I detected a yarn.lock file, so I'll use yarn."
-          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $SPIN_NODE_IMAGE yarn add @serversideup/spin --dev
+          docker run --rm -v "$project_dir:/usr/src/app" -w /usr/src/app $SPIN_NODE_IMAGE yarn add @serversideup/spin --dev
       elif [[ -f "$project_dir/Bunfile" || -f "$project_dir/Bunfile.lock" ]]; then
           echo "🧐 I detected a Bunfile or Bunfile.lock file, so I'll use bun."
-          docker run --rm -v $project_dir:/usr/src/app -w /usr/src/app $SPIN_NODE_IMAGE bun add -d @serversideup/spin
+          docker run --rm -v "$project_dir:/usr/src/app" -w /usr/src/app $SPIN_NODE_IMAGE bun add -d @serversideup/spin
       else
           echo "Unknown Node project type."
           exit 1
@@ -106,7 +106,7 @@ check_connection_with_cmd() {
 }
 
 check_for_upgrade() {
-  if needs_update ".spin-last-update" $AUTO_UPDATE_INTERVAL_IN_DAYS  || [ "$1" == "--force" ]; then
+  if needs_update ".spin-last-update" "$AUTO_UPDATE_INTERVAL_IN_DAYS"  || [ "$1" == "--force" ]; then
     if [ "$1" != "--force" ]; then
       read -n 1 -r -p "${BOLD}${YELLOW}[spin] 🤔 Would you like to check for updates? [Y/n]${RESET} " response
       case "$response" in
@@ -192,7 +192,7 @@ current_time_minus() {
   # Check the OS, because the commands are different.
   case "$(uname -s)" in
     Linux*)     DATE_THRESHOLD=$(date -d "now - ${days_to_subtract} days" +%s);;
-    Darwin*)    DATE_THRESHOLD=$(date -v -${days_to_subtract}d +%s);;
+    Darwin*)    DATE_THRESHOLD=$(date -v -"${days_to_subtract}d" +%s);;
     *)          echo "We're unsure how to calculate a date on your operating system." && exit 2
   esac
 
@@ -265,12 +265,13 @@ filter_out_spin_arguments() {
 
 get_github_release() {
   release_type="$1"
+  local release=""
   local repo="$2"
 
   if [[ $release_type == "stable" ]]; then
-    local release=$(curl --silent "https://api.github.com/repos/$repo/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    release=$(curl --silent "https://api.github.com/repos/$repo/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
   else
-    local release=$(curl --silent "https://api.github.com/repos/$repo/releases/" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/') | head -n 1
+    release=$(curl --silent "https://api.github.com/repos/$repo/releases/" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | head -n 1)
   fi
   echo "$release"
 }
@@ -337,7 +338,7 @@ last_pull_timestamp() {
     # sed is used to add a backslash before characters that have special meaning in regex
     local escaped_project_dir=$(printf '%s' "$project_dir" | sed 's/[][\.|$(){}?+*^]/\\&/g')
 
-    grep "^$escaped_project_dir " $cache_file | awk '{print $2}'
+    grep "^$escaped_project_dir " "$cache_file" | awk '{print $2}'
 }
 
 needs_update() {
