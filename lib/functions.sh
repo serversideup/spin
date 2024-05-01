@@ -335,6 +335,21 @@ print_version() {
   fi
 }
 
+repository_exsits_and_has_access(){
+  local repo_name="$1"
+
+  if git ls-remote git@github.com:$repo_name.git &> /dev/null; then
+    echo "👍 Repository exists and you have access to it."
+  else
+    echo "${BOLD}${RED}🛑 Repository does not exist or you do not have access to it (git@github.com:$repo_name.git)${RESET}"
+    echo ""
+    echo "${BOLD}${YELLOW}👇Try running this yourself to debug access:${RESET}"
+    echo "git clone git@github.com:$repo_name.git"
+    echo ""
+    exit 1
+  fi
+}
+
 run_ansible (){
   ansible_collections_path="./.infrastructure/conf/spin/collections"
   
