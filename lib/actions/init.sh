@@ -16,9 +16,6 @@ action_init() {
             --project-directory=*)
                 project_directory="${arg#*=}"
                 ;;
-            --use-gha-templates)
-                use_gha_templates=1
-                ;;
             *)
                 echo "${BOLD}${RED}❌ Invalid argument: $arg ${RESET}"
                 return 1
@@ -122,40 +119,6 @@ action_init() {
         fi
     }
 
-    update_templates_with_domain_name() {
-        local new_domain_name="$1"
-
-        # Define items as an array of strings that include the file path and the strings to search and replace
-        local items=(
-            "$project_directory/.github/workflows/action_deploy-production.yml example.com $new_domain_name"
-            "$project_directory/docker-compose.prod.yml example.com/my-repo/my-image:latest \$\{DEPLOYMENT_IMAGE_PHP\}"
-        )
-
-        for item in "${items[@]}"; do
-            # Use an array to split the item into its components
-            IFS=' ' read -r -a parts <<< "$item"
-            local file=${parts[0]}
-            local string_to_search=${parts[1]}
-            local replace_string=${parts[2]}
-            local relative_file="${file#"$project_directory"/}"
-
-            if [[ -f "$file" ]]; then
-                # Detect the operating system to set the sed command
-                if [[ "$OSTYPE" == "darwin"* ]]; then
-                    # For macOS, use an empty string as an extension for -i without creating a backup file
-                    sed -i '' -e "s|$string_to_search|$replace_string|g" "$file"
-                else
-                    # For Linux, use -i without any extension
-                    sed -i -e "s|$string_to_search|$replace_string|g" "$file"
-                fi
-                echo "✅ Updated \"$relative_file\" to work with \"$new_domain_name\"."
-            else
-                echo "⚠️ File not found: $file"
-            fi
-        done
-    }
-
-
     ############################################
     # 🚀 Main Part of function
     ############################################
@@ -195,29 +158,6 @@ action_init() {
                     ;;
             esac
         fi
-    fi
-
-    # Prompt to use GitHub Action templates
-    if [[ -z $use_gha_templates ]]; then
-        echo "${BOLD}${YELLOW}❓ Do you want to use our GitHub Action templates?${RESET}"
-        echo -n "Enter \"y\" or \"n\": "
-        read -r -n 1 response_gha_templates
-        echo # move to a new line
-
-        if [[ $response_gha_templates =~ ^[Yy]$ ]]; then
-            use_gha_templates=1
-        elif [[ $response_gha_templates =~ ^[Nn]$ ]]; then
-            use_gha_templates=0
-        else
-            echo "${BOLD}${RED}❌ Invalid response. Please respond with \"y\" or \"n\".${RESET} Run \"spin init\" to try again."
-            exit 1
-        fi
-    fi
-
-    if [[ $use_gha_templates = 1 ]]; then
-        echo "ℹ️  We need some info from you to help generate templates for you."
-        echo "${BOLD}${YELLOW}👇 Enter the production domain name of your app (example: myapp.example.com):${RESET}"
-        read -r domain_name
     fi
 
     # Copy template files
