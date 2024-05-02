@@ -41,10 +41,14 @@ action_new() {
 
   # Third-party repository warning and confirmation
   if [[ "$official_spin_template" != true ]]; then
-    if [ -z "$branch" ]; then
-      branch=$(github_default_branch "$repo")
+    [ -z "$branch" ] && branch=$(github_default_branch "$repo")
+    if ! curl --head --silent --fail "https://github.com/$template_repository/archive/refs/heads/$branch.tar.gz" &> /dev/null &> /dev/null; then
+      echo "${BOLD}${RED}🛑 Repository does not exist or you do not have access to it.${RESET}"
+      echo ""
+      echo "${BOLD}${YELLOW}👇Try running this yourself to debug access:${RESET}"
+      echo "curl $url"
+      echo ""
     fi
-    check_if_template_exists_and_has_access "$template_repository" "$branch"
 
     echo "${BOLD}${YELLOW}⚠️ You're downloading content from a third party repository.${RESET}"
 

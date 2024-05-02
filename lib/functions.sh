@@ -252,6 +252,11 @@ get_file_from_github_release() {
   echo "✅ \"$trimmed_destination_file\" has been created."
 }
 
+github_default_branch() {
+  local repo="$1"
+  curl --silent "https://api.github.com/repos/$repo" | grep '"default_branch":' | sed -E 's/.*"([^"]+)".*/\1/'
+}
+
 installation_type() {
   if [[ "$SPIN_HOME" =~ (/vendor/bin|/node_modules/.bin) ]]; then
     echo "project"
@@ -361,27 +366,6 @@ print_version() {
     printf "(Project Installed)\n"
   else
     printf "(Development)\n"
-  fi
-}
-
-check_if_template_exists_and_has_access(){
-  local repo="$1"
-  local branch="$2"
-
-  if [ -z "$branch" ]; then
-    branch=$(github_default_branch "$repo")
-  fi
-  local url="https://github.com/$repo/archive/refs/heads/$branch.tar.gz"
-
-  if curl --head --silent --fail $url &> /dev/null &> /dev/null; then
-    return 0
-  else
-    echo "${BOLD}${RED}🛑 Repository does not exist or you do not have access to it.${RESET}"
-    echo ""
-    echo "${BOLD}${YELLOW}👇Try running this yourself to debug access:${RESET}"
-    echo "curl $url"
-    echo ""
-    exit 1
   fi
 }
 
