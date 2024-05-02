@@ -41,7 +41,7 @@ action_new() {
 
   # Third-party repository warning and confirmation
   if [[ "$official_spin_template" != true ]]; then
-    [ -z "$branch" ] && branch=$(github_default_branch "$repo")
+    [ -z "$branch" ] && branch=$(github_default_branch "$template_repository")
     if ! curl --head --silent --fail "https://github.com/$template_repository/archive/refs/heads/$branch.tar.gz" &> /dev/null &> /dev/null; then
       echo "${BOLD}${RED}🛑 Repository does not exist or you do not have access to it.${RESET}"
       echo ""
