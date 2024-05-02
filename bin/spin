@@ -29,7 +29,7 @@ source "$SPIN_HOME/lib/functions.sh"
 setup_color
 
 # Check for upgrades, except for development installs and on `spin update`
-if [[ $(detect_installation_type) != "development" && "$1" != "update" ]]; then
+if [[ "$(installation_type)" != "development" && "$1" != "update" ]]; then
   check_for_upgrade
 fi
 

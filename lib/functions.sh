@@ -1,28 +1,5 @@
 #!/usr/bin/env bash
 
-export_compose_file_variable(){
-  # Convert the SPIN_ENV variable into an array of environments
-  IFS=',' read -ra ENV_ARRAY <<< "$SPIN_ENV"
-
-  # Initialize the COMPOSE_FILE variable
-  COMPOSE_FILE="docker-compose.yml"
-
-  # Loop over each environment and append the corresponding compose file
-  for env in "${ENV_ARRAY[@]}"; do
-    COMPOSE_FILE="$COMPOSE_FILE:docker-compose.$env.yml"
-  done
-
-  # Export the COMPOSE_FILE variable
-  export COMPOSE_FILE
-
-  # Check if 'set -x' is enabled
-  if [[ $- == *x* ]]; then
-      # If 'set -x' is enabled, echo the COMPOSE_FILE variable
-      echo "SPIN_ENV: $SPIN_ENV"
-      echo "COMPOSE_FILE: $COMPOSE_FILE"
-  fi
-}
-
 check_connection_with_cmd() {
     local cmd="$1"
     local api_url="$2"
@@ -139,13 +116,34 @@ current_time_minus() {
 
 }
 
-detect_installation_type() {
-  if [[ "$SPIN_HOME" =~ (/vendor/bin|/node_modules/.bin) ]]; then
-    echo "project"
-  elif [[ "$SPIN_HOME" =~ (\.spin) ]]; then
-    echo "user"
+display_repository_metadata() {
+  local repo="$1"
+  local branch="$2"
+  local meta_url="https://raw.githubusercontent.com/$repo/$branch/meta.yml"
+  local meta_content="" title="" description="" repository="" issues="" authors=""
+
+  # Check if the URL is reachable
+  if curl --output /dev/null --silent --head --fail "$meta_url"; then
+    # Download the file content into a variable using curl
+    local meta_content=$(curl -s "$meta_url")
+
+    local title=$(echo "$meta_content" | grep '^title:' | awk -F': ' '{print $2}')
+    local description=$(echo "$meta_content" | grep '^description:' | awk -F': ' '{print $2}')
+    local repository=$(echo "$meta_content" | grep '^repository:' | awk -F': ' '{print $2}')
+    local issues=$(echo "$meta_content" | grep '^issues:' | awk -F': ' '{print $2}')
+    local authors=$(echo "$meta_content" | awk '/^authors:/,/^$/ { if (!/^authors:/ && !/^$/ && $1 == "-") { gsub(/^  - /, "", $0); printf("%s, ", $0) } }' | sed 's/, $//')
+
+    echo -e "${BOLD}${GREEN}Repository Metadata:${RESET}"
+    echo -e "${BOLD}Title:${RESET} $title"
+    echo -e "${BOLD}Description:${RESET} $description"
+    echo -e "${BOLD}Authors:${RESET} $authors"
+    echo -e "${BOLD}Repository URL:${RESET} $repository"
+    echo -e "${BOLD}Issues Tracker URL:${RESET} $issues"
+    echo ""
   else
-    echo "development"
+    echo "${BOLD}${RED}Metadata file not available for https://github.com/$repo"
+    echo
+    echo "Please check the repository for more information.${RESET}"
   fi
 }
 
@@ -171,6 +169,29 @@ docker_pull_check() {
     update_last_pull_timestamp
   else
     echo "$output"
+  fi
+}
+
+export_compose_file_variable(){
+  # Convert the SPIN_ENV variable into an array of environments
+  IFS=',' read -ra ENV_ARRAY <<< "$SPIN_ENV"
+
+  # Initialize the COMPOSE_FILE variable
+  COMPOSE_FILE="docker-compose.yml"
+
+  # Loop over each environment and append the corresponding compose file
+  for env in "${ENV_ARRAY[@]}"; do
+    COMPOSE_FILE="$COMPOSE_FILE:docker-compose.$env.yml"
+  done
+
+  # Export the COMPOSE_FILE variable
+  export COMPOSE_FILE
+
+  # Check if 'set -x' is enabled
+  if [[ $- == *x* ]]; then
+      # If 'set -x' is enabled, echo the COMPOSE_FILE variable
+      echo "SPIN_ENV: $SPIN_ENV"
+      echo "COMPOSE_FILE: $COMPOSE_FILE"
   fi
 }
 
@@ -229,6 +250,16 @@ get_file_from_github_release() {
 
   curl --silent --location --output "$destination_file" "https://raw.githubusercontent.com/$repo/$(get_github_release "$release_type" "$repo")/$source_file"
   echo "✅ \"$trimmed_destination_file\" has been created."
+}
+
+installation_type() {
+  if [[ "$SPIN_HOME" =~ (/vendor/bin|/node_modules/.bin) ]]; then
+    echo "project"
+  elif [[ "$SPIN_HOME" =~ (\.spin) ]]; then
+    echo "user"
+  else
+    echo "development"
+  fi
 }
 
 is_encrypted_with_ansible_vault() {
@@ -321,30 +352,34 @@ print_version() {
   # Use the local Git repo to show our version
   printf "${BOLD}${YELLOW}Spin Version:${RESET} \n"
   printf "$(git -C $SPIN_HOME describe --tags) "
-  
-  local installation_type=$(detect_installation_type)
 
-  if [[ $installation_type == "user" ]]; then
+  if [[ "$(installation_type)" == "user" ]]; then
     source $SPIN_CONFIG_FILE_LOCATION
     printf "[$TRACK] "
     printf "(User Installed)\n"
-  elif [[ $installation_type == "project" ]]; then
+  elif [[ "$(installation_type)" == "project" ]]; then
     printf "(Project Installed)\n"
   else
     printf "(Development)\n"
   fi
 }
 
-repository_exsits_and_has_access(){
-  local repo_name="$1"
+check_if_template_exists_and_has_access(){
+  local repo="$1"
+  local branch="$2"
 
-  if git ls-remote git@github.com:$repo_name.git &> /dev/null; then
-    echo "👍 Repository exists and you have access to it."
+  if [ -z "$branch" ]; then
+    branch=$(github_default_branch "$repo")
+  fi
+  local url="https://github.com/$repo/archive/refs/heads/$branch.tar.gz"
+
+  if curl --head --silent --fail $url &> /dev/null &> /dev/null; then
+    return 0
   else
-    echo "${BOLD}${RED}🛑 Repository does not exist or you do not have access to it (git@github.com:$repo_name.git)${RESET}"
+    echo "${BOLD}${RED}🛑 Repository does not exist or you do not have access to it.${RESET}"
     echo ""
     echo "${BOLD}${YELLOW}👇Try running this yourself to debug access:${RESET}"
-    echo "git clone git@github.com:$repo_name.git"
+    echo "curl $url"
     echo ""
     exit 1
   fi
