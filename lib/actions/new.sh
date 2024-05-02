@@ -7,6 +7,11 @@ action_new() {
     exit 1
   fi
 
+  cleanup() {
+    echo "${BOLD}${YELLOW}🧹 Cleaning up...${RESET}"
+    rm -rf temp_dir
+  }
+
   # Argument parsing
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
@@ -42,11 +47,12 @@ action_new() {
   # Third-party repository warning and confirmation
   if [[ "$official_spin_template" != true ]]; then
     [ -z "$branch" ] && branch=$(github_default_branch "$template_repository")
-    if ! curl --head --silent --fail "https://github.com/$template_repository/archive/refs/heads/$branch.tar.gz" &> /dev/null &> /dev/null; then
+    local download_url="https://github.com/$template_repository/archive/refs/heads/$branch.tar.gz"
+    if ! curl --head --silent --fail "$download_url" &> /dev/null; then
       echo "${BOLD}${RED}🛑 Repository does not exist or you do not have access to it.${RESET}"
       echo ""
       echo "${BOLD}${YELLOW}👇Try running this yourself to debug access:${RESET}"
-      echo "curl $url"
+      echo "curl $download_url"
       echo ""
     fi
 
@@ -64,6 +70,16 @@ action_new() {
     fi
   fi
 
-  
+  echo "${BOLD}${YELLOW}🔄 Downloading template...${RESET}"
+  temp_dir=$(mktemp -d)
+  trap cleanup EXIT
+  curl -sL "$download_url" | tar -xz -C "$temp_dir" --strip-components=1
 
+  echo "${BOLD}${YELLOW}🏃‍♂️ Running 'new.sh' script...${RESET}"
+  if [ -f "$temp_dir/new.sh" ]; then
+    bash "$temp_dir/new.sh"
+  else
+    echo "${BOLD}${RED}🛑 The template does not contain a 'new.sh' script.${RESET}"
+    exit 1
+  fi
 }
