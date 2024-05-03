@@ -98,6 +98,7 @@ if [ $# -gt 0 ]; then
     ;;
     new)
       source "$SPIN_HOME/lib/actions/new.sh"
+      source "$SPIN_HOME/lib/actions/init.sh"
       action_new "$@"
     ;;
     provision)

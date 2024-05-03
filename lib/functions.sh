@@ -102,6 +102,48 @@ cleanup_temp_repo_location() {
   rm -rf "$temp_dir"
 }
 
+copy_template_files() {
+  local src_dir="$1"
+  local dest_dir="$2"
+  
+  while IFS= read -r file; do
+    target_file="$dest_dir/${file#"$src_dir/"}"
+    # Compute the relative path for the echo statements
+    relative_target_file="${target_file#"$dest_dir"/}"
+
+    if [[ -f "$target_file" ]]; then
+        trap show_existing_files_warning EXIT
+        echo "👉 \"$relative_target_file\" already exists. Skipping..."
+    else
+        mkdir -p "$(dirname "$target_file")"
+        if cp "$file" "$target_file"; then
+            echo "✅ \"$relative_target_file\" has been created."
+        else
+            echo "${BOLD}${RED}❌ Error copying \"$file\" to \"$relative_target_file\".${RESET}"
+        fi
+    fi
+  done < <(find "$src_dir" -type f -print)
+}
+
+create_config_folders() {
+    local content="*\n!.gitignore"
+
+        if [ $# -eq 0 ]; then
+        echo "No arguments provided. Usage: create_git_ignore path1 [path2 ...]"
+        return 1
+    fi
+
+    for path in "$@"; do
+        local dir="$path"
+        local filepath="${dir}/.gitignore"
+
+        mkdir -p "$dir"
+        echo -e "$content" > "$filepath"
+    done
+
+    echo "Configuration folders are created."
+}
+
 current_time_minus() {
   # Accepts parameters: The first passed argument should be the number of days to subtract
   # This will return a value of (current epoch time - number of days)
@@ -116,7 +158,7 @@ current_time_minus() {
     *)          echo "We're unsure how to calculate a date on your operating system." && exit 2
   esac
 
-  echo $DATE_THRESHOLD
+  echo "$DATE_THRESHOLD"
 
 }
 
@@ -180,8 +222,10 @@ download_template_repository() {
   local template_repository="$1"
   local branch="$2"
   local template_type="$3"
-  local temp_dir="$4"
   local download_url="https://github.com/$template_repository/archive/refs/heads/$branch.tar.gz"
+  
+  trap cleanup_temp_repo_location EXIT
+  temp_dir=$(mktemp -d)
 
   # Third-party repository warning and confirmation
   if [[ "$template_type" != "official" ]]; then
@@ -211,6 +255,20 @@ download_template_repository() {
   echo "Downloading from $download_url"
   
   curl -sL "$download_url" | tar -xz -C "$temp_dir" --strip-components=1
+  template_download_complete=true
+}
+
+ensure_lines_in_file() {
+    local file="$1"
+    shift
+    local lines=("$@")
+
+    # Check if the file exists, if not create it
+    [ -e "$file" ] || touch "$file"
+
+    for line in "${lines[@]}"; do
+        grep -qxF -- "$line" "$file" || echo "$line" >> "$file"
+    done
 }
 
 export_compose_file_variable(){
@@ -282,7 +340,7 @@ get_file_from_github_release() {
   local release_type="$2"
   local source_file="$3"
   local destination_file="$4"
-  local trimmed_destination_file=${destination_file#*/}
+  local trimmed_destination_file=${destination_file#$project_dir/}
 
   if [[ -f "$destination_file" ]]; then
           echo "👉 \"$trimmed_destination_file\" already exists. Skipping..."
@@ -402,6 +460,58 @@ needs_update() {
   fi
 }
 
+parse_repository_arguments() {
+  branch='' template_type='' template_repository='' args_without_options=() additional_args=()
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      -b|--branch)
+        branch="$2"
+        shift 2  # Shift both the flag and its value
+        ;;
+      -p|--path)
+        project_dir="$2"
+        shift 2  # Shift both the flag and its value
+        ;;
+      -*)
+        echo "${BOLD}${RED}🛑 Unsupported flag ${1}.${RESET}"
+        exit 1
+        ;;
+      *)
+        args_without_options+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  # First positional argument should be the template or template repository
+  if [ ! -z "${args_without_options[0]}" ]; then
+    template="${args_without_options[0]}"
+    unset args_without_options[0]
+  fi
+
+  # Remaining positional arguments are additional args
+  additional_args=("${args_without_options[@]}")
+
+  # Determine the type of template
+  case "$template" in
+    laravel)
+      template_type=official
+      template_repository="serversideup/spin-template-laravel"
+      ;;
+    nuxt)
+      template_type=official
+      template_repository="serversideup/spin-template-nuxt"
+      ;;
+    *)
+      template_type=external
+      template_repository="$template"
+      ;;
+  esac
+
+  # Determine the branch to download
+  [ -z "$branch" ] && branch=$(github_default_branch "$template_repository")
+}
+
 print_version() {
 
   # Use the local Git repo to show our version
@@ -417,6 +527,44 @@ print_version() {
   else
     printf "(Development)\n"
   fi
+}
+
+prompt_to_encrypt_files(){
+    local files_to_encrypt=()
+
+    for file in "$@"; do
+        if ! is_encrypted_with_ansible_vault "$file"; then
+            files_to_encrypt+=("$file")
+        fi
+    done
+
+    if [ ${#files_to_encrypt[@]} -ne 0 ]; then
+        echo "${BOLD}${YELLOW}⚠️ Your Spin configurations are not encrypted. We HIGHLY recommend encrypting it. Would you like to encrypt it now?${RESET}"
+        echo -n "Enter \"y\" or \"n\": "
+        read -r -n 1 encrypt_response
+        echo # move to a new line
+
+        if [[ $encrypt_response =~ ^[Yy]$ ]]; then
+            echo "${BOLD}${BLUE}⚡️ Running Ansible Vault to encrypt Spin configurations...${RESET}"
+            echo "${BOLD}${YELLOW}⚠️ NOTE: This password will be required anytime someone needs to change these files.${RESET}"
+            echo "${BOLD}${YELLOW}We recommend using a RANDOM PASSWORD.${RESET}"
+            
+            # Trim base path of files to encrypt
+            files_to_encrypt=("${files_to_encrypt[@]##*/}")
+
+            # Encrypt with Ansible Vault
+            run_ansible ansible-vault encrypt "${files_to_encrypt[@]}"
+
+            # Ensure the files are owned by the current user
+            docker run --rm --platform linux/amd64 -v "$project_dir:/ansible" $SPIN_ANSIBLE_IMAGE chown "${SPIN_USER_ID}:${SPIN_GROUP_ID}" "${files_to_encrypt[@]}"
+            echo "${BOLD}${YELLOW}👉 NOTE: You can save this password in \".vault-password\" in the root of your project if you want your secret to be remembered.${RESET}"
+        elif [[ $encrypt_response =~ ^[Nn]$ ]]; then
+            echo "${BOLD}${BLUE}👋 Ok, we won't encrypt these files.${RESET} You can always encrypt it later by running \"spin vault encrypt\"."
+        else
+            echo "${BOLD}${RED}❌ Invalid response. Please respond with \"y\" or \"n\".${RESET} Run \"spin init\" to try again."
+            exit 1
+        fi
+    fi
 }
 
 run_ansible (){
@@ -461,6 +609,12 @@ setup_color() {
     BLUE=$(printf '\033[34m')
     BOLD=$(printf '\033[1m')
     RESET=$(printf '\033[m')
+}
+
+show_existing_files_warning() {
+    echo "${BOLD}${YELLOW}🚨 COMPLETED WITH WARNINGS:${RESET}"
+    echo "${BOLD}${YELLOW}👉 Some files already existed when copying the template, so we left those files alone.${RESET}"
+    echo "${BOLD}${YELLOW}👉 Check the output above to figure out what files you may need to update manually.${RESET}"
 }
 
 update_last_pull_timestamp() {
