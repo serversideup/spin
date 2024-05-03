@@ -21,10 +21,12 @@ action_provision(){
     done
     
     # Install the required Ansible roles
-    run_ansible ansible-galaxy collection install serversideup.spin --upgrade
+    run_ansible --allow-ssh --mount-path $(pwd) \
+        ansible-galaxy collection install serversideup.spin --upgrade
 
     # Run the playbook
-    run_ansible ansible-playbook serversideup.spin.provision \
+    run_ansible --allow-ssh --mount-path $(pwd) \
+        ansible-playbook serversideup.spin.provision \
         --inventory ./.spin-inventory.ini \
         --extra-vars @./.spin.yml \
         $remote_user_arg \

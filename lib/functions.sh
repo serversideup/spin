@@ -552,11 +552,14 @@ prompt_to_encrypt_files(){
             # Trim base path of files to encrypt
             files_to_encrypt=("${files_to_encrypt[@]##*/}")
 
+            project_dir_real_path="$(realpath "$project_dir")"
+
             # Encrypt with Ansible Vault
-            run_ansible ansible-vault encrypt "${files_to_encrypt[@]}"
+            run_ansible --mount-path "$project_dir_real_path" ansible-vault encrypt "${files_to_encrypt[@]}"
 
             # Ensure the files are owned by the current user
-            docker run --rm --platform linux/amd64 -v "$project_dir:/ansible" $SPIN_ANSIBLE_IMAGE chown "${SPIN_USER_ID}:${SPIN_GROUP_ID}" "${files_to_encrypt[@]}"
+            run_ansible --mount-path "$project_dir_real_path" chown "${SPIN_USER_ID}:${SPIN_GROUP_ID}" "${files_to_encrypt[@]}"
+
             echo "${BOLD}${YELLOW}👉 NOTE: You can save this password in \".vault-password\" in the root of your project if you want your secret to be remembered.${RESET}"
         elif [[ $encrypt_response =~ ^[Nn]$ ]]; then
             echo "${BOLD}${BLUE}👋 Ok, we won't encrypt these files.${RESET} You can always encrypt it later by running \"spin vault encrypt\"."
@@ -567,22 +570,38 @@ prompt_to_encrypt_files(){
     fi
 }
 
-run_ansible (){
+run_ansible() {
+  local additional_docker_configs=""
+  local args_without_options=()
   ansible_collections_path="./.infrastructure/conf/spin/collections"
+
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      --allow-ssh)
+        additional_docker_configs+=" -v ~/.ssh/:/root/.ssh/  -v $ansible_collections_path:/root/.ansible/collections"
+        shift
+        ;;
+      --mount-path)
+        additional_docker_configs+=" -v ${2}:/ansible"
+        shift 2
+        ;;
+      *)
+        args_without_options+=("$1")
+        shift
+        ;;
+    esac
+  done
   
   # Mount the SSH Agent for macOS systems
   if [[ "$(uname -s)" == "Darwin" ]]; then
-      local additional_docker_configs="-v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock"
+      additional_docker_configs+=" -v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock"
   fi
-
+  set -x
   docker run --rm -it \
-    -v "$(pwd):/ansible" \
-    -v ~/.ssh/:/root/.ssh/ \
-    -v $ansible_collections_path:/root/.ansible/collections \
     --platform linux/amd64 \
     $additional_docker_configs \
-    $SPIN_ANSIBLE_IMAGE \
-    "$@"
+    "$SPIN_ANSIBLE_IMAGE" \
+    "${args_without_options[@]}"
 }
 
 save_current_time_to_cache_file() {
@@ -612,9 +631,11 @@ setup_color() {
 }
 
 show_existing_files_warning() {
+  if [ $? -eq 0 ]; then
     echo "${BOLD}${YELLOW}🚨 COMPLETED WITH WARNINGS:${RESET}"
     echo "${BOLD}${YELLOW}👉 Some files already existed when copying the template, so we left those files alone.${RESET}"
     echo "${BOLD}${YELLOW}👉 Check the output above to figure out what files you may need to update manually.${RESET}"
+  fi
 }
 
 update_last_pull_timestamp() {

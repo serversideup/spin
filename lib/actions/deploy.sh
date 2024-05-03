@@ -97,13 +97,14 @@ action_deploy(){
   }
 
   getHosts() {
-    run_ansible ansible \
-      $1 \
-      --inventory-file $inventory_file \
-      --module-name ping \
-      --list-hosts \
-      $additional_ansible_args \
-      | awk 'NR>1 {gsub(/\r/,""); print $1}'
+    run_ansible --mount-path $(pwd) \
+      ansible \
+        $1 \
+        --inventory-file $inventory_file \
+        --module-name ping \
+        --list-hosts \
+        $additional_ansible_args \
+        | awk 'NR>1 {gsub(/\r/,""); print $1}'
   }
 
   transferDockerImage() {
