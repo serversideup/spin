@@ -113,7 +113,7 @@ copy_template_files() {
 
     if [[ -f "$target_file" ]]; then
         trap show_existing_files_warning EXIT
-        echo "👉 \"$relative_target_file\" already exists. Skipping..."
+        echo "👉 ${MAGENTA}\"$relative_target_file\" already exists. Skipping...${RESET}"
     else
         mkdir -p "$(dirname "$target_file")"
         if cp "$file" "$target_file"; then
@@ -343,7 +343,8 @@ get_file_from_github_release() {
   local trimmed_destination_file=${destination_file#$project_dir/}
 
   if [[ -f "$destination_file" ]]; then
-          echo "👉 \"$trimmed_destination_file\" already exists. Skipping..."
+          trap show_existing_files_warning EXIT
+          echo "👉 ${MAGENTA}\"$trimmed_destination_file\" already exists. Skipping...${RESET}"
           return 0
   fi
 
@@ -560,7 +561,7 @@ prompt_to_encrypt_files(){
             # Ensure the files are owned by the current user
             run_ansible --mount-path "$project_dir_real_path" chown "${SPIN_USER_ID}:${SPIN_GROUP_ID}" "${files_to_encrypt[@]}"
 
-            echo "${BOLD}${YELLOW}👉 NOTE: You can save this password in \".vault-password\" in the root of your project if you want your secret to be remembered.${RESET}"
+            echo "ℹ️ You can save this password in \".vault-password\" in the root of your project if you want your secret to be remembered."
         elif [[ $encrypt_response =~ ^[Nn]$ ]]; then
             echo "${BOLD}${BLUE}👋 Ok, we won't encrypt these files.${RESET} You can always encrypt it later by running \"spin vault encrypt\"."
         else
@@ -627,11 +628,12 @@ setup_color() {
     BLUE=$(printf '\033[34m')
     BOLD=$(printf '\033[1m')
     RESET=$(printf '\033[m')
+    MAGENTA=$(printf '\033[1;35m')
 }
 
 show_existing_files_warning() {
   if [ $? -eq 0 ]; then
-    echo "${BOLD}${YELLOW}🚨 COMPLETED WITH WARNINGS:${RESET}"
+    echo "${BOLD}${MAGENTA}🚨 COMPLETED WITH WARNINGS:${RESET}"
     echo "${BOLD}${YELLOW}👉 Some files already existed when copying the template, so we left those files alone.${RESET}"
     echo "${BOLD}${YELLOW}👉 Check the output above to figure out what files you may need to update manually.${RESET}"
   fi
