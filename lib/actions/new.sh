@@ -9,7 +9,7 @@ action_new() {
 
   cleanup() {
     echo "${BOLD}${YELLOW}🧹 Cleaning up...${RESET}"
-    rm -rf $temp_dir
+    rm -rf "$temp_dir"
   }
 
   # Argument parsing
