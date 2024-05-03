@@ -596,7 +596,6 @@ run_ansible() {
   if [[ "$(uname -s)" == "Darwin" ]]; then
       additional_docker_configs+=" -v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock"
   fi
-  set -x
   docker run --rm -it \
     --platform linux/amd64 \
     $additional_docker_configs \
