@@ -254,7 +254,14 @@ get_file_from_github_release() {
 
 github_default_branch() {
   local repo="$1"
-  curl --silent "https://api.github.com/repos/$repo" | grep '"default_branch":' | sed -E 's/.*"([^"]+)".*/\1/'
+  local branch=$(curl --silent "https://api.github.com/repos/$repo" | grep '"default_branch":' | sed -E 's/.*"([^"]+)".*/\1/')
+
+  if [[ -z "$branch" ]]; then
+    echo "${BOLD}${RED}Error: Couldn't determine the default branch for $repo.${RESET}"
+    exit 1
+  fi
+
+  echo "$branch"
 }
 
 installation_type() {
