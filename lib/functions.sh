@@ -98,6 +98,10 @@ check_if_compose_files_exist() {
     fi
 }
 
+cleanup_temp_repo_location() {
+  rm -rf "$temp_dir"
+}
+
 current_time_minus() {
   # Accepts parameters: The first passed argument should be the number of days to subtract
   # This will return a value of (current epoch time - number of days)
@@ -170,6 +174,43 @@ docker_pull_check() {
   else
     echo "$output"
   fi
+}
+
+download_template_repository() {
+  local template_repository="$1"
+  local branch="$2"
+  local template_type="$3"
+  local temp_dir="$4"
+  local download_url="https://github.com/$template_repository/archive/refs/heads/$branch.tar.gz"
+
+  # Third-party repository warning and confirmation
+  if [[ "$template_type" != "official" ]]; then
+    if ! curl --head --silent --fail "$download_url" &> /dev/null; then
+      echo "${BOLD}${RED}🛑 Repository does not exist or you do not have access to it.${RESET}"
+      echo ""
+      echo "${BOLD}${YELLOW}👇Try running this yourself to debug access:${RESET}"
+      echo "curl $download_url"
+      echo ""
+    fi
+    
+    echo "${BOLD}${YELLOW}⚠️ You're downloading content from a third party repository.${RESET}"
+
+    display_repository_metadata "$template_repository" "$branch"
+    echo "${BOLD}${BLUE}Make sure you trust the source of the repository before continuing.${RESET}"
+    echo "Do you wish to continue? (y/n)"
+    read -r -n 1 -p ""
+    echo  # Move to a new line
+
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo -e "${BOLD}${RED}❌ Operation cancelled.${RESET}"
+      exit 1
+    fi
+  fi
+
+  echo "${BOLD}${YELLOW}🔄 Downloading template...${RESET}"
+  echo "Downloading from $download_url"
+  
+  curl -sL "$download_url" | tar -xz -C "$temp_dir" --strip-components=1
 }
 
 export_compose_file_variable(){
