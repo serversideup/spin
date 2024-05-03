@@ -12,6 +12,7 @@ action_new() {
 
   echo "${BOLD}${YELLOW}🏃‍♂️ Running 'new.sh' script...${RESET}"
   if [ -f "$temp_dir/new.sh" ]; then
+    shift # Fix to remove repository arguments
     source "$temp_dir/new.sh" "${additional_args[@]}"
   else
     echo "${BOLD}${RED}🛑 The template does not contain a 'new.sh' script. Unable to install.${RESET}"
