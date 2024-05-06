@@ -138,7 +138,7 @@ if [ $# -gt 0 ]; then
       action_version
     ;;
     *)
-      echo "\"$1\" is not a valid command. Below are the commands available."
+      echo "\"$spin_action\" is not a valid command. Below are the commands available."
       source "$SPIN_HOME/lib/actions/help.sh"
       action_help
     ;;
