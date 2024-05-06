@@ -8,8 +8,10 @@ SPIN_ENV=${SPIN_ENV:-dev}
 export COMPOSE_CMD=${COMPOSE_CMD:-"docker compose"}
 
 # Export the current user and group ID
-export SPIN_USER_ID=$(id -u)
-export SPIN_GROUP_ID=$(id -g)
+SPIN_USER_ID=${SPIN_USER_ID:-$(id -u)}
+SPIN_GROUP_ID=${SPIN_GROUP_ID:-$(id -g)}
+export SPIN_USER_ID
+export SPIN_GROUP_ID
 
 # Default Images
 SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:cli"}
