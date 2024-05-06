@@ -70,6 +70,10 @@ if [ $# -gt 0 ]; then
       source "$SPIN_HOME/lib/actions/debug.sh"
       action_debug "$@"
     ;;
+    deploy)
+      source "$SPIN_HOME/lib/actions/deploy.sh"
+      action_deploy "$@"
+    ;;
     down)
       source "$SPIN_HOME/lib/actions/down.sh"
       action_down "$@"
