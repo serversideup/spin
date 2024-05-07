@@ -43,7 +43,7 @@ case "$1" in
   "" | base64 | debug | help | update | version | --version | -v)
     : # Silent output for the user, but we're skipping the compose check too.
     ;;
-  init | kill | new | prune | provision | vault)
+  init | kill | mkpasswd | new | prune | provision | vault)
     check_if_docker_is_running
   ;;
   *)
@@ -101,6 +101,10 @@ if [ $# -gt 0 ]; then
     logs)
       source "$SPIN_HOME/lib/actions/logs.sh"
       action_logs "$@"
+    ;;
+    mkpasswd)
+      source "$SPIN_HOME/lib/actions/mkpasswd.sh"
+      action_mkpasswd "$@"
     ;;
     new)
       source "$SPIN_HOME/lib/actions/new.sh"
