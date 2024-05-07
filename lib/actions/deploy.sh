@@ -6,7 +6,7 @@ action_deploy(){
     prepare_ansible_run  
 
     run_ansible --allow-ssh --mount-path $(pwd) \
-        ansible-playbook serversideup.spin.provision \
+        ansible-playbook serversideup.spin.deploy \
         --inventory ./.spin-inventory.ini \
         --extra-vars @./.spin.yml \
         $remote_user_arg \
