@@ -530,6 +530,28 @@ print_version() {
   fi
 }
 
+prepare_ansible_run(){
+    # Check if vault password exists
+    if [[ -f .vault-password ]]; then
+        additional_ansible_args="--vault-password-file .vault-password"
+    elif is_encrypted_with_ansible_vault ".spin.yml" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
+        additional_ansible_args="--ask-vault-password"
+    fi
+
+    # Process arguments
+    while [[ "$#" -gt 0 ]]; do
+        case "$1" in
+            --user|-u)
+                remote_user_arg="--ask-become-pass --extra-vars ansible_user=$2"
+                shift 2
+                ;;
+        esac
+    done
+
+    run_ansible --allow-ssh --mount-path $(pwd) \
+        ansible-galaxy collection install serversideup.spin --upgrade
+}
+
 prompt_to_encrypt_files(){
     local files_to_encrypt=()
 
@@ -579,7 +601,7 @@ run_ansible() {
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
       --allow-ssh)
-        additional_docker_configs+=" -v ~/.ssh/:/root/.ssh/  -v $ansible_collections_path:/root/.ansible/collections"
+        additional_docker_configs+=" -v $HOME/.ssh/:/root/.ssh/  -v $ansible_collections_path:/root/.ansible/collections"
         shift
         ;;
       --mount-path)
