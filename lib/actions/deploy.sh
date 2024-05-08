@@ -1,27 +1,56 @@
 #!/usr/bin/env bash
 action_deploy(){
+    compose_files=""
     deployment_environment=""
+    registry_port="${SPIN_REGISTRY_PORT:-5000}"
     build_platform="${SPIN_BUILD_PLATFORM:-"linux/amd64"}"
     image_suffix=''
-    image_prefix="${SPIN_BUILD_IMAGE_PREFIX:-local.docker}"
+    image_prefix="${SPIN_BUILD_IMAGE_PREFIX:-"localhost:$registry_port"}"
+    image_tag="${SPIN_BUILD_TAG:-"latest"}"
     inventory_file="${SPIN_INVENTORY_FILE:-"/ansible/.spin-inventory.ini"}"
     ssh_port="${SPIN_SSH_PORT:-''}" # Default to empty string
     ssh_user="${SPIN_SSH_USER:-"deploy"}"
-    
-    # Set environment variables for Docker Compose usage
-    SPIN_BUILD_TAG="${build_tag}"
-    export SPIN_BUILD_TAG
-    declare -a compose_files  # Declare an array to store Docker Compose files
+    spin_registry_name="spin-registry"
+    spin_project_name="${SPIN_PROJECT_NAME:-"spin"}"
+    use_default_compose_files=true
 
-    dockerImageNeedsUpdate() {
-        image_name="$1"
-        host="$2"
-        remote_image_id=$(ssh -p "$ssh_port" "$ssh_user@$host" docker inspect --format="{{.Id}}" "$image_name" 2>/dev/null)
-        local_image_id=$(docker inspect --format="{{.Id}}" "$image_name" 2>/dev/null)
-        [ "$remote_image_id" != "$local_image_id" ]
+    cleanup() {
+        if [ -n "$tunnel_pid" ]; then
+            # Check if the process is still running
+            if ps -p "$tunnel_pid" > /dev/null; then
+                kill "$tunnel_pid"
+            else
+                echo "Process $tunnel_pid not running."
+            fi
+        fi
+        docker stop "$spin_registry_name" > /dev/null 2>&1
     }
 
-    getHosts() {
+    deploy_docker_stack() {
+        local manager_host="$1"
+        local ssh_port="$2"
+        local compose_args=""
+
+        if [[ "$use_default_compose_files" = true ]]; then
+            compose_files=("docker-compose.yml" "docker-compose.prod.yml")
+        fi
+
+        for compose_file in "${compose_files[@]}"; do
+            compose_args+=" --compose-file $compose_file"
+        done
+
+        local docker_host="ssh://$ssh_user@$manager_host:$ssh_port"
+        echo "${BOLD}${BLUE}📤 Deploying Docker stack with compose files: ${compose_files[*]} on $manager_host...${RESET}"
+        docker -H "$docker_host" stack deploy $compose_args --detach=false --prune "$spin_project_name-$deployment_environment"
+        if [ $? -eq 0 ]; then
+            echo "${BOLD}${BLUE}🎉 Successfully deployed Docker stack on $manager_host.${RESET}"
+        else
+            echo "${BOLD}${RED}❌ Failed to deploy Docker stack on $manager_host.${RESET}"
+            exit 1
+        fi
+    }
+
+    get_hosts_from_ansible() {
         run_ansible --mount-path $(pwd) \
         ansible \
             $1 \
@@ -32,47 +61,7 @@ action_deploy(){
             | awk 'NR>1 {gsub(/\r/,""); print $1}'
     }
 
-    loading_spinner() {
-            local pid=$1
-            local delay=0.1
-            local spinstr='|/-\\'
-            while kill -0 $pid 2>/dev/null; do
-                local temp=${spinstr#?}
-                printf " [%c]  " "$spinstr"
-                local spinstr=$temp${spinstr%"$temp"}
-                sleep $delay
-                printf "\r\b\b\b\b\b\b"
-            done
-            printf "    \r\b\b\b\b"
-    }
-
-    transferDockerImage() {
-        image_name="$1"
-        host="$2"
-
-        echo "${BOLD}${YELLOW}⚡️ Uploading Docker image '$image_name' to host '$host'. This could take a while...${RESET}"
-
-        # Run the Docker save and SSH command in the background
-        (docker save "$image_name" | gzip | ssh -p "$ssh_port" "$ssh_user@$host" docker load) &
-
-        # Capture the PID of the background process
-        pid=$!
-
-        # Start the spinner
-        loading_spinner $pid
-
-        # Wait for the background process to finish
-        wait $pid
-        local status=$?
-
-        # Check if the process succeeded
-        if [ $status -ne 0 ]; then
-            echo "${BOLD}${RED}Error: Failed to transfer Docker image.${RESET}"
-            return $status
-        else
-            echo "${BOLD}${GREEN}✅ Docker image '$image_name' has been successfully uploaded to '$host'.${RESET}"
-        fi
-    }
+    trap cleanup EXIT
 
     # Process arguments
     while [[ $# -gt 0 ]]; do
@@ -82,11 +71,12 @@ action_deploy(){
                 shift 2
                 ;;
             --compose-file|-c)
+                use_default_compose_files=false
                 if [[ -n "$2" && "$2" != -* ]]; then
                     compose_files+=("$2")
                     shift 2
                 else
-                    echo "Error: '-c' option requires a Docker Compose file as argument."
+                    echo "${BOLD}${RED}❌Error: '-c' option requires a Docker Compose file as argument.${RESET}"
                     exit 1
                 fi
                 ;;
@@ -103,11 +93,6 @@ action_deploy(){
         esac
     done
 
-    # Prepare SSH connection
-    if [[ -n "$ssh_port" ]]; then
-        ssh_port="$(get_ansible_variable "ssh_port")"
-    fi
-
     # Validate target environment
     if [[ -z "$deployment_environment" ]]; then
         echo "${BOLD}${YELLOW}You didn't pass 'spin deploy' an environment to deploy to. Run 'spin help' if you want to see the documentation.${RESET}"
@@ -120,10 +105,16 @@ action_deploy(){
         exit 1
     fi
 
+    # Bring up a local docker registry
+    if [ -z "$(docker ps -q -f name=$spin_registry_name)" ]; then
+        echo "${BOLD}${BLUE}🚀 Starting local Docker registry...${RESET}"
+        docker run --rm -d -p $registry_port:5000 -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name $spin_registry_name registry:2
+    fi
+
     # Prepare the Ansible run
     prepare_ansible_run
-
-    # Build and transfer for each Dockerfile
+    
+    # Build and push for each Dockerfile
     for file in Dockerfile*; do
         if [ "$file" == "Dockerfile" ]; then
             image_suffix="dockerfile"
@@ -131,28 +122,38 @@ action_deploy(){
             # Extract the suffix from the Dockerfile name
             image_suffix="${file#Dockerfile}"
         fi
-        image_tag="$(get_md5_hash "$file")"
 
         image_name="${image_prefix}/${image_suffix}:${image_tag}"
+        SPIN_IMAGE_NAME="${image_name}"
+        export SPIN_IMAGE_NAME
 
         # Build the Docker image
         echo "${BOLD}${BLUE}🐳 Building Docker image '$image_name' from '$file'...${RESET}"
-        docker buildx build --platform "$build_platform" -t "$image_name" -f "$file" . --load
+        docker buildx build --push --platform "$build_platform" -t "$image_name" -f "$file" .
         if [ $? -eq 0 ]; then
             echo "${BOLD}${BLUE}📦 Successfully built '$image_name' from '$file'...${RESET}"
         else
             echo "${BOLD}${RED}❌ Failed to build '$image_name' from '$file'.${RESET}"
             exit 1
         fi
-
-        # Transfer the image to the remote hosts
-        for host in $(getHosts "$deployment_environment"); do
-        if dockerImageNeedsUpdate "$image_name" "$host"; then
-            transferDockerImage "$image_name" "$host"
-        else
-            echo "${BOLD}${GREEN}🚀 Docker image '$image_name' is up to date on host '$host'.${RESET}"
-        fi
-        done
     done
+
+    # Prepare SSH connection
+    if [[ -n "$ssh_port" ]]; then
+        ssh_port="$(get_ansible_variable "ssh_port")"
+    fi
+    swarm_manager_group="${SPIN_SWARM_MANAGER_GROUP:-"${deployment_environment}_manager_servers"}"
+    docker_swarm_manager=$(get_hosts_from_ansible "$swarm_manager_group" | head -n 1)
+
+    # Create SSH tunnel to Docker registry
+    if ! ssh -f -n -N -R "${registry_port}:localhost:${registry_port}" -p "${ssh_port}" "${ssh_user}@${docker_swarm_manager}" -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3; then
+        echo "${BOLD}${RED}Failed to create SSH tunnel. Exiting...${RESET}"
+        exit 1
+    fi
+
+    # Get the process ID of the SSH tunnel
+    tunnel_pid=$(pgrep -f "ssh -f -n -N -R ${registry_port}:localhost:${registry_port}")
+    
+    deploy_docker_stack "$docker_swarm_manager" "$ssh_port"
 
 }

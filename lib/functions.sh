@@ -383,40 +383,11 @@ get_file_from_github_release() {
   curl --silent --location --output "$destination_file" "https://raw.githubusercontent.com/$repo/$(get_github_release "$release_type" "$repo")/$source_file"
   echo "✅ \"$trimmed_destination_file\" has been created."
 }
-
-get_md5_hash() {
-  local file="$1"
-  local md5_hash=""
-
-  if [[ -f "$file" ]]; then
-    if command -v md5 > /dev/null 2>&1; then
-        # MacOS typically uses 'md5'
-        md5_hash=$(md5 -q "$file")
-    elif command -v md5sum > /dev/null 2>&1; then
-        # Linux typically uses 'md5sum'
-        md5_hash=$(md5sum "$file" | awk '{ print $1 }')
-    else
-        echo "MD5 tool not available."
-        return 1
-    fi
-  else
-    echo "File not found."
-    return 1
-  fi
-
-  echo "$md5_hash" 
-}
-
 github_default_branch() {
   local repo="$1"
   local branch=""
   
   branch=$(curl --silent "https://api.github.com/repos/$repo" | grep '"default_branch":' | sed -E 's/.*"([^"]+)".*/\1/')
-
-  if [[ -z "$branch" ]]; then
-    echo "${BOLD}${RED}Error: Couldn't determine the default branch for $repo.${RESET}"
-    exit 1
-  fi
 
   echo "$branch"
 }
@@ -566,6 +537,10 @@ parse_repository_arguments() {
 
   # Determine the branch to download
   [ -z "$branch" ] && branch=$(github_default_branch "$template_repository")
+  if [[ -z "$branch" ]]; then
+    echo "${BOLD}${RED}Error: Couldn't determine the default branch for $template_repository.${RESET}"
+    exit 1
+  fi
 }
 
 print_version() {
