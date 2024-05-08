@@ -1,17 +1,84 @@
 #!/usr/bin/env bash
 action_deploy(){
-    additional_ansible_args=""
-    declare -a compose_files  # Declare an array to store Docker Compose files
-    declare -a unprocessed_args
-    target_environment=""
-    ansible_user="$USER"  # Default to the current user
-    force_ansible_upgrade=false
+    deployment_environment=""
+    build_platform="${SPIN_BUILD_PLATFORM:-"linux/amd64"}"
+    image_suffix=''
+    image_prefix="${SPIN_BUILD_IMAGE_PREFIX:-local.docker}"
+    inventory_file="${SPIN_INVENTORY_FILE:-"/ansible/.spin-inventory.ini"}"
+    ssh_port="${SPIN_SSH_PORT:-''}" # Default to empty string
+    ssh_user="${SPIN_SSH_USER:-"deploy"}"
     
+    # Set environment variables for Docker Compose usage
+    SPIN_BUILD_TAG="${build_tag}"
+    export SPIN_BUILD_TAG
+    declare -a compose_files  # Declare an array to store Docker Compose files
+
+    dockerImageNeedsUpdate() {
+        image_name="$1"
+        host="$2"
+        remote_image_id=$(ssh -p "$ssh_port" "$ssh_user@$host" docker inspect --format="{{.Id}}" "$image_name" 2>/dev/null)
+        local_image_id=$(docker inspect --format="{{.Id}}" "$image_name" 2>/dev/null)
+        [ "$remote_image_id" != "$local_image_id" ]
+    }
+
+    getHosts() {
+        run_ansible --mount-path $(pwd) \
+        ansible \
+            $1 \
+            --inventory-file $inventory_file \
+            --module-name ping \
+            --list-hosts \
+            $additional_ansible_args \
+            | awk 'NR>1 {gsub(/\r/,""); print $1}'
+    }
+
+    loading_spinner() {
+            local pid=$1
+            local delay=0.1
+            local spinstr='|/-\\'
+            while kill -0 $pid 2>/dev/null; do
+                local temp=${spinstr#?}
+                printf " [%c]  " "$spinstr"
+                local spinstr=$temp${spinstr%"$temp"}
+                sleep $delay
+                printf "\r\b\b\b\b\b\b"
+            done
+            printf "    \r\b\b\b\b"
+    }
+
+    transferDockerImage() {
+        image_name="$1"
+        host="$2"
+
+        echo "${BOLD}${YELLOW}⚡️ Uploading Docker image '$image_name' to host '$host'. This could take a while...${RESET}"
+
+        # Run the Docker save and SSH command in the background
+        (docker save "$image_name" | gzip | ssh -p "$ssh_port" "$ssh_user@$host" docker load) &
+
+        # Capture the PID of the background process
+        pid=$!
+
+        # Start the spinner
+        loading_spinner $pid
+
+        # Wait for the background process to finish
+        wait $pid
+        local status=$?
+
+        # Check if the process succeeded
+        if [ $status -ne 0 ]; then
+            echo "${BOLD}${RED}Error: Failed to transfer Docker image.${RESET}"
+            return $status
+        else
+            echo "${BOLD}${GREEN}✅ Docker image '$image_name' has been successfully uploaded to '$host'.${RESET}"
+        fi
+    }
+
     # Process arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --user|-u)
-                ansible_user="$2"  # Override default user with specified user
+                ssh_user="$2"
                 shift 2
                 ;;
             --compose-file|-c)
@@ -24,53 +91,68 @@ action_deploy(){
                 fi
                 ;;
             --port|-p)
-                additional_ansible_args+=" --extra-vars ansible_portt=$2"
+                ssh_port="$2"
                 shift 2
                 ;;
-            --upgrade|-u)
-                force_ansible_upgrade=true
-                shift
-                ;;
             *)
-                if [[ -z "$target_environment" ]]; then  # capture the first positional argument as environment
-                    target_environment="$1"
-                else
-                    unprocessed_args+=("$1")
+                if [[ -z "$deployment_environment" ]]; then  # capture the first positional argument as environment
+                    deployment_environment="$1"
                 fi
                 shift
                 ;;
         esac
     done
 
+    # Prepare SSH connection
+    if [[ -n "$ssh_port" ]]; then
+        ssh_port="$(get_ansible_variable "ssh_port")"
+    fi
+
     # Validate target environment
-    if [[ -z "$target_environment" ]]; then
+    if [[ -z "$deployment_environment" ]]; then
         echo "${BOLD}${YELLOW}You didn't pass 'spin deploy' an environment to deploy to. Run 'spin help' if you want to see the documentation.${RESET}"
         exit 1
     fi
 
-    # Add environment and user to Ansible args
-    additional_ansible_args+=" --extra-vars target=$target_environment"
-    additional_ansible_args+="  --extra-vars ansible_user=$ansible_user"
-    if [[ "$ansible_user" != "root" ]]; then
-        additional_ansible_args+=" --ask-become-pass"
+    # Check if any Dockerfiles exist
+    if [ -z "$(ls Dockerfile* 2>/dev/null)" ]; then
+        echo "${BOLD}${YELLOW}❌ No Dockerfiles found in this directory. Be sure to run \"spin deploy\" in your project root.${RESET}"
+        exit 1
     fi
 
-    # Handle Docker Compose files
-    if [[ ${#compose_files[@]} -eq 0 ]]; then
-        # Default files if none are specified
-        compose_files=("docker-compose.yml" "docker-compose.prod.yml")
-    fi
-
-    # Convert array to a string separated by commas to pass to Ansible
-    compose_files_str=$(IFS=,; echo "${compose_files[*]}")
-    additional_ansible_args+=" --extra-vars compose_files='$compose_files_str'"
-
-    # Run the Ansible playbook
+    # Prepare the Ansible run
     prepare_ansible_run
-    run_ansible --allow-ssh --mount-path "$(pwd)" \
-        ansible-playbook serversideup.spin.deploy \
-        --inventory ./.spin-inventory.ini \
-        --extra-vars @./.spin.yml \
-        $additional_ansible_args \
-        "${unprocessed_args[@]}"
+
+    # Build and transfer for each Dockerfile
+    for file in Dockerfile*; do
+        if [ "$file" == "Dockerfile" ]; then
+            image_suffix="dockerfile"
+        else
+            # Extract the suffix from the Dockerfile name
+            image_suffix="${file#Dockerfile}"
+        fi
+        image_tag="$(get_md5_hash "$file")"
+
+        image_name="${image_prefix}/${image_suffix}:${image_tag}"
+
+        # Build the Docker image
+        echo "${BOLD}${BLUE}🐳 Building Docker image '$image_name' from '$file'...${RESET}"
+        docker buildx build --platform "$build_platform" -t "$image_name" -f "$file" . --load
+        if [ $? -eq 0 ]; then
+            echo "${BOLD}${BLUE}📦 Successfully built '$image_name' from '$file'...${RESET}"
+        else
+            echo "${BOLD}${RED}❌ Failed to build '$image_name' from '$file'.${RESET}"
+            exit 1
+        fi
+
+        # Transfer the image to the remote hosts
+        for host in $(getHosts "$deployment_environment"); do
+        if dockerImageNeedsUpdate "$image_name" "$host"; then
+            transferDockerImage "$image_name" "$host"
+        else
+            echo "${BOLD}${GREEN}🚀 Docker image '$image_name' is up to date on host '$host'.${RESET}"
+        fi
+        done
+    done
+
 }
