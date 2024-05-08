@@ -63,7 +63,7 @@ action_deploy(){
 
     # Convert array to a string separated by commas to pass to Ansible
     compose_files_str=$(IFS=,; echo "${compose_files[*]}")
-    additional_ansible_args+=" --extra-vars docker_compose_files='$compose_files_str'"
+    additional_ansible_args+=" --extra-vars compose_files='$compose_files_str'"
 
     # Run the Ansible playbook
     prepare_ansible_run
