@@ -537,9 +537,11 @@ prepare_ansible_run(){
     elif is_encrypted_with_ansible_vault ".spin.yml" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
         additional_ansible_args+=" --ask-vault-password"
     fi
-
-    run_ansible --allow-ssh --mount-path $(pwd) \
-        ansible-galaxy collection install serversideup.spin --upgrade
+    if [[ $(needs_update ".spin-ansible-collection-pull" "1") || "$force_ansible_upgrade" == true ]]; then
+      run_ansible --allow-ssh --mount-path $(pwd) \
+        ansible-galaxy collection install git+https://github.com/serversideup/ansible-collection-spin.git,add-deploy-feature --upgrade
+      save_current_time_to_cache_file ".spin-ansible-collection-pull"
+    fi
 }
 
 prompt_to_encrypt_files(){
