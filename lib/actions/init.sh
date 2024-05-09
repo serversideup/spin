@@ -37,4 +37,4 @@ action_init() {
 
     echo "${BOLD}${GREEN}🚀 Your project is now ready for \"spin up\"!${RESET}"
 
-}
+    echo "${BOLD}${YELLOW}👉 Learn how to use your template at https://github.com/$template_repository"
