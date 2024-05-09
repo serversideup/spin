@@ -594,7 +594,7 @@ prepare_ansible_run(){
     fi
     if [[ $(needs_update ".spin-ansible-collection-pull" "1") || "$force_ansible_upgrade" == true ]]; then
       run_ansible --allow-ssh --mount-path $(pwd) \
-        ansible-galaxy collection install serversideup.spin --upgrade
+        ansible-galaxy collection install ${SPIN_ANSIBLE_COLLECTION_NAME} --upgrade
       save_current_time_to_cache_file ".spin-ansible-collection-pull"
     fi
 }
