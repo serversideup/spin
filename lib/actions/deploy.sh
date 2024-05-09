@@ -13,6 +13,7 @@ action_deploy(){
     spin_registry_name="spin-registry"
     spin_project_name="${SPIN_PROJECT_NAME:-"spin"}"
     use_default_compose_files=true
+    traefik_config_file="${SPIN_TRAEFIK_CONFIG_FILE:-"$(pwd)/.infrastructure/conf/traefik/prod/traefik.yml"}"
 
     cleanup() {
         if [ -n "$tunnel_pid" ]; then
@@ -114,29 +115,32 @@ action_deploy(){
     # Prepare the Ansible run
     prepare_ansible_run
     
-    # Build and push for each Dockerfile
-    for file in Dockerfile*; do
-        if [ "$file" == "Dockerfile" ]; then
-            image_suffix="dockerfile"
-        else
-            # Extract the suffix from the Dockerfile name
-            image_suffix="${file#Dockerfile}"
-        fi
+    # Set and export image name
+    image_name="${image_prefix}/dockerfile:${image_tag}"
+    SPIN_IMAGE_NAME="${image_name}"
+    export SPIN_IMAGE_NAME
 
-        image_name="${image_prefix}/${image_suffix}:${image_tag}"
-        SPIN_IMAGE_NAME="${image_name}"
-        export SPIN_IMAGE_NAME
+        # Set the Traefik MD5 variable
+    if [ -f "$(pwd)/.infrastructure/conf/traefik/prod/traefik.yml" ]; then
+        traefik_config_file="${SPIN_TRAEFIK_CONFIG_FILE:-"$(pwd)/.infrastructure/conf/traefik/prod/traefik.yml"}"
+    else
+        traefik_config_file="${SPIN_TRAEFIK_CONFIG_FILE}"
+    fi
 
-        # Build the Docker image
-        echo "${BOLD}${BLUE}🐳 Building Docker image '$image_name' from '$file'...${RESET}"
-        docker buildx build --push --platform "$build_platform" -t "$image_name" -f "$file" .
-        if [ $? -eq 0 ]; then
-            echo "${BOLD}${BLUE}📦 Successfully built '$image_name' from '$file'...${RESET}"
-        else
-            echo "${BOLD}${RED}❌ Failed to build '$image_name' from '$file'.${RESET}"
-            exit 1
-        fi
-    done
+    traefik_config_md5_hash=$(get_md5_hash "$traefik_config_file")
+    SPIN_TRAEFIK_CONFIG_MD5_HASH="${traefik_config_md5_hash}"
+    export SPIN_TRAEFIK_CONFIG_MD5_HASH
+
+    # Build the Docker image
+    local dockerfile="Dockerfile"
+    echo "${BOLD}${BLUE}🐳 Building Docker image '$image_name' from '$dockerfile'...${RESET}"
+    docker buildx build --push --platform "$build_platform" -t "$image_name" -f "$dockerfile" .
+    if [ $? -eq 0 ]; then
+        echo "${BOLD}${BLUE}📦 Successfully built '$image_name' from '$dockerfile'...${RESET}"
+    else
+        echo "${BOLD}${RED}❌ Failed to build '$image_name' from '$dockerfile'.${RESET}"
+        exit 1
+    fi
 
     # Prepare SSH connection
     if [[ -n "$ssh_port" ]]; then

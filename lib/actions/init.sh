@@ -16,7 +16,7 @@ action_init() {
         download_template_repository  "$template_repository" "$branch" "$template_type"
     fi
     
-    create_config_folders "$project_dir/.infrastructure/conf/spin/collections" "$project_dir/.infrastructure/volume_data"
+    create_config_folders "$project_dir/.infrastructure/volume_data"
     ensure_lines_in_file "$project_dir/.gitignore" \
         ".vault_password"
     ensure_lines_in_file "$project_dir/.dockerignore" \
