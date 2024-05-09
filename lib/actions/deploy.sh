@@ -35,10 +35,13 @@ action_deploy(){
         if [[ "$use_default_compose_files" = true ]]; then
             compose_files=("docker-compose.yml" "docker-compose.prod.yml")
         fi
-
-        for compose_file in "${compose_files[@]}"; do
-            compose_args+=" --compose-file $compose_file"
-        done
+        if [[ ${#compose_files[@]} -gt 0 ]]; then
+            for compose_file in "${compose_files[@]}"; do
+                if [[ -n "$compose_file" ]]; then
+                    compose_args+=" --compose-file $compose_file"
+                fi
+            done
+        fi
 
         local docker_host="ssh://$ssh_user@$manager_host:$ssh_port"
         echo "${BOLD}${BLUE}📤 Deploying Docker stack with compose files: ${compose_files[*]} on $manager_host...${RESET}"
