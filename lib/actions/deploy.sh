@@ -4,7 +4,6 @@ action_deploy(){
     deployment_environment=""
     registry_port="${SPIN_REGISTRY_PORT:-5000}"
     build_platform="${SPIN_BUILD_PLATFORM:-"linux/amd64"}"
-    image_suffix=''
     image_prefix="${SPIN_BUILD_IMAGE_PREFIX:-"localhost:$registry_port"}"
     image_tag="${SPIN_BUILD_TAG:-"latest"}"
     inventory_file="${SPIN_INVENTORY_FILE:-"/ansible/.spin-inventory.ini"}"
