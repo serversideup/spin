@@ -15,7 +15,7 @@ Provision and set up your inventory of servers. Before running this command, mak
 label: Usage for "spin provision"
 ---
 ```bash
-spin provision [-u|--user <user>]
+spin provision [-u|--user <user> -U|--upgrade]
 ```
 ::
 
