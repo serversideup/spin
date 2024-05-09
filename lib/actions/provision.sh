@@ -16,7 +16,7 @@ action_provision(){
                 additional_ansible_args+=" --extra-vars ansible_port=$2"
                 shift 2
                 ;;
-            --upgrade|-u)
+            --upgrade|-U)
                 force_ansible_upgrade=true
                 shift
                 ;;
