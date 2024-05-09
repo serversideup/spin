@@ -15,8 +15,7 @@ Provision and set up your inventory of servers. Before running this command, mak
 label: Usage for "spin provision"
 ---
 ```bash
-spin provision [-u|--user <user> -U|--upgrade]
-```
+spin provision [-p|--port <port> -u|--user <user> -U|--upgrade ]``
 ::
 
 ## Checklist before executing this command
@@ -30,6 +29,7 @@ Before you execute this command, you should have the following completed:
 The following options are available to set when running this command.
 | Option | Short | Default | Description |
 | --- | --- | --- | --- |
+| `--port` | `-p` | `22` | The port to SSH into the server with. |
 | `--user` | `-u` | The username of your HOST machine (run `whoami` in a new terminal) | The user to SSH into the server with. |
 | `--upgrade` | `-U` | Update only once per day. | Force upgrade the Ansible Collection on your machine before provisioning. |
 
