@@ -266,10 +266,14 @@ ensure_lines_in_file() {
     # Check if the file exists, if not create it
     [ -e "$file" ] || touch "$file"
 
+    # Ensure the file ends with a newline
+    [ -z "$(tail -c1 "$file")" ] || echo "" >> "$file"
+
     for line in "${lines[@]}"; do
         grep -qxF -- "$line" "$file" || echo "$line" >> "$file"
     done
 }
+
 
 export_compose_file_variable(){
   # Convert the SPIN_ENV variable into an array of environments
