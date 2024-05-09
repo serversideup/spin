@@ -15,7 +15,7 @@ action_deploy(){
     use_default_compose_files=true
     traefik_config_file="${SPIN_TRAEFIK_CONFIG_FILE:-"$(pwd)/.infrastructure/conf/traefik/prod/traefik.yml"}"
 
-    cleanup() {
+    cleanup_registry() {
         if [ -n "$tunnel_pid" ]; then
             # Check if the process is still running
             if ps -p "$tunnel_pid" > /dev/null; then
@@ -62,7 +62,7 @@ action_deploy(){
             | awk 'NR>1 {gsub(/\r/,""); print $1}'
     }
 
-    trap cleanup EXIT
+    trap cleanup_registry EXIT
 
     # Process arguments
     while [[ $# -gt 0 ]]; do
