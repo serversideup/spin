@@ -18,9 +18,9 @@ action_init() {
     
     create_config_folders "$project_dir/.infrastructure/volume_data"
     ensure_lines_in_file "$project_dir/.gitignore" \
-        ".vault_password"
+        ".vault-password"
     ensure_lines_in_file "$project_dir/.dockerignore" \
-        ".vault_password" \
+        ".vault-password" \
         ".github" \
         ".git" \
         ".infrastructure" \
