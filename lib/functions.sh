@@ -99,7 +99,7 @@ check_if_compose_files_exist() {
 }
 
 cleanup_temp_repo_location() {
-  rm -rf "$temp_dir"
+  rm -rf "$temporary_template_src_dir"
 }
 
 copy_template_files() {
@@ -218,14 +218,69 @@ docker_pull_check() {
   fi
 }
 
-download_template_repository() {
-  local template_repository="$1"
-  local branch="$2"
-  local template_type="$3"
-  local download_url="https://github.com/$template_repository/archive/refs/heads/$branch.tar.gz"
+download_spin_template_repository() {
+  local branch=''
+  local template_type=''
+  local args_without_options=()
+  framework_args=()
+
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      -b|--branch)
+        branch="$2"
+        shift 2  # Shift both the flag and its value
+        ;;
+      -*)
+        echo "${BOLD}${RED}🛑 Unsupported flag ${1}.${RESET}"
+        exit 1
+        ;;
+      *)
+        args_without_options+=("$1")
+        shift
+        ;;
+    esac
+  done
+
+  # First positional argument should be the template or template repository
+  if [ ! -z "${args_without_options[0]}" ]; then
+    template="${args_without_options[0]}"
+    unset "args_without_options[0]"
+  fi
+
+  # Remaining positional arguments are considered framework arguments
+  framework_args=("${args_without_options[@]}")
+  export framework_args
+
+  # Determine the type of template
+  case "$template" in
+    laravel)
+      template_type=official
+      TEMPLATE_REPOSITORY="serversideup/spin-template-laravel"
+      ;;
+    nuxt)
+      template_type=official
+      TEMPLATE_REPOSITORY="serversideup/spin-template-nuxt"
+      ;;
+    *)
+      template_type=external
+      TEMPLATE_REPOSITORY="$template"
+      ;;
+  esac
+
+  export TEMPLATE_REPOSITORY
+
+  # Determine the branch to download
+  [ -z "$branch" ] && branch=$(github_default_branch "$TEMPLATE_REPOSITORY")
+  if [[ -z "$branch" ]]; then
+    echo "${BOLD}${RED}Error: Couldn't determine the default branch for $TEMPLATE_REPOSITORY.${RESET}"
+    exit 1
+  fi
   
   trap cleanup_temp_repo_location EXIT
-  temp_dir=$(mktemp -d)
+  temporary_template_src_dir=$(mktemp -d)
+  export temporary_template_src_dir
+
+  local download_url="https://github.com/$TEMPLATE_REPOSITORY/archive/refs/heads/$branch.tar.gz"
 
   # Third-party repository warning and confirmation
   if [[ "$template_type" != "official" ]]; then
@@ -239,7 +294,7 @@ download_template_repository() {
     
     echo "${BOLD}${YELLOW}⚠️ You're downloading content from a third party repository.${RESET}"
 
-    display_repository_metadata "$template_repository" "$branch"
+    display_repository_metadata "$TEMPLATE_REPOSITORY" "$branch"
     echo "${BOLD}${BLUE}Make sure you trust the source of the repository before continuing.${RESET}"
     echo "Do you wish to continue? (y/n)"
     read -r -n 1 -p ""
@@ -254,8 +309,8 @@ download_template_repository() {
   echo "${BOLD}${YELLOW}🔄 Downloading template...${RESET}"
   echo "Downloading from $download_url"
   
-  curl -sL "$download_url" | tar -xz -C "$temp_dir" --strip-components=1
-  template_download_complete=true
+  curl -sL "$download_url" | tar -xz -C "$temporary_template_src_dir" --strip-components=1
+
 }
 
 ensure_lines_in_file() {
@@ -372,20 +427,42 @@ get_github_release() {
 }
 
 get_file_from_github_release() {
-  local repo="$1"
-  local release_type="$2"
-  local source_file="$3"
-  local destination_file="$4"
-  local trimmed_destination_file=${destination_file#$project_dir/}
+
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      -r|--repo)
+        local repo="$2"
+        shift 2  # Shift both the flag and its value
+        ;;
+      -t|--release-type)
+        local release_type="$2"
+        shift 2  # Shift both the flag and its value
+        ;;
+      -s|--src)
+        local source_file="$2"
+        shift 2  # Shift both the flag and its value
+        ;;
+      -d|--dest)
+        local destination_file="$2"
+        shift 2  # Shift both the flag and its value
+        ;;
+      *)
+        echo "${BOLD}${RED}🛑 Unsupported flag ${1}.${RESET}"
+        exit 1
+        ;;
+    esac
+  done
+
+  destination_filename=$(basename "$destination_file")
 
   if [[ -f "$destination_file" ]]; then
           trap show_existing_files_warning EXIT
-          echo "👉 ${MAGENTA}\"$trimmed_destination_file\" already exists. Skipping...${RESET}"
+          echo "👉 ${MAGENTA}\"$destination_filename\" already exists. Skipping...${RESET}"
           return 0
   fi
 
   curl --silent --location --output "$destination_file" "https://raw.githubusercontent.com/$repo/$(get_github_release "$release_type" "$repo")/$source_file"
-  echo "✅ \"$trimmed_destination_file\" has been created."
+  echo "✅ \"$destination_filename\" has been created."
 }
 
 get_md5_hash() {
@@ -469,12 +546,13 @@ is_internet_connected() {
 }
 
 last_pull_timestamp() {
-    local project_dir="$(pwd)"
     local cache_file="$SPIN_CACHE_DIR/.spin-last-pull"
+    local escaped_project_dir=""
     
     # Escape special characters in the directory path to safely use it in regular expressions
     # sed is used to add a backslash before characters that have special meaning in regex
-    local escaped_project_dir=$(printf '%s' "$project_dir" | sed 's/[][\.|$(){}?+*^]/\\&/g')
+    
+    escaped_project_dir=$(printf '%s' "$(pwd)" | sed 's/[][\.|$(){}?+*^]/\\&/g')
 
     grep "^$escaped_project_dir " "$cache_file" | awk '{print $2}'
 }
@@ -515,62 +593,6 @@ needs_update() {
   fi
 }
 
-parse_repository_arguments() {
-  branch='' template_type='' template_repository='' args_without_options=() additional_args=()
-  while [[ "$#" -gt 0 ]]; do
-    case "$1" in
-      -b|--branch)
-        branch="$2"
-        shift 2  # Shift both the flag and its value
-        ;;
-      -p|--path)
-        project_dir="$2"
-        shift 2  # Shift both the flag and its value
-        ;;
-      -*)
-        echo "${BOLD}${RED}🛑 Unsupported flag ${1}.${RESET}"
-        exit 1
-        ;;
-      *)
-        args_without_options+=("$1")
-        shift
-        ;;
-    esac
-  done
-
-  # First positional argument should be the template or template repository
-  if [ ! -z "${args_without_options[0]}" ]; then
-    template="${args_without_options[0]}"
-    unset args_without_options[0]
-  fi
-
-  # Remaining positional arguments are additional args
-  additional_args=("${args_without_options[@]}")
-
-  # Determine the type of template
-  case "$template" in
-    laravel)
-      template_type=official
-      template_repository="serversideup/spin-template-laravel"
-      ;;
-    nuxt)
-      template_type=official
-      template_repository="serversideup/spin-template-nuxt"
-      ;;
-    *)
-      template_type=external
-      template_repository="$template"
-      ;;
-  esac
-
-  # Determine the branch to download
-  [ -z "$branch" ] && branch=$(github_default_branch "$template_repository")
-  if [[ -z "$branch" ]]; then
-    echo "${BOLD}${RED}Error: Couldn't determine the default branch for $template_repository.${RESET}"
-    exit 1
-  fi
-}
-
 print_version() {
 
   # Use the local Git repo to show our version
@@ -589,25 +611,50 @@ print_version() {
 }
 
 prepare_ansible_run(){
-    # Check if vault password exists
-    if [[ -f .vault-password ]]; then
-        additional_ansible_args+=" --vault-password-file .vault-password"
-    elif is_encrypted_with_ansible_vault ".spin.yml" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
-        echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}"
-        additional_ansible_args+=" --ask-vault-password"
-    fi
-    if [[ $(needs_update ".spin-ansible-collection-pull" "1") || "$force_ansible_upgrade" == true ]]; then
-      run_ansible --allow-ssh --mount-path $(pwd) \
-        ansible-galaxy collection install ${SPIN_ANSIBLE_COLLECTION_NAME} --upgrade
-      save_current_time_to_cache_file ".spin-ansible-collection-pull"
-    fi
+  # Check if vault password exists
+  if [[ -f .vault-password ]]; then
+      additional_ansible_args+=" --vault-password-file .vault-password"
+  elif is_encrypted_with_ansible_vault ".spin.yml" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
+      echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}"
+      additional_ansible_args+=" --ask-vault-password"
+  fi
+  if [[ $(needs_update ".spin-ansible-collection-pull" "1") || "$force_ansible_upgrade" == true ]]; then
+    run_ansible --allow-ssh --mount-path $(pwd) \
+      ansible-galaxy collection install ${SPIN_ANSIBLE_COLLECTION_NAME} --upgrade
+    save_current_time_to_cache_file ".spin-ansible-collection-pull"
+  fi
 }
 
 prompt_to_encrypt_files(){
-    local files_to_encrypt=()
+  local files_passed=()
+  local files_to_encrypt=()
+  local absolute_path=''
 
-    for file in "$@"; do
-        if ! is_encrypted_with_ansible_vault "$file"; then
+  # Process arguments
+  while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --file|-f)
+            if [[ -n "$2" && "$2" != -* ]]; then
+                files_passed+=("$2")
+                shift 2
+            else
+                echo "${BOLD}${RED}❌Error: '-f' option requires a file as argument.${RESET}"
+                exit 1
+            fi
+            ;;
+        --path|-p)
+            absolute_path=$(realpath "$2")
+            shift 2
+            ;;
+        *)
+          echo "${BOLD}${RED}🛑 Unsupported flag ${1}.${RESET}"
+          exit 1
+          ;;
+      esac
+    done
+
+    for file in "${files_passed[@]}"; do
+        if ! is_encrypted_with_ansible_vault "$absolute_path/$file"; then
             files_to_encrypt+=("$file")
         fi
     done
@@ -622,19 +669,14 @@ prompt_to_encrypt_files(){
             echo "${BOLD}${BLUE}⚡️ Running Ansible Vault to encrypt Spin configurations...${RESET}"
             echo "${BOLD}${YELLOW}⚠️ NOTE: This password will be required anytime someone needs to change these files.${RESET}"
             echo "${BOLD}${YELLOW}We recommend using a RANDOM PASSWORD.${RESET}"
-            
-            # Trim base path of files to encrypt
-            files_to_encrypt=("${files_to_encrypt[@]##*/}")
-
-            project_dir_real_path="$(realpath "$project_dir")"
 
             # Encrypt with Ansible Vault
-            run_ansible --mount-path "$project_dir_real_path" ansible-vault encrypt "${files_to_encrypt[@]}"
+            run_ansible --mount-path "$absolute_path" ansible-vault encrypt "${files_to_encrypt[@]}"
 
             # Ensure the files are owned by the current user
-            run_ansible --mount-path "$project_dir_real_path" chown "${SPIN_USER_ID}:${SPIN_GROUP_ID}" "${files_to_encrypt[@]}"
+            run_ansible --mount-path "$absolute_path" chown "${SPIN_USER_ID}:${SPIN_GROUP_ID}" "${files_to_encrypt[@]}"
 
-            echo "ℹ️ You can save this password in \".vault-password\" in the root of your project if you want your secret to be remembered."
+            echo "ℹ️ You can save this password in a \".vault-password\" file in the root of your project to avoid this prompt."
         elif [[ $encrypt_response =~ ^[Nn]$ ]]; then
             echo "${BOLD}${BLUE}👋 Ok, we won't encrypt these files.${RESET} You can always encrypt it later by running \"spin vault encrypt\"."
         else
