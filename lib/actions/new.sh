@@ -5,6 +5,8 @@ action_new() {
     exit 1
   fi
 
+  # When we call the `install.sh` script on a template,
+  # set the SPIN_ACTION to "new"
   SPIN_ACTION="new"
   export SPIN_ACTION
 
