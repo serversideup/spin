@@ -160,7 +160,8 @@ action_deploy(){
 
     # Create SSH tunnel to Docker registry
     if ! ssh -f -n -N -R "${registry_port}:localhost:${registry_port}" -p "${ssh_port}" "${ssh_user}@${docker_swarm_manager}" -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3; then
-        echo "${BOLD}${RED}Failed to create SSH tunnel. Exiting... Be sure you can complete an SSH connection with:${RESET}"
+        echo "${BOLD}${RED}Failed to create SSH tunnel. Exiting...${RESET}"
+        echo "${BOLD}${YELLOW}Troubleshoot your connection by running:${RESET}"
         echo "${BOLD}${YELLOW}ssh -p $ssh_port $ssh_user@$docker_swarm_manager${RESET}"
         exit 1
     fi
