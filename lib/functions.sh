@@ -381,25 +381,34 @@ filter_out_spin_arguments() {
     echo "${filtered_args[@]}"
 }
 
+ansible_vault_args() {
+  local vault_args=()
+
+  if [[ -f .vault-password ]]; then
+    vault_args+=(" --vault-password-file .vault-password")
+  elif is_encrypted_with_ansible_vault ".spin.yml" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
+    echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}"
+    vault_args+=(" --ask-vault-pass")
+  fi
+
+  echo "${vault_args[@]}"  
+}
+
 get_ansible_variable(){
   local variable_name="$1"
   local file="${2:-".spin.yml"}"
-  local ansible_args=''
+  local vault_args=()
   local raw_ansible_output=''
   local trimmed_ansible_output=''
 
-  if [[ -f .vault-password ]]; then
-    ansible_args+=" --vault-password-file .vault-password"
-  elif is_encrypted_with_ansible_vault ".spin.yml" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
-    echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}"
-    ansible_args+=" --ask-vault-pass"
-  fi
+  # Read the vault arguments into an array
+  read -r -a vault_args < <(ansible_vault_args)
 
   raw_ansible_output=$(run_ansible --mount-path "$(pwd)" \
     ansible localhost -m debug \
       -a "var=${variable_name}" \
       -e "@${file}" \
-      $ansible_args
+      "${vault_args[@]}"
   )
 
   # Check for variable presence
