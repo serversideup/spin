@@ -610,17 +610,10 @@ print_version() {
   fi
 }
 
-prepare_ansible_run(){
-  # Check if vault password exists
-  if [[ -f .vault-password ]]; then
-      additional_ansible_args+=" --vault-password-file .vault-password"
-  elif is_encrypted_with_ansible_vault ".spin.yml" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
-      echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}"
-      additional_ansible_args+=" --ask-vault-password"
-  fi
+check_galaxy_pull(){
   if [[ $(needs_update ".spin-ansible-collection-pull" "1") || "$force_ansible_upgrade" == true ]]; then
     run_ansible --allow-ssh --mount-path $(pwd) \
-      ansible-galaxy collection install ${SPIN_ANSIBLE_COLLECTION_NAME} --upgrade
+      ansible-galaxy collection install "${SPIN_ANSIBLE_COLLECTION_NAME}" --upgrade
     save_current_time_to_cache_file ".spin-ansible-collection-pull"
   fi
 }
