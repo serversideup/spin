@@ -13,7 +13,7 @@ action_provision(){
                 shift 2
                 ;;
             --port|-p)
-                additional_ansible_args+=(" --extra-vars ansible_port=$2")
+                additional_ansible_args+=("--extra-vars ansible_port=$2")
                 shift 2
                 ;;
             --upgrade|-U)
@@ -29,10 +29,14 @@ action_provision(){
     done
 
     # Set Ansible User
-    additional_ansible_args+=("  --extra-vars ansible_user=$ansible_user")
+    additional_ansible_args+=("--extra-vars" "ansible_user=$ansible_user")
     if [[ "$ansible_user" != "root" ]]; then
-        additional_ansible_args+=(" --ask-become-pass")
+        additional_ansible_args+=("--ask-become-pass")
     fi
+
+    # Append vault args to additional ansible args
+    IFS=' ' read -r -a vault_args < <(ansible_vault_args)
+    additional_ansible_args+=("${vault_args[@]}")
 
     check_galaxy_pull
     run_ansible --allow-ssh --mount-path $(pwd) \

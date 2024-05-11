@@ -385,13 +385,13 @@ ansible_vault_args() {
   local vault_args=()
 
   if [[ -f .vault-password ]]; then
-    vault_args+=(" --vault-password-file .vault-password")
+    vault_args+=("--vault-password-file" ".vault-password")
   elif is_encrypted_with_ansible_vault ".spin.yml" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
-    echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}"
-    vault_args+=(" --ask-vault-pass")
+    echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}" >&2
+    vault_args+=("--ask-vault-pass")
   fi
 
-  echo "${vault_args[@]}"  
+  echo "${vault_args[@]}"
 }
 
 get_ansible_variable(){
@@ -699,15 +699,15 @@ run_ansible() {
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
       --allow-ssh)
-        additional_docker_args+=(" -v $HOME/.ssh/:/root/.ssh/  -v $ansible_collections_path:/root/.ansible/collections")
+        additional_docker_args+=("-v" "$HOME/.ssh/:/root/.ssh/" "-v" "$ansible_collections_path:/root/.ansible/collections")
           # Mount the SSH Agent for macOS systems
         if [[ "$(uname -s)" == "Darwin" ]]; then
-            additional_docker_args+=(" -v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock")
+            additional_docker_args+=("-v" "/run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock" "-e" "SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock")
         fi
         shift
         ;;
       --mount-path)
-        additional_docker_args+=(" -v ${2}:/ansible")
+        additional_docker_args+=("-v" "${2}:/ansible")
         shift 2
         ;;
       *)
