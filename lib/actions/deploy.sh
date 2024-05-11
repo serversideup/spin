@@ -54,13 +54,20 @@ action_deploy(){
     }
 
     get_hosts_from_ansible() {
+        local vault_args=()
+        local host_group="$1"
+        
+        # Read the vault arguments into an array
+        read -r -a vault_args < <(ansible_vault_args)
+
+        # Run the Ansible command to get the list of hosts
         run_ansible --mount-path $(pwd) \
         ansible \
-            $1 \
-            --inventory-file $inventory_file \
+            "$host_group" \
+            --inventory-file "$inventory_file" \
             --module-name ping \
             --list-hosts \
-            $additional_ansible_args \
+            "${vault_args[@]}" \
             | awk 'NR>1 {gsub(/\r/,""); print $1}'
     }
 
@@ -153,7 +160,8 @@ action_deploy(){
 
     # Create SSH tunnel to Docker registry
     if ! ssh -f -n -N -R "${registry_port}:localhost:${registry_port}" -p "${ssh_port}" "${ssh_user}@${docker_swarm_manager}" -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3; then
-        echo "${BOLD}${RED}Failed to create SSH tunnel. Exiting...${RESET}"
+        echo "${BOLD}${RED}Failed to create SSH tunnel. Exiting... Be sure you can complete an SSH connection with:${RESET}"
+        echo "${BOLD}${YELLOW}ssh -p $ssh_port $ssh_user@$docker_swarm_manager${RESET}"
         exit 1
     fi
 
