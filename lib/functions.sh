@@ -687,7 +687,7 @@ prompt_to_encrypt_files(){
 }
 
 run_ansible() {
-  local additional_docker_configs=""
+  local additional_docker_args=()
   local args_without_options=()
   ansible_collections_path="$SPIN_CACHE_DIR/collections"
   
@@ -697,15 +697,15 @@ run_ansible() {
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
       --allow-ssh)
-        additional_docker_configs+=" -v $HOME/.ssh/:/root/.ssh/  -v $ansible_collections_path:/root/.ansible/collections"
+        additional_docker_args+=(" -v $HOME/.ssh/:/root/.ssh/  -v $ansible_collections_path:/root/.ansible/collections")
           # Mount the SSH Agent for macOS systems
         if [[ "$(uname -s)" == "Darwin" ]]; then
-            additional_docker_configs+=" -v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock"
+            additional_docker_args+=(" -v /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock -e SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock")
         fi
         shift
         ;;
       --mount-path)
-        additional_docker_configs+=" -v ${2}:/ansible"
+        additional_docker_args+=(" -v ${2}:/ansible")
         shift 2
         ;;
       *)
@@ -716,7 +716,7 @@ run_ansible() {
   done
   docker run --rm -it \
     --platform linux/amd64 \
-    $additional_docker_configs \
+    "${additional_docker_args[@]}" \
     "$SPIN_ANSIBLE_IMAGE" \
     "${args_without_options[@]}"
 }
