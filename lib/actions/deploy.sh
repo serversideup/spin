@@ -115,7 +115,7 @@ action_deploy(){
     fi
 
     # Prepare the Ansible run
-    prepare_ansible_run
+    check_galaxy_pull
     
     # Set and export image name
     image_name="${image_prefix}/dockerfile:${image_tag}"
