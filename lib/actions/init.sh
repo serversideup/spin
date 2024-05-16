@@ -15,7 +15,6 @@ action_init() {
     # Set the SPIN_ACTION to "init" if
     # "spin new" hasn't set an action already
     if [ -z "$SPIN_ACTION" ]; then
-        SPIN_PROJECT_DIRECTORY="$(pwd)"
         SPIN_ACTION="init"
         export SPIN_ACTION
     fi
