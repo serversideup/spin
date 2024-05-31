@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-action_deploy(){
+
+if [[ -f ".env" ]]; then
+    eval export $(cat .env)
+fi
+
+action_deploy() {
     compose_files=""
     deployment_environment=""
     registry_port="${SPIN_REGISTRY_PORT:-5000}"
@@ -12,18 +17,37 @@ action_deploy(){
     spin_registry_name="spin-registry"
     spin_project_name="${SPIN_PROJECT_NAME:-"spin"}"
     use_default_compose_files=true
-    traefik_config_file="${SPIN_TRAEFIK_CONFIG_FILE:-"$(pwd)/.infrastructure/conf/traefik/prod/traefik.yml"}"
 
     cleanup_registry() {
         if [ -n "$tunnel_pid" ]; then
             # Check if the process is still running
-            if ps -p "$tunnel_pid" > /dev/null; then
+            if ps -p "$tunnel_pid" >/dev/null; then
                 kill "$tunnel_pid"
             else
                 echo "Process $tunnel_pid not running."
             fi
         fi
-        docker stop "$spin_registry_name" > /dev/null 2>&1
+        docker stop "$spin_registry_name" >/dev/null 2>&1
+    }
+
+    generate_md5_hashes() {
+        # Check if the configs key exists
+        if grep -q 'configs:' "$compose_file"; then
+            # Extract config file paths
+            local config_files
+            config_files=$(awk '/configs:/{flag=1;next}/^[^ ]/{flag=0}flag' "$compose_file" | grep 'file:' | awk '{print $2}')
+
+            for config_file_path in $config_files; do
+                if [ -f "$config_file_path" ]; then
+                    local config_md5_hash
+                    config_md5_hash=$(get_md5_hash "$config_file_path" | awk '{ print $1 }')
+                    config_md5_var="SPIN_$(basename "$config_file_path" | tr '[:lower:]' '[:upper:]' | tr '.' '_')_CONFIG_MD5_HASH"
+
+                    eval "$config_md5_var=$config_md5_hash"
+                    export $config_md5_var
+                fi
+            done
+        fi
     }
 
     deploy_docker_stack() {
@@ -37,6 +61,8 @@ action_deploy(){
         if [[ ${#compose_files[@]} -gt 0 ]]; then
             for compose_file in "${compose_files[@]}"; do
                 if [[ -n "$compose_file" ]]; then
+                    # Compute MD5 hashes if necessary
+                    generate_md5_hashes "$compose_file"
                     compose_args+=" --compose-file $compose_file"
                 fi
             done
@@ -56,19 +82,19 @@ action_deploy(){
     get_hosts_from_ansible() {
         local vault_args=()
         local host_group="$1"
-        
+
         # Read the vault arguments into an array
         read -r -a vault_args < <(ansible_vault_args)
 
         # Run the Ansible command to get the list of hosts
         run_ansible --mount-path $(pwd) \
-        ansible \
+            ansible \
             "$host_group" \
             --inventory-file "$inventory_file" \
             --module-name ping \
             --list-hosts \
-            "${vault_args[@]}" \
-            | awk 'NR>1 {gsub(/\r/,""); print $1}'
+            "${vault_args[@]}" |
+            awk 'NR>1 {gsub(/\r/,""); print $1}'
     }
 
     trap cleanup_registry EXIT
@@ -76,30 +102,30 @@ action_deploy(){
     # Process arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            --user|-u)
-                ssh_user="$2"
+        --user | -u)
+            ssh_user="$2"
+            shift 2
+            ;;
+        --compose-file | -c)
+            use_default_compose_files=false
+            if [[ -n "$2" && "$2" != -* ]]; then
+                compose_files+=("$2")
                 shift 2
-                ;;
-            --compose-file|-c)
-                use_default_compose_files=false
-                if [[ -n "$2" && "$2" != -* ]]; then
-                    compose_files+=("$2")
-                    shift 2
-                else
-                    echo "${BOLD}${RED}❌Error: '-c' option requires a Docker Compose file as argument.${RESET}"
-                    exit 1
-                fi
-                ;;
-            --port|-p)
-                ssh_port="$2"
-                shift 2
-                ;;
-            *)
-                if [[ -z "$deployment_environment" ]]; then  # capture the first positional argument as environment
-                    deployment_environment="$1"
-                fi
-                shift
-                ;;
+            else
+                echo "${BOLD}${RED}❌Error: '-c' option requires a Docker Compose file as argument.${RESET}"
+                exit 1
+            fi
+            ;;
+        --port | -p)
+            ssh_port="$2"
+            shift 2
+            ;;
+        *)
+            if [[ -z "$deployment_environment" ]]; then # capture the first positional argument as environment
+                deployment_environment="$1"
+            fi
+            shift
+            ;;
         esac
     done
 
@@ -110,48 +136,38 @@ action_deploy(){
     fi
 
     # Check if any Dockerfiles exist
-    if [ -z "$(ls Dockerfile* 2>/dev/null)" ]; then
-        echo "${BOLD}${YELLOW}❌ No Dockerfiles found in this directory. Be sure to run \"spin deploy\" in your project root.${RESET}"
-        exit 1
-    fi
+    if [ -n "$(ls Dockerfile* 2>/dev/null)" ]; then
+        # Bring up a local docker registry
+        if [ -z "$(docker ps -q -f name=$spin_registry_name)" ]; then
+            echo "${BOLD}${BLUE}🚀 Starting local Docker registry...${RESET}"
+            docker run --rm -d -p $registry_port:5000 -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name $spin_registry_name registry:2
+        fi
 
-    # Bring up a local docker registry
-    if [ -z "$(docker ps -q -f name=$spin_registry_name)" ]; then
-        echo "${BOLD}${BLUE}🚀 Starting local Docker registry...${RESET}"
-        docker run --rm -d -p $registry_port:5000 -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name $spin_registry_name registry:2
-    fi
+        # Prepare the Ansible run
+        check_galaxy_pull
 
-    # Prepare the Ansible run
-    check_galaxy_pull
-    
-    # Set and export image name
-    image_name="${image_prefix}/dockerfile:${image_tag}"
-    SPIN_IMAGE_NAME="${image_name}"
-    export SPIN_IMAGE_NAME
+        # Set and export image name
+        image_name="${image_prefix}/dockerfile:${image_tag}"
+        SPIN_IMAGE_NAME="${image_name}"
+        export SPIN_IMAGE_NAME
 
-        # Set the Traefik MD5 variable
-    if [ -f "$(pwd)/.infrastructure/conf/traefik/prod/traefik.yml" ]; then
-        traefik_config_file="${SPIN_TRAEFIK_CONFIG_FILE:-"$(pwd)/.infrastructure/conf/traefik/prod/traefik.yml"}"
+        # Build the Docker image
+        local dockerfile="Dockerfile"
+        echo "${BOLD}${BLUE}🐳 Building Docker image '$image_name' from '$dockerfile'...${RESET}"
+        docker buildx build --push --platform "$build_platform" -t "$image_name" -f "$dockerfile" .
+        if [ $? -eq 0 ]; then
+            echo "${BOLD}${BLUE}📦 Successfully built '$image_name' from '$dockerfile'...${RESET}"
+        else
+            echo "${BOLD}${RED}❌ Failed to build '$image_name' from '$dockerfile'.${RESET}"
+            exit 1
+        fi
     else
-        traefik_config_file="${SPIN_TRAEFIK_CONFIG_FILE}"
-    fi
-
-    traefik_config_md5_hash=$(get_md5_hash "$traefik_config_file")
-    SPIN_TRAEFIK_CONFIG_MD5_HASH="${traefik_config_md5_hash}"
-    export SPIN_TRAEFIK_CONFIG_MD5_HASH
-
-    # Build the Docker image
-    local dockerfile="Dockerfile"
-    echo "${BOLD}${BLUE}🐳 Building Docker image '$image_name' from '$dockerfile'...${RESET}"
-    docker buildx build --push --platform "$build_platform" -t "$image_name" -f "$dockerfile" .
-    if [ $? -eq 0 ]; then
-        echo "${BOLD}${BLUE}📦 Successfully built '$image_name' from '$dockerfile'...${RESET}"
-    else
-        echo "${BOLD}${RED}❌ Failed to build '$image_name' from '$dockerfile'.${RESET}"
-        exit 1
+        echo "${BOLD}${BLUE} No Dockerfiles found in this directory, skipping Docker image build"
     fi
 
     # Prepare SSH connection
+    echo "${BOLD}${BLUE} Setting up SSH tunnel to Docker registry...${RESET}"
+
     if [[ -n "$ssh_port" ]]; then
         ssh_port="$(get_ansible_variable "ssh_port")"
     fi
@@ -168,7 +184,8 @@ action_deploy(){
 
     # Get the process ID of the SSH tunnel
     tunnel_pid=$(pgrep -f "ssh -f -n -N -R ${registry_port}:localhost:${registry_port}")
-    
-    deploy_docker_stack "$docker_swarm_manager" "$ssh_port"
 
+    echo "${BOLD}${BLUE} SSH tunnel to Docker registry established.${RESET}"
+
+    deploy_docker_stack "$docker_swarm_manager" "$ssh_port"
 }
