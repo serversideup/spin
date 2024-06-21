@@ -724,13 +724,13 @@ run_ansible() {
 }
 
 save_current_time_to_cache_file() {
-  mkdir -p $SPIN_CACHE_DIR
-  date +"%s" > $SPIN_CACHE_DIR/$1
+  mkdir -p "$SPIN_CACHE_DIR"
+  date +"%s" > "$SPIN_CACHE_DIR/$1"
 }
 
 send_to_upgrade_script () {
   if is_internet_connected; then
-    source $SPIN_HOME/tools/upgrade.sh
+    source "$SPIN_HOME/tools/upgrade.sh"
   fi
 }
 
