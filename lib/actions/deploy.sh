@@ -41,7 +41,7 @@ action_deploy() {
                 if [ -f "$config_file_path" ]; then
                     local config_md5_hash
                     config_md5_hash=$(get_md5_hash "$config_file_path" | awk '{ print $1 }')
-                    config_md5_var="SPIN_$(basename "$config_file_path" | tr '[:lower:]' '[:upper:]' | tr '.' '_')_CONFIG_MD5_HASH"
+                    config_md5_var="SPIN_MD5_HASH_$(basename "$config_file_path" | tr '[:lower:]' '[:upper:]' | tr '.' '_')"
 
                     eval "$config_md5_var=$config_md5_hash"
                     export $config_md5_var
