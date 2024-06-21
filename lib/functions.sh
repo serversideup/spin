@@ -700,7 +700,7 @@ run_ansible() {
     case "$1" in
       --allow-ssh)
         additional_docker_args+=("-v" "$HOME/.ssh/:/root/.ssh/" "-v" "$ansible_collections_path:/root/.ansible/collections")
-          # Mount the SSH Agent for macOS systems
+        # Mount the SSH Agent for macOS systems
         if [[ "$(uname -s)" == "Darwin" ]]; then
             additional_docker_args+=("-v" "/run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock" "-e" "SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock")
         fi
