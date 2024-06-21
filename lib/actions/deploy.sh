@@ -140,7 +140,7 @@ action_deploy() {
         # Bring up a local docker registry
         if [ -z "$(docker ps -q -f name=$spin_registry_name)" ]; then
             echo "${BOLD}${BLUE}🚀 Starting local Docker registry...${RESET}"
-            docker run --rm -d -p $registry_port:5000 -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name $spin_registry_name registry:2
+            docker run --rm -d -p "$registry_port:5000" -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name $spin_registry_name registry:2
         fi
 
         # Prepare the Ansible run
