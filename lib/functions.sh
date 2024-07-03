@@ -396,7 +396,7 @@ print_version() {
 }
 
 run_ansible (){
-  ansible_collections_path="./.infrastructure/conf/spin/collections"
+  ansible_collections_path=$(pwd)"/.infrastructure/conf/spin/collections"
   
   # Mount the SSH Agent for macOS systems
   if [[ "$(uname -s)" == "Darwin" ]]; then
