@@ -88,7 +88,7 @@ services:
         - "traefik.http.services.my-php-app.loadbalancer.server.port=8080"
         - "traefik.http.services.my-php-app.loadbalancer.server.scheme=http"
         # Health check
-        - "traefik.http.services.my-php-app.loadbalancer.healthcheck.path=/ping"
+        - "traefik.http.services.my-php-app.loadbalancer.healthcheck.path=/healthcheck"
         - "traefik.http.services.my-php-app.loadbalancer.healthcheck.interval=100ms"
         - "traefik.http.services.my-php-app.loadbalancer.healthcheck.timeout=75ms"
         - "traefik.http.services.my-php-app.loadbalancer.healthcheck.scheme=http"
