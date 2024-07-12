@@ -14,25 +14,34 @@ Create and initialize a new project with Spin.
 ---
 label: Usage for "spin new"
 ---
-```bash
-spin new <app-type> <project-name>
+```txt
+spin new <template-name> <project-name>
 ```
 ::
 
-## Live Demo
-Here is a live demo that covers creating a new project from start-to-finish with Laravel.
-::video-embed
----
-src: "https://www.youtube.com/watch?v=I_dq-kRDztI"
----
+::note
+`<template-name>` can either be an "official template" provided by the Spin team, or any GitHub repository in the format of `username/repo`.
 ::
 
 ## Create a new project with Spin installed
 Getting started with a new project is easy with Spin. Simply run the `spin new` command followed by your project name and Spin will create a new project for you with Spin installed.
 
-### Project Types:
-- `laravel`: Create a new project with the latest stable version of Laravel.
-- `nuxt`: Create a new project with the latest stable version of Nuxt.
+## Official Spin Template running Laravel
+We only have one official template right now, but we're working to add more templates. This Laravel template that will get you up and running with the latest stable version of Laravel with the default configurations running SQLite.
+
+#### Repository
+- [serversideup/spin-template-laravel](https://github.com/serversideup/spin-template-laravel)
+
+#### Usage
+
+::code-panel
+---
+label: Usage for "spin new"
+---
+```txt
+spin new laravel
+```
+::
 
 ### Optional - Specify your project name
 By default, Spin will use the framework's default project name and create the project in the current directory of where you're running Spin. If you'd like to specify your own project name, simply add it as the second argument to the `spin new` command.
