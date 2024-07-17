@@ -255,7 +255,12 @@ download_spin_template_repository() {
   case "$template" in
     laravel)
       template_type=official
-      TEMPLATE_REPOSITORY="serversideup/spin-template-laravel"
+      TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-basic"
+      ;;
+    laravel-pro)
+      template_type=official
+      TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-pro"
+      branch="${branch:-main}"
       ;;
     nuxt)
       template_type=official
@@ -280,15 +285,16 @@ download_spin_template_repository() {
   temporary_template_src_dir=$(mktemp -d)
   export temporary_template_src_dir
 
-  local download_url="https://github.com/$TEMPLATE_REPOSITORY/archive/refs/heads/$branch.tar.gz"
+  local ssh_url="git@github.com:$TEMPLATE_REPOSITORY.git"
 
   # Third-party repository warning and confirmation
   if [[ "$template_type" != "official" ]]; then
-    if ! curl --head --silent --fail "$download_url" &> /dev/null; then
+    if ! git ls-remote "$ssh_url" &> /dev/null; then
       echo "${BOLD}${RED}🛑 Repository does not exist or you do not have access to it.${RESET}"
+      echo "${BOLD}${YELLOW}Be sure your GitHub account is configured to use your SSH keys.${RESET}"
       echo ""
       echo "${BOLD}${YELLOW}👇Try running this yourself to debug access:${RESET}"
-      echo "curl $download_url"
+      echo "git ls-remote $ssh_url"
       echo ""
     fi
     
@@ -307,10 +313,9 @@ download_spin_template_repository() {
   fi
 
   echo "${BOLD}${YELLOW}🔄 Downloading template...${RESET}"
-  echo "Downloading from $download_url"
+  echo "Cloning from $ssh_url"
   
-  curl -sL "$download_url" | tar -xz -C "$temporary_template_src_dir" --strip-components=1
-
+  git clone -b "$branch" "$ssh_url" "$temporary_template_src_dir"
 }
 
 ensure_lines_in_file() {
