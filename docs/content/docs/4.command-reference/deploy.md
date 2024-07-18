@@ -87,16 +87,28 @@ The following environment variables are available to use in your compose files a
 | --- | --- | --- |
 | `SPIN_IMAGE_NAME`              | `localhost:5080/dockerfile:latest`    | The environment you are deploying to.|
 | `SPIN_MD5_HASH_*` | `abcdef123456`                        | The MD5 Hash value of all configs under `.infrastructure/conf`. For example, `.infrastructure/conf/traefik/dev/traefik.yml`'s MD5 value will be stored in `SPIN_MD5_HASH_TRAEFIK_YML`|
+| `SPIN_DEPLOYMENT_ENVIRONMENT` | `production`                         | The environment you are deploying to.|
 | Anything from your `.env` file | `DB_PASSWORD`                         | Any environment variables you have set in your `.env` file.x|
+
+## Using different `.env` files per environment
+By default, everything runs off the `.env` file. This is great for local development, but it can be a challenge if you want to deploy to multiple environments from the same folder.
+
+To solve this, you can create `.env` files for each environment you want to deploy to. For example, you can create `.env.production` and `.env.staging` files. When you run `spin deploy production`, the `.env.production` file will be used. When you run `spin deploy staging`, the `.env.staging` file will be used.
+
+::note
+This approach is highly reliant on the framework you're using. For example, when you run `spin deploy production`, the `APP_ENV` variable will be set to `production`. [Laravel is intelligent enough](https://laravel.com/docs/11.x/configuration#additional-environment-files) to know to use the `.env.production` file. If you're using a different framework, you might need to adjust your configuration to use this approach.
+::
+
+Be sure to add `.env.*` files to your `.gitignore` file so they are not committed to your repository.
 
 ## What happens when you run `spin deploy`?
 
 Running the `spin deploy` command automates the process of deploying your application to your server. Here's a breakdown of the steps it performs:
 
-### 1. Loading Environment Variables
+### Loads Environment Variables
 If a `.env` file exists in your project directory, the script loads the environment variables defined in it.
 
-### 2. Setting Default Values
+### Sets Default Values
 The script sets default values for various deployment parameters, which can be overridden by environment variables:
 - `SPIN_REGISTRY_PORT`: Port for the local Docker registry (default is 5080).
 - `SPIN_BUILD_PLATFORM`: Platform for building the Docker image (default is "linux/amd64").
@@ -107,26 +119,17 @@ The script sets default values for various deployment parameters, which can be o
 - `SPIN_SSH_USER`: SSH user for connecting to the server (default is "deploy").
 - `SPIN_PROJECT_NAME`: Name of the project (default is "spin").
 
-### 3. Cleaning Up
-The script sets a trap to ensure that the local Docker registry is stopped when the script exits.
-
-### 4. Processing Command-Line Arguments
-You can customize the deployment using the following command-line options:
-- `-u, --user`: Specify the SSH user (default is "deploy").
-- `-c, --compose-file`: Specify custom Docker Compose files.
-- `-p, --port`: Specify the SSH port.
-
-### 5. Validating the Environment
-The script ensures that a deployment environment is specified, defaulting to "production" if none is provided.
-
-### 6. Checking for Dockerfiles
+### Checks for Dockerfiles
 If Dockerfiles are found in the current directory, the script performs the following steps:
 - Starts a local Docker registry if one is not already running.
 - Builds a Docker image using `docker buildx`, tagging it with the appropriate name and platform.
 - Pushes the built Docker image to the local registry.
 
-### 7. Setting Up an SSH Tunnel
+### Sets Up SSH Tunnel
 The script establishes an SSH tunnel to the Docker registry on the target server to facilitate secure communication.
 
-### 8. Deploying the Docker Stack
+### Deploys the Docker Stack
 The script uses Docker Compose to deploy the Docker stack on the target server, utilizing the specified Docker Compose files. It validates the deployment by checking the exit status of the Docker command.
+
+### Cleans Up
+The script cleans up by stopping the local Docker registry and terminating the SSH tunnel.

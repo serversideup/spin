@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# Load environment variables from .env file so they are available to the script
 if [[ -f ".env" ]]; then
     eval export $(cat .env)
 fi
@@ -133,6 +134,14 @@ action_deploy() {
     if [[ -z "$deployment_environment" ]]; then
         echo "${BOLD}${BLUE}Defaulting to \"production\" as the environment to deploy to...${RESET}"
         deployment_environment="production"
+    fi
+
+    SPIN_DEPLOYMENT_ENVIRONMENT="$deployment_environment"
+    export SPIN_DEPLOYMENT_ENVIRONMENT
+
+    # Load environment variables for the target environment
+    if [[ -f ".env.$SPIN_DEPLOYMENT_ENVIRONMENT" ]]; then
+        eval export $(cat ".env.$SPIN_DEPLOYMENT_ENVIRONMENT")
     fi
 
     # Check if any Dockerfiles exist
