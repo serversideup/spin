@@ -30,7 +30,7 @@ Getting started with a new project is easy with Spin. Simply run the `spin new` 
 We only have one official template right now, but we're working to add more templates. This Laravel template that will get you up and running with the latest stable version of Laravel with the default configurations running SQLite.
 
 #### Repository
-- [serversideup/spin-template-laravel](https://github.com/serversideup/spin-template-laravel)
+- [serversideup/spin-template-laravel-basic](https://github.com/serversideup/spin-template-laravel-basic)
 
 #### Usage
 
