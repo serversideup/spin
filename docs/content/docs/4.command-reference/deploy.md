@@ -41,7 +41,7 @@ You can also modify the behavior of the `spin deploy` command by setting environ
 | `SPIN_BUILD_TAGS` | `latest` | The tags to use when building the Docker image. |
 | `SPIN_INVENTORY_FILE` | `.spin-inventory.ini` | The inventory file to use for the deployment. |
 | `SPIN_PROJECT_NAME` | `spin` | The name of the project to use for the deployment. |
-| `SPIN_REGISTRY_PORT` | `5000` | The port to use on your local machine for the temporary registry. |
+| `SPIN_REGISTRY_PORT` | `5080` | The port to use on your local machine for the temporary registry. |
 | `SPIN_TRAEFIK_CONFIG_FILE` | `./.infrastructure/conf/traefik/prod/traefik.yml` | The Traefik configuration file to use for the deployment. |
 
 ## Environment Variables Available For Compose Files
@@ -49,5 +49,5 @@ The following environment variables are available to use in your compose files a
 
 | Variable | Example | Description |
 | --- | --- | --- |
-| `SPIN_IMAGE_NAME` | `localhost:5000/dockerfile:latest` | The environment you are deploying to. |
+| `SPIN_IMAGE_NAME` | `localhost:5080/dockerfile:latest` | The environment you are deploying to. |
 | `SPIN_TRAEFIK_CONFIG_MD5_HASH` | `abcdef123456` | The MD5 hash value of the contents of the Traefik configuration (if it exists). This is helpful for setting Docker Swarm configurations and that it should only kill the Traefik service if there is an update to the config. |

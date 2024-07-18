@@ -7,7 +7,7 @@ fi
 action_deploy() {
     compose_files=""
     deployment_environment=""
-    registry_port="${SPIN_REGISTRY_PORT:-5000}"
+    registry_port="${SPIN_REGISTRY_PORT:-5080}"
     build_platform="${SPIN_BUILD_PLATFORM:-"linux/amd64"}"
     image_prefix="${SPIN_BUILD_IMAGE_PREFIX:-"localhost:$registry_port"}"
     image_tag="${SPIN_BUILD_TAG:-"latest"}"
@@ -87,7 +87,7 @@ action_deploy() {
         read -r -a vault_args < <(ansible_vault_args)
 
         # Run the Ansible command to get the list of hosts
-        run_ansible --mount-path $(pwd) \
+        run_ansible --mount-path "$(pwd)" \
             ansible \
             "$host_group" \
             --inventory-file "$inventory_file" \
@@ -131,8 +131,8 @@ action_deploy() {
 
     # Validate target environment
     if [[ -z "$deployment_environment" ]]; then
-        echo "${BOLD}${YELLOW}You didn't pass 'spin deploy' an environment to deploy to. Run 'spin help' if you want to see the documentation.${RESET}"
-        exit 1
+        echo "${BOLD}${BLUE}Defaulting to \"production\" as the environment to deploy to...${RESET}"
+        deployment_environment="production"
     fi
 
     # Check if any Dockerfiles exist
