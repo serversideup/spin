@@ -141,6 +141,7 @@ action_deploy() {
 
     # Load environment variables for the target environment
     if [[ -f ".env.$SPIN_DEPLOYMENT_ENVIRONMENT" ]]; then
+        echo "${BOLD}${BLUE}Loading environment variables from .env.$SPIN_DEPLOYMENT_ENVIRONMENT...${RESET}"
         eval export $(cat ".env.$SPIN_DEPLOYMENT_ENVIRONMENT")
     fi
 
