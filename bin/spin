@@ -120,6 +120,10 @@ if [ $# -gt 0 ]; then
       source "$SPIN_HOME/lib/actions/prune.sh"
       action_prune "$@"
     ;;
+    ps)
+      source "$SPIN_HOME/lib/actions/ps.sh"
+      action_ps
+    ;;
     pull)
       source "$SPIN_HOME/lib/actions/pull.sh"
       action_pull "$@"
