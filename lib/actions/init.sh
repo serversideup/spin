@@ -19,6 +19,7 @@ action_init() {
         export SPIN_ACTION
     fi
 
+    # Check if the template has an init script and execute it
     if [ -f "$temporary_template_src_dir/install.sh" ]; then
         shift # Fix to remove repository arguments
         source "$temporary_template_src_dir/install.sh" "${framework_args[@]}"
@@ -52,6 +53,11 @@ action_init() {
     get_file_from_github_release --repo "serversideup/ansible-collection-spin" --release-type "stable" --src ".spin-inventory.example.ini" --dest "$absolute_project_directory/.spin-inventory.ini"
     get_file_from_github_release --repo "serversideup/ansible-collection-spin" --release-type "stable" --src ".spin.example.yml" --dest "$absolute_project_directory/.spin.yml"
     prompt_to_encrypt_files --path "$absolute_project_directory" --file ".spin.yml" --file ".spin-inventory.ini"
+
+    # Check if the template has a post-install script and execute it
+    if [ -f "$temporary_template_src_dir/post-install.sh" ]; then
+        source "$temporary_template_src_dir/post-install.sh"
+    fi
 
     echo "${BOLD}${GREEN}🚀 Your project is now ready for \"spin up\"!${RESET}"
 
