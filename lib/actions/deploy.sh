@@ -80,22 +80,30 @@ action_deploy() {
         fi
     }
 
-    get_hosts_from_ansible() {
-        local vault_args=()
+    get_ansible_hosts() {
         local host_group="$1"
+        local output
+        local exit_code
 
-        # Read the vault arguments into an array
-        read -r -a vault_args < <(ansible_vault_args)
-
-        # Run the Ansible command to get the list of hosts
-        run_ansible --mount-path "$(pwd)" \
+        # Run the Ansible command to get the list of hosts and capture both output and exit code
+        output=$(run_ansible --mount-path "$(pwd)" \
             ansible \
             "$host_group" \
             --inventory-file "$inventory_file" \
             --module-name ping \
             --list-hosts \
-            "${vault_args[@]}" |
-            awk 'NR>1 {gsub(/\r/,""); print $1}'
+            $(ansible_vault_args) 2>&1)
+        exit_code=$?
+
+        # Check for errors or no hosts
+        if echo "$output" | grep -q "No hosts matched, nothing to do" || [ $exit_code -ne 0 ]; then
+            echo "Error: Failed to retrieve hosts for group '$host_group'." >&2
+            echo "Ansible output: $output" >&2
+            return 1
+        fi
+
+        # Process and return the output if successful
+        echo "$output" | awk 'NR>1 {gsub(/\r/,""); print $1}'
     }
 
     trap cleanup_registry EXIT
@@ -188,7 +196,13 @@ action_deploy() {
         ssh_port="$(get_ansible_variable "ssh_port")"
     fi
     swarm_manager_group="${SPIN_SWARM_MANAGER_GROUP:-"${deployment_environment}_manager_servers"}"
-    docker_swarm_manager=$(get_hosts_from_ansible "$swarm_manager_group" | head -n 1)
+    docker_swarm_manager=$(get_ansible_hosts "$swarm_manager_group" | head -n 1)
+
+    if [ $? -ne 0 ] || [ -z "$docker_swarm_manager" ]; then
+        echo "${BOLD}${RED}Error: Failed to get a valid swarm manager host for group '$swarm_manager_group'.${RESET}" >&2
+        echo "${BOLD}${RED}Please check if the environment '$deployment_environment' exists in '$(basename "$inventory_file")'.${RESET}" >&2
+        exit 1
+    fi
 
     # Create SSH tunnel to Docker registry
     if ! ssh -f -n -N -R "${registry_port}:localhost:${registry_port}" -p "${ssh_port}" "${ssh_user}@${docker_swarm_manager}" -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3; then
