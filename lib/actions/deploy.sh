@@ -40,6 +40,25 @@ action_deploy() {
         set +a
     fi
 
+    # Set SPIN_APP_DOMAIN if APP_URL is set
+    if [[ -n "$APP_URL" ]]; then
+        # Remove http:// or https:// from the beginning of the URL
+        SPIN_APP_DOMAIN=$(echo "$APP_URL" | sed -E 's#^https?://##')
+        # Remove any path, query parameters, or port after the domain
+        SPIN_APP_DOMAIN=$(echo "$SPIN_APP_DOMAIN" | awk -F[/:] '{print $1}')
+        if [[ -n "$SPIN_APP_DOMAIN" ]]; then
+            export SPIN_APP_DOMAIN
+            echo "${BOLD}${BLUE}SPIN_APP_DOMAIN set to: $SPIN_APP_DOMAIN${RESET}"
+        else
+            echo "${BOLD}${YELLOW}Warning: Could not extract domain from APP_URL. SPIN_APP_DOMAIN will not be set.${RESET}"
+        fi
+    else
+        echo "${BOLD}${YELLOW}Warning: APP_URL not set. SPIN_APP_DOMAIN will not be available.${RESET}"
+    fi
+
+    env
+    trap read DEBUG
+
     # Set default values (can be overridden by .env file or command line arguments)
     registry_port="${SPIN_REGISTRY_PORT:-5080}"
     build_platform="${SPIN_BUILD_PLATFORM:-"linux/amd64"}"

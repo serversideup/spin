@@ -88,7 +88,8 @@ The following environment variables are available to use in your compose files a
 | `SPIN_IMAGE_*`              | `localhost:5080/dockerfile:latest` or `localhost:5080/dockerfile.php:latest`    | Automatically generated for each Dockerfile in the project directory. The variable name is derived from the Dockerfile name (e.g., `SPIN_IMAGE_DOCKERFILE` derives from `Dockerfile`, `SPIN_IMAGE_DOCKERFILE_PHP` derives from `Dockerfile.php`), and the value contains the full image name including registry, image name (based on Dockerfile name), and tag. These variables can be used in Docker Compose files to reference the built images. |
 | `SPIN_MD5_HASH_*` | `abcdef123456`                        | The MD5 Hash value of all configs under `.infrastructure/conf`. For example, `.infrastructure/conf/traefik/dev/traefik.yml`'s MD5 value will be stored in `SPIN_MD5_HASH_TRAEFIK_YML`|
 | `SPIN_DEPLOYMENT_ENVIRONMENT` | `production`                         | The environment you are deploying to.|
-| Anything from your `.env` file | `DB_PASSWORD`                         | Any environment variables you have set in your `.env` file.x|
+| Anything from your `.env` file | `DB_PASSWORD`                         | Any environment variables you have set in your `.env` file.|
+| `SPIN_APP_DOMAIN` | `example.com`                         | This variable is created from `APP_URL` and extracts the app domain. This is helpful for frameworks like Laravel when we load up the `.env` file.|
 
 ## Using different `.env` files per environment
 By default, everything runs off the `.env` file. This is great for local development, but it can be a challenge if you want to deploy to multiple environments from the same folder.
