@@ -164,7 +164,7 @@ action_deploy() {
             var_name="SPIN_IMAGE_${var_name}"
 
             # Set and export image name
-            image_name="${image_prefix}/${dockerfile,,}:${image_tag}"
+            image_name="${image_prefix}/$(echo "$dockerfile" | tr '[:upper:]' '[:lower:]'):${image_tag}"
             export "$var_name=$image_name"
 
             # Build the Docker image
