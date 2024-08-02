@@ -132,7 +132,6 @@ action_deploy() {
 
         local docker_host="ssh://$ssh_user@$manager_host:$ssh_port"
         echo "${BOLD}${BLUE}📤 Deploying Docker stack with compose files: ${compose_files[*]} on $manager_host...${RESET}"
-        set -x
         docker -H "$docker_host" stack deploy "${compose_args[@]}" --detach=false --prune "$spin_project_name-$deployment_environment"
         if [ $? -eq 0 ]; then
             echo "${BOLD}${BLUE}🎉 Successfully deployed Docker stack on $manager_host.${RESET}"
