@@ -36,9 +36,9 @@ action_init() {
     absolute_project_directory=$(realpath "$SPIN_PROJECT_DIRECTORY")
 
     create_config_folders "$absolute_project_directory/.infrastructure/volume_data"
-    ensure_lines_in_file "$absolute_project_directory/.gitignore" \
+    line_in_file --file "$absolute_project_directory/.gitignore" \
         ".vault-password"
-    ensure_lines_in_file "$absolute_project_directory/.dockerignore" \
+    line_in_file --file "$absolute_project_directory/.dockerignore" \
         ".vault-password" \
         ".github" \
         ".git" \

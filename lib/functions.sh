@@ -318,23 +318,6 @@ download_spin_template_repository() {
   git clone -b "$branch" "$ssh_url" "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR"
 }
 
-ensure_lines_in_file() {
-    local file="$1"
-    shift
-    local lines=("$@")
-
-    # Check if the file exists, if not create it
-    [ -e "$file" ] || touch "$file"
-
-    # Ensure the file ends with a newline
-    [ -z "$(tail -c1 "$file")" ] || echo "" >> "$file"
-
-    for line in "${lines[@]}"; do
-        grep -qxF -- "$line" "$file" || echo "$line" >> "$file"
-    done
-}
-
-
 export_compose_file_variable(){
   # Convert the SPIN_ENV variable into an array of environments
   IFS=',' read -ra ENV_ARRAY <<< "$SPIN_ENV"
@@ -571,6 +554,84 @@ last_pull_timestamp() {
     grep "^$escaped_project_dir " "$cache_file" | awk '{print $2}'
 }
 
+line_in_file() {
+    local mode="ensure"
+    local files=()
+    local args=()
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --file)
+                files+=("$2")
+                shift 2
+                ;;
+            --replace)
+                mode="replace"
+                shift
+                ;;
+            --after)
+                mode="after"
+                shift
+                ;;
+            *)
+                args+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    # Validate arguments
+    if [[ ${#files[@]} -eq 0 ]]; then
+        echo "Error: No file specified" >&2
+        return 1
+    fi
+
+    if [[ ${#args[@]} -eq 0 ]]; then
+        echo "Error: No content specified" >&2
+        return 1
+    fi
+
+    # Process each file
+    for file in "${files[@]}"; do
+        # Create file if it doesn't exist
+        [[ -f "$file" ]] || touch "$file"
+
+        case $mode in
+            ensure)
+                for line in "${args[@]}"; do
+                    if ! grep -qF -- "$line" "$file"; then
+                        echo "$line" >> "$file"
+                    fi
+                done
+                ;;
+            replace)
+                if [[ ${#args[@]} -ne 2 ]]; then
+                    echo "Error: Replace mode requires exactly two arguments (search and replace)" >&2
+                    return 1
+                fi
+                if grep -qF -- "${args[0]}" "$file"; then
+                    sed_inplace "s/^.*${args[0]}.*$/${args[1]}/" "$file"
+                else
+                    echo "${args[1]}" >> "$file"
+                fi
+                ;;
+            after)
+                if [[ ${#args[@]} -ne 2 ]]; then
+                    echo "Error: After mode requires exactly two arguments (search and insert)" >&2
+                    return 1
+                fi
+                if grep -qF -- "${args[0]}" "$file"; then
+                    sed_inplace "/^.*${args[0]}.*$/a\\${args[1]}" "$file"
+                else
+                    echo "${args[0]}" >> "$file"
+                    echo "${args[1]}" >> "$file"
+                fi
+                ;;
+        esac
+    done
+}
+
 needs_update() {
   # Checks if an update is needed based on the last update time and a given interval.
   # Parameters:
@@ -731,6 +792,14 @@ run_ansible() {
 save_current_time_to_cache_file() {
   mkdir -p "$SPIN_CACHE_DIR"
   date +"%s" > "$SPIN_CACHE_DIR/$1"
+}
+
+sed_inplace() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
 }
 
 send_to_upgrade_script () {
