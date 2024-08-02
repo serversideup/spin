@@ -21,6 +21,14 @@ check_connection_with_cmd() {
     esac
 }
 
+check_galaxy_pull(){
+  if [[ $(needs_update ".spin-ansible-collection-pull" "1") || "$force_ansible_upgrade" == true ]]; then
+    run_ansible --allow-ssh --mount-path $(pwd) \
+      ansible-galaxy collection install "${SPIN_ANSIBLE_COLLECTION_NAME}" --upgrade
+    save_current_time_to_cache_file ".spin-ansible-collection-pull"
+  fi
+}
+
 check_for_upgrade() {
   if needs_update ".spin-last-update" "$AUTO_UPDATE_INTERVAL_IN_DAYS"  || [ "$1" == "--force" ]; then
     if [ "$1" != "--force" ]; then
@@ -574,6 +582,10 @@ line_in_file() {
                 mode="after"
                 shift
                 ;;
+            --exact)
+                mode="exact"
+                shift
+                ;;
             *)
                 args+=("$1")
                 shift
@@ -622,10 +634,27 @@ line_in_file() {
                     return 1
                 fi
                 if grep -qF -- "${args[0]}" "$file"; then
-                    sed_inplace "/^.*${args[0]}.*$/a\\${args[1]}" "$file"
+                    if [[ "$OSTYPE" == "darwin"* ]]; then
+                        sed_inplace "/^.*${args[0]}.*$/a\\
+${args[1]}" "$file"
+                    else
+                        sed_inplace "/^.*${args[0]}.*$/a\\${args[1]}" "$file"
+                    fi
                 else
                     echo "${args[0]}" >> "$file"
                     echo "${args[1]}" >> "$file"
+                fi
+                ;;
+            exact)
+                if [[ ${#args[@]} -ne 2 ]]; then
+                    echo "Error: Exact mode requires exactly two arguments (search and replace)" >&2
+                    return 1
+                fi
+                if grep -qF -- "${args[0]}" "$file"; then
+                    sed_inplace "s/${args[0]}/${args[1]}/g" "$file"
+                else
+                    echo "Error: Exact text '${args[0]}' not found in $file" >&2
+                    return 1
                 fi
                 ;;
         esac
@@ -685,12 +714,71 @@ print_version() {
   fi
 }
 
-check_galaxy_pull(){
-  if [[ $(needs_update ".spin-ansible-collection-pull" "1") || "$force_ansible_upgrade" == true ]]; then
-    run_ansible --allow-ssh --mount-path $(pwd) \
-      ansible-galaxy collection install "${SPIN_ANSIBLE_COLLECTION_NAME}" --upgrade
-    save_current_time_to_cache_file ".spin-ansible-collection-pull"
-  fi
+prompt_and_update_file() {
+    local files=()
+    local search_default=""
+    local title=""
+    local details=""
+    local success_message=""
+    local prompt="Enter your response"
+
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --file)
+                files+=("$2")
+                shift 2
+                ;;
+            --search-default)
+                search_default="$2"
+                shift 2
+                ;;
+            --title)
+                title="$2"
+                shift 2
+                ;;
+            --details)
+                details="$2"
+                shift 2
+                ;;
+            --prompt)
+                prompt="$2"
+                shift 2
+                ;;
+            --success-msg)
+                success_message="$2"
+                shift 2
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                return 1
+                ;;
+        esac
+    done
+
+    # Validate required parameters
+    if [[ ${#files[@]} -eq 0 || -z "$title" || -z "$search_default" ]]; then
+        echo "Error: Missing required parameters" >&2
+        return 1
+    fi
+
+    echo "${BOLD}${YELLOW}$title${RESET}"
+    if [[ -n "$details" ]]; then
+        echo "${BLUE}$details${RESET}"
+    fi
+    read -p "$prompt [$search_default]: " user_response
+
+    # Use the user's input if provided, otherwise use the search_default
+    value_to_use="${user_response:-$search_default}"
+
+    # Update each specified file
+    for file in "${files[@]}"; do
+        line_in_file --exact --file "$file" "$search_default" "$value_to_use"
+    done
+
+    if [[ -n "$success_message" ]]; then
+        echo "✅ $success_message"
+    fi
 }
 
 prompt_to_encrypt_files(){
