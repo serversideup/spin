@@ -56,9 +56,6 @@ action_deploy() {
         echo "${BOLD}${YELLOW}Warning: APP_URL not set. SPIN_APP_DOMAIN will not be available.${RESET}"
     fi
 
-    env
-    trap read DEBUG
-
     # Set default values (can be overridden by .env file or command line arguments)
     registry_port="${SPIN_REGISTRY_PORT:-5080}"
     build_platform="${SPIN_BUILD_PLATFORM:-"linux/amd64"}"
