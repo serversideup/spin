@@ -1,23 +1,83 @@
 #!/usr/bin/env bash
-
-# Load environment variables from .env file so they are available to the script
-if [[ -f ".env" ]]; then
-    eval export $(cat .env)
-fi
-
 action_deploy() {
-    compose_files=""
+    compose_files=()
     deployment_environment=""
+    spin_registry_name="spin-registry"
+    env_file=""
+
+    # First, find the deployment environment
+    for arg in "$@"; do
+        if [[ "$arg" != -* && -z "$deployment_environment" ]]; then
+            deployment_environment="$arg"
+            break
+        fi
+    done
+
+    # If no environment specified, default to production
+    if [[ -z "$deployment_environment" ]]; then
+        echo "${BOLD}${BLUE}Defaulting to \"production\" as the deployment environment...${RESET}"
+        deployment_environment="production"
+    fi
+
+    SPIN_DEPLOYMENT_ENVIRONMENT="$deployment_environment"
+    export SPIN_DEPLOYMENT_ENVIRONMENT
+
+    # Attempt to load environment variables
+    if [[ -f ".env.$SPIN_DEPLOYMENT_ENVIRONMENT" ]]; then
+        env_file=".env.$SPIN_DEPLOYMENT_ENVIRONMENT"
+        echo "${BOLD}${BLUE}Loading environment variables from $env_file...${RESET}"
+    elif [[ -f ".env" ]]; then
+        env_file=".env"
+        echo "${BOLD}${YELLOW}Warning: .env.$SPIN_DEPLOYMENT_ENVIRONMENT not found. Falling back to $env_file...${RESET}"
+    else
+        echo "${BOLD}${YELLOW}Warning: Neither .env.$SPIN_DEPLOYMENT_ENVIRONMENT nor .env found. Proceeding with default values...${RESET}"
+    fi
+
+    # Source the env file if it exists
+    if [[ -n "$env_file" ]]; then
+        set -a
+        source "$env_file"
+        set +a
+    fi
+
+    # Set default values (can be overridden by .env file or command line arguments)
     registry_port="${SPIN_REGISTRY_PORT:-5080}"
     build_platform="${SPIN_BUILD_PLATFORM:-"linux/amd64"}"
     image_prefix="${SPIN_BUILD_IMAGE_PREFIX:-"localhost:$registry_port"}"
     image_tag="${SPIN_BUILD_TAG:-"latest"}"
     inventory_file="${SPIN_INVENTORY_FILE:-"/ansible/.spin-inventory.ini"}"
-    ssh_port="${SPIN_SSH_PORT:-''}" # Default to empty string
+    ssh_port="${SPIN_SSH_PORT:-''}"
     ssh_user="${SPIN_SSH_USER:-"deploy"}"
-    spin_registry_name="spin-registry"
     spin_project_name="${SPIN_PROJECT_NAME:-"spin"}"
-    use_default_compose_files=true
+
+    # Process arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+        --user | -u)
+            ssh_user="$2"
+            shift 2
+            ;;
+        --compose-file | -c)
+            if [[ -n "$2" && "$2" != -* ]]; then
+                compose_files+=("$2")
+                shift 2
+            else
+                echo "${BOLD}${RED}❌Error: '-c' option requires a Docker Compose file as argument.${RESET}"
+                exit 1
+            fi
+            ;;
+        --port | -p)
+            ssh_port="$2"
+            shift 2
+            ;;
+        *)
+            if [[ -z "$deployment_environment" ]]; then # capture the first positional argument as environment
+                deployment_environment="$1"
+            fi
+            shift
+            ;;
+        esac
+    done
 
     cleanup_registry() {
         if [ -n "$tunnel_pid" ]; then
@@ -54,24 +114,26 @@ action_deploy() {
     deploy_docker_stack() {
         local manager_host="$1"
         local ssh_port="$2"
-        local compose_args=""
+        local compose_args=()
 
-        if [[ "$use_default_compose_files" = true ]]; then
+        # Set default compose files if none were provided
+        if [[ ${#compose_files[@]} -eq 0 ]]; then
             compose_files=("docker-compose.yml" "docker-compose.prod.yml")
         fi
-        if [[ ${#compose_files[@]} -gt 0 ]]; then
-            for compose_file in "${compose_files[@]}"; do
-                if [[ -n "$compose_file" ]]; then
-                    # Compute MD5 hashes if necessary
-                    generate_md5_hashes "$compose_file"
-                    compose_args+=" --compose-file $compose_file"
-                fi
-            done
-        fi
+
+        # Build the compose arguments
+        for compose_file in "${compose_files[@]}"; do
+            if [[ -n "$compose_file" ]]; then
+                # Compute MD5 hashes if necessary
+                generate_md5_hashes "$compose_file"
+                compose_args+=("--compose-file" "$compose_file")
+            fi
+        done
 
         local docker_host="ssh://$ssh_user@$manager_host:$ssh_port"
         echo "${BOLD}${BLUE}📤 Deploying Docker stack with compose files: ${compose_files[*]} on $manager_host...${RESET}"
-        docker -H "$docker_host" stack deploy $compose_args --detach=false --prune "$spin_project_name-$deployment_environment"
+        set -x
+        docker -H "$docker_host" stack deploy "${compose_args[@]}" --detach=false --prune "$spin_project_name-$deployment_environment"
         if [ $? -eq 0 ]; then
             echo "${BOLD}${BLUE}🎉 Successfully deployed Docker stack on $manager_host.${RESET}"
         else
@@ -108,54 +170,9 @@ action_deploy() {
 
     trap cleanup_registry EXIT
 
-    # Process arguments
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-        --user | -u)
-            ssh_user="$2"
-            shift 2
-            ;;
-        --compose-file | -c)
-            use_default_compose_files=false
-            if [[ -n "$2" && "$2" != -* ]]; then
-                compose_files+=("$2")
-                shift 2
-            else
-                echo "${BOLD}${RED}❌Error: '-c' option requires a Docker Compose file as argument.${RESET}"
-                exit 1
-            fi
-            ;;
-        --port | -p)
-            ssh_port="$2"
-            shift 2
-            ;;
-        *)
-            if [[ -z "$deployment_environment" ]]; then # capture the first positional argument as environment
-                deployment_environment="$1"
-            fi
-            shift
-            ;;
-        esac
-    done
-
-    # Validate target environment
-    if [[ -z "$deployment_environment" ]]; then
-        echo "${BOLD}${BLUE}Defaulting to \"production\" as the environment to deploy to...${RESET}"
-        deployment_environment="production"
-    fi
-
-    SPIN_DEPLOYMENT_ENVIRONMENT="$deployment_environment"
-    export SPIN_DEPLOYMENT_ENVIRONMENT
-
-    # Load environment variables for the target environment
-    if [[ -f ".env.$SPIN_DEPLOYMENT_ENVIRONMENT" ]]; then
-        echo "${BOLD}${BLUE}Loading environment variables from .env.$SPIN_DEPLOYMENT_ENVIRONMENT...${RESET}"
-        eval export $(cat ".env.$SPIN_DEPLOYMENT_ENVIRONMENT")
-    fi
-
     # Check if any Dockerfiles exist
     dockerfiles=$(ls Dockerfile* 2>/dev/null)
-    if [ -n "$dockerfiles" ]; then
+    if [[ -n "$dockerfiles" ]]; then
         # Bring up a local docker registry
         if [ -z "$(docker ps -q -f name=$spin_registry_name)" ]; then
             echo "${BOLD}${BLUE}🚀 Starting local Docker registry...${RESET}"
