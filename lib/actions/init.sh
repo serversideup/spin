@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 action_init() {
-    temporary_template_src_dir=${temporary_template_src_dir:-""}
+    SPIN_TEMPLATE_TEMPORARY_SRC_DIR=${SPIN_TEMPLATE_TEMPORARY_SRC_DIR:-""}
     template_repository=${template_repository:-""}
 
     if [ $# -lt 1 ]; then
@@ -20,9 +20,9 @@ action_init() {
     fi
 
     # Check if the template has an init script and execute it
-    if [ -f "$temporary_template_src_dir/install.sh" ]; then
+    if [ -f "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/install.sh" ]; then
         shift # Fix to remove repository arguments
-        source "$temporary_template_src_dir/install.sh" "${framework_args[@]}"
+        source "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/install.sh" "${framework_args[@]}"
     else
         echo "${BOLD}${RED}🛑 The '$template_repository' template does not contain a 'init.sh' script. Unable to install.${RESET}"
         exit 1
@@ -47,7 +47,7 @@ action_init() {
         "docker-*.yml" \
         ".gitlab-ci.yml"
 
-    copy_template_files "$temporary_template_src_dir/template" "$absolute_project_directory"
+    copy_template_files "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/template" "$absolute_project_directory"
 
     # Download default config and inventory from GitHub
     get_file_from_github_release --repo "serversideup/ansible-collection-spin" --release-type "stable" --src ".spin-inventory.example.ini" --dest "$absolute_project_directory/.spin-inventory.ini"
@@ -55,8 +55,8 @@ action_init() {
     prompt_to_encrypt_files --path "$absolute_project_directory" --file ".spin.yml" --file ".spin-inventory.ini"
 
     # Check if the template has a post-install script and execute it
-    if [ -f "$temporary_template_src_dir/post-install.sh" ]; then
-        source "$temporary_template_src_dir/post-install.sh"
+    if [ -f "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/post-install.sh" ]; then
+        source "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/post-install.sh"
     fi
 
     echo "${BOLD}${GREEN}🚀 Your project is now ready for \"spin up\"!${RESET}"

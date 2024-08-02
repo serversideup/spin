@@ -99,7 +99,7 @@ check_if_compose_files_exist() {
 }
 
 cleanup_temp_repo_location() {
-  rm -rf "$temporary_template_src_dir"
+  rm -rf "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR"
 }
 
 copy_template_files() {
@@ -282,8 +282,8 @@ download_spin_template_repository() {
   fi
   
   trap cleanup_temp_repo_location EXIT
-  temporary_template_src_dir=$(mktemp -d)
-  export temporary_template_src_dir
+  SPIN_TEMPLATE_TEMPORARY_SRC_DIR=$(mktemp -d)
+  export SPIN_TEMPLATE_TEMPORARY_SRC_DIR
 
   local ssh_url="git@github.com:$TEMPLATE_REPOSITORY.git"
 
@@ -315,7 +315,7 @@ download_spin_template_repository() {
   echo "${BOLD}${YELLOW}🔄 Downloading template...${RESET}"
   echo "Cloning from $ssh_url"
   
-  git clone -b "$branch" "$ssh_url" "$temporary_template_src_dir"
+  git clone -b "$branch" "$ssh_url" "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR"
 }
 
 ensure_lines_in_file() {
