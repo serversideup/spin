@@ -146,7 +146,8 @@ action_deploy() {
     fi
 
     # Check if any Dockerfiles exist
-    if [ -n "$(ls Dockerfile* 2>/dev/null)" ]; then
+    dockerfiles=$(ls Dockerfile* 2>/dev/null)
+    if [ -n "$dockerfiles" ]; then
         # Bring up a local docker registry
         if [ -z "$(docker ps -q -f name=$spin_registry_name)" ]; then
             echo "${BOLD}${BLUE}🚀 Starting local Docker registry...${RESET}"
@@ -156,21 +157,26 @@ action_deploy() {
         # Prepare the Ansible run
         check_galaxy_pull
 
-        # Set and export image name
-        image_name="${image_prefix}/dockerfile:${image_tag}"
-        SPIN_IMAGE_NAME="${image_name}"
-        export SPIN_IMAGE_NAME
+        # Build and push each Dockerfile
+        for dockerfile in $dockerfiles; do
+            # Generate variable name based on Dockerfile name
+            var_name=$(echo "$dockerfile" | tr '[:lower:].' '[:upper:]_')
+            var_name="SPIN_IMAGE_${var_name}"
 
-        # Build the Docker image
-        local dockerfile="Dockerfile"
-        echo "${BOLD}${BLUE}🐳 Building Docker image '$image_name' from '$dockerfile'...${RESET}"
-        docker buildx build --push --platform "$build_platform" -t "$image_name" -f "$dockerfile" .
-        if [ $? -eq 0 ]; then
-            echo "${BOLD}${BLUE}📦 Successfully built '$image_name' from '$dockerfile'...${RESET}"
-        else
-            echo "${BOLD}${RED}❌ Failed to build '$image_name' from '$dockerfile'.${RESET}"
-            exit 1
-        fi
+            # Set and export image name
+            image_name="${image_prefix}/${dockerfile,,}:${image_tag}"
+            export "$var_name=$image_name"
+
+            # Build the Docker image
+            echo "${BOLD}${BLUE}🐳 Building Docker image '$image_name' from '$dockerfile'...${RESET}"
+            docker buildx build --push --platform "$build_platform" -t "$image_name" -f "$dockerfile" .
+            if [ $? -eq 0 ]; then
+                echo "${BOLD}${BLUE}📦 Successfully built '$image_name' from '$dockerfile'...${RESET}"
+            else
+                echo "${BOLD}${RED}❌ Failed to build '$image_name' from '$dockerfile'.${RESET}"
+                exit 1
+            fi
+        done
     else
         echo "${BOLD}${BLUE} No Dockerfiles found in this directory, skipping Docker image build"
     fi
