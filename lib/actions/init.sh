@@ -75,6 +75,8 @@ action_init() {
         echo "$SPIN_USER_TODOS" | while IFS= read -r todo; do
             echo "  👉 $todo"
         done
+        echo ""
+        echo "${BOLD}${BLUE}Once you complete the above steps, your project will be ready for 'spin up' 🥳"
     fi
 
 }

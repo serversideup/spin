@@ -764,11 +764,11 @@ prompt_and_update_file() {
         return 1
     fi
 
-    echo "${BOLD}${YELLOW}$title${RESET}"
+    echo "${BOLD}${BLUE}$title${RESET}"
     if [[ -n "$details" ]]; then
-        echo "${BLUE}$details${RESET}"
+        echo "$details"
     fi
-    read -p "$prompt [$search_default]: " user_response
+    read -p "${BOLD}${YELLOW}$prompt [$search_default]:${RESET} " user_response
 
     # Use the user's input if provided, otherwise use the search_default
     value_to_use="${user_response:-$search_default}"
