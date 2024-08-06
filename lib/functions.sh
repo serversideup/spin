@@ -623,7 +623,9 @@ line_in_file() {
                     return 1
                 fi
                 if grep -qF -- "${args[0]}" "$file"; then
-                    sed_inplace "s/^.*${args[0]}.*$/${args[1]}/" "$file"
+                    # Escape forward slashes in the replacement string
+                    local escaped_replace=$(echo "${args[1]}" | sed 's/\//\\\//g')
+                    sed_inplace "s/^.*${args[0]}.*$/${escaped_replace}/" "$file"
                 else
                     echo "${args[1]}" >> "$file"
                 fi
