@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 action_init() {
     SPIN_TEMPLATE_TEMPORARY_SRC_DIR=${SPIN_TEMPLATE_TEMPORARY_SRC_DIR:-""}
+    SPIN_USER_TODOS=${SPIN_USER_TODOS:-""}
     template_repository=${template_repository:-""}
+
+    export SPIN_USER_TODOS
 
     if [ $# -lt 1 ]; then
         echo "${BOLD}${YELLOW}🤔 You didn't pass 'spin init' any templates that you want to initialize with. Run 'spin help' if you want to see the documentation.${RESET}"
@@ -60,8 +63,18 @@ action_init() {
         source "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/post-install.sh"
     fi
 
-    echo "${BOLD}${GREEN}🚀 Your project is now ready for \"spin up\"!${RESET}"
-
-    echo "${BOLD}${YELLOW}👉 Learn how to use your template at https://github.com/$TEMPLATE_REPOSITORY"
+    if [ -z "$SPIN_USER_TODOS" ]; then
+        echo "${BOLD}${GREEN}🚀 Your project is now ready for \"spin up\"!${RESET}"
+        echo "${BOLD}${YELLOW}👉 Learn how to use your template at https://github.com/$TEMPLATE_REPOSITORY"
+    else
+        echo "${BOLD}${GREEN}🚀 Installation complete!${RESET}"
+        echo "${BOLD}${BLUE} Some packages can't be installed automatically."
+        echo "${BOLD}${BLUE} Please follow the instructions below to complete the installation."
+        echo ""
+        echo "${BOLD}${YELLOW}⚠️ FURTHER ACTION IS REQUIRED:"
+        echo "$SPIN_USER_TODOS" | while IFS= read -r todo; do
+            echo "  👉 $todo"
+        done
+    fi
 
 }
