@@ -93,7 +93,7 @@
 
                 <span class="my-2 font-inter text-lg font-bold text-slate-50">GitHub Action Support</span>
 
-                <span class="font-inter text-base text-slate-300 font-normal">Spin provides templates to automate the delivery of your application through CI/CD.</span>
+                <span class="font-inter text-base text-slate-300 font-normal">We provide open source GitHub Actions to help you ship automatically and easily.</span>
             </div>
 
             <div class="flex flex-col bg-[#151A1F] p-4 rounded-lg">
