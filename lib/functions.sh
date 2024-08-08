@@ -628,12 +628,9 @@ line_in_file() {
                     return 1
                 fi
                 if grep -qF -- "${args[0]}" "$file"; then
-                    if [[ "$OSTYPE" == "darwin"* ]]; then
-                        sed_inplace "/^.*${args[0]}.*$/a\\
+                    # Use sed to insert the new line after the matching line
+                    sed_inplace -e "/${args[0]}/!b" -e "a\\
 ${args[1]}" "$file"
-                    else
-                        sed_inplace "/^.*${args[0]}.*$/a\\${args[1]}" "$file"
-                    fi
                 else
                     echo "${args[0]}" >> "$file"
                     echo "${args[1]}" >> "$file"
