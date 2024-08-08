@@ -768,7 +768,7 @@ prompt_and_update_file() {
 
     # Update each specified file
     for file in "${files[@]}"; do
-        line_in_file --exact --file "$file" "$search_default" "$value_to_use"
+        line_in_file --action exact --file "$file" "$search_default" "$value_to_use"
     done
 
     if [[ -n "$success_message" ]]; then
