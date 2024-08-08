@@ -218,7 +218,8 @@ action_deploy() {
             fi
         done
     else
-        echo "${BOLD}${BLUE} No Dockerfiles found in this directory, skipping Docker image build"
+        echo "${BOLD}${RED} No Dockerfiles found in the directory. Be sure you're running this command from the project root.${RESET}"
+        exit 1
     fi
 
     # Prepare SSH connection
