@@ -563,7 +563,7 @@ last_pull_timestamp() {
 }
 
 line_in_file() {
-    local mode="ensure"
+    local action="ensure"
     local files=()
     local args=()
 
@@ -574,17 +574,9 @@ line_in_file() {
                 files+=("$2")
                 shift 2
                 ;;
-            --replace)
-                mode="replace"
-                shift
-                ;;
-            --after)
-                mode="after"
-                shift
-                ;;
-            --exact)
-                mode="exact"
-                shift
+            --action)
+                action="$2"
+                shift 2
                 ;;
             *)
                 args+=("$1")
@@ -609,7 +601,7 @@ line_in_file() {
         # Create file if it doesn't exist
         [[ -f "$file" ]] || touch "$file"
 
-        case $mode in
+        case $action in
             ensure)
                 for line in "${args[@]}"; do
                     if ! grep -qF -- "$line" "$file"; then
@@ -619,7 +611,7 @@ line_in_file() {
                 ;;
             replace)
                 if [[ ${#args[@]} -ne 2 ]]; then
-                    echo "Error: Replace mode requires exactly two arguments (search and replace)" >&2
+                    echo "Error: Replace action requires exactly two arguments (search and replace)" >&2
                     return 1
                 fi
                 if grep -qF -- "${args[0]}" "$file"; then
@@ -632,7 +624,7 @@ line_in_file() {
                 ;;
             after)
                 if [[ ${#args[@]} -ne 2 ]]; then
-                    echo "Error: After mode requires exactly two arguments (search and insert)" >&2
+                    echo "Error: After action requires exactly two arguments (search and insert)" >&2
                     return 1
                 fi
                 if grep -qF -- "${args[0]}" "$file"; then
@@ -649,7 +641,7 @@ ${args[1]}" "$file"
                 ;;
             exact)
                 if [[ ${#args[@]} -ne 2 ]]; then
-                    echo "Error: Exact mode requires exactly two arguments (search and replace)" >&2
+                    echo "Error: Exact action requires exactly two arguments (search and replace)" >&2
                     return 1
                 fi
                 if grep -qF -- "${args[0]}" "$file"; then
@@ -658,6 +650,10 @@ ${args[1]}" "$file"
                     echo "Error: Exact text '${args[0]}' not found in $file" >&2
                     return 1
                 fi
+                ;;
+            *)
+                echo "Error: Invalid action '$action'" >&2
+                return 1
                 ;;
         esac
     done
