@@ -71,11 +71,6 @@ Spin serves as a collection of open source technologies, put together in one sim
 - [serversideup/php](https://serversideup.net/open-source/docker-php/) - PHP Docker images highly optimized to work with Laravel + Spin.
 - [serversideup/docker-ssh](https://github.com/serversideup/docker-ssh) - A lightweight docker image that runs SSH. This is a fantastic method on using a secure SSH tunnel into your database cluster.
 
-## Demo
-Here's a demo showing a process of creating a new Laravel project and deploying it to production:
-
-<a href="https://www.youtube.com/watch?v=I_dq-kRDztI"><img src="https://serversideup.net/wp-content/uploads/2024/01/Youtube-player.png" /></a>
-
 ## Resources
 - **[Website](https://serversideup.net/open-source/spin/)** overview of the product.
 - **[Docs](https://serversideup.net/open-source/spin/docs)** for a deep-dive on how to use the product.

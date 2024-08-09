@@ -8,16 +8,16 @@ SPIN_ENV=${SPIN_ENV:-dev}
 export COMPOSE_CMD=${COMPOSE_CMD:-"docker compose"}
 
 # Export the current user and group ID
-export SPIN_USER_ID=$(id -u)
-export SPIN_GROUP_ID=$(id -g)
+SPIN_USER_ID=${SPIN_USER_ID:-$(id -u)}
+SPIN_GROUP_ID=${SPIN_GROUP_ID:-$(id -g)}
+export SPIN_USER_ID
+export SPIN_GROUP_ID
 
 # Default Images
-SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:beta-cli"}
+SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:cli"}
 SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
-SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"willhallonline/ansible:2.15-alpine-3.18"}
-
-# Default Service Names
-SPIN_DEFAULT_PHP_SERVICE_NAME=${SPIN_DEFAULT_PHP_RUN_SERVICE:-"php"}
+SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"willhallonline/ansible:2.16-alpine-3.19"}
+SPIN_ANSIBLE_COLLECTION_NAME=${SPIN_ANSIBLE_COLLECTION_NAME:-"serversideup.spin"}
 
 # Script Configuration
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -32,7 +32,7 @@ source "$SPIN_HOME/lib/functions.sh"
 setup_color
 
 # Check for upgrades, except for development installs and on `spin update`
-if [[ $(detect_installation_type) != "development" && "$1" != "update" ]]; then
+if [[ "$(installation_type)" != "development" && "$1" != "update" ]]; then
   check_for_upgrade
 fi
 
@@ -44,7 +44,7 @@ case "$1" in
   "" | base64 | debug | help | update | version | --version | -v)
     : # Silent output for the user, but we're skipping the compose check too.
     ;;
-  init | kill | new | prune | provision | vault)
+  init | kill | mkpasswd | new | prune | provision | vault)
     check_if_docker_is_running
   ;;
   *)
@@ -70,6 +70,10 @@ if [ $# -gt 0 ]; then
     debug)
       source "$SPIN_HOME/lib/actions/debug.sh"
       action_debug "$@"
+    ;;
+    deploy)
+      source "$SPIN_HOME/lib/actions/deploy.sh"
+      action_deploy "$@"
     ;;
     down)
       source "$SPIN_HOME/lib/actions/down.sh"
@@ -99,8 +103,13 @@ if [ $# -gt 0 ]; then
       source "$SPIN_HOME/lib/actions/logs.sh"
       action_logs "$@"
     ;;
+    mkpasswd)
+      source "$SPIN_HOME/lib/actions/mkpasswd.sh"
+      action_mkpasswd "$@"
+    ;;
     new)
       source "$SPIN_HOME/lib/actions/new.sh"
+      source "$SPIN_HOME/lib/actions/init.sh"
       action_new "$@"
     ;;
     provision)
@@ -110,6 +119,10 @@ if [ $# -gt 0 ]; then
     prune)
       source "$SPIN_HOME/lib/actions/prune.sh"
       action_prune "$@"
+    ;;
+    ps)
+      source "$SPIN_HOME/lib/actions/ps.sh"
+      action_ps
     ;;
     pull)
       source "$SPIN_HOME/lib/actions/pull.sh"
@@ -140,7 +153,7 @@ if [ $# -gt 0 ]; then
       action_version
     ;;
     *)
-      echo "\"$1\" is not a valid command. Below are the commands available."
+      echo "\"$spin_action\" is not a valid command. Below are the commands available."
       source "$SPIN_HOME/lib/actions/help.sh"
       action_help
     ;;

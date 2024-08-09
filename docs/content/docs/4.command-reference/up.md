@@ -20,6 +20,9 @@ spin up [OPTIONS]
 ::
 
 ## Example
+::note
+If you're using a Docker Compose configuration with `build:` directives, you might want to get in the habit of using `spin up --build` to ensure you're always running the latest version of your containers.
+::
 ::code-panel
 ---
 label: Force a build of containers on initialization

@@ -6,7 +6,7 @@ layout: docs
 ---
 # spin provision
 ::lead-p
-Provision and set up your inventory of servers. This command requires you have 
+Provision and set up your inventory of servers. Before running this command, make sure you have everything configured and a supported server online with any host of your choice.
 ::
 
 ## Usage
@@ -15,14 +15,14 @@ Provision and set up your inventory of servers. This command requires you have
 label: Usage for "spin provision"
 ---
 ```bash
-spin provision [-u|--user <user>]
+spin provision [ -p|--port <port> -u|--user <user> -U|--upgrade ]
 ```
 ::
 
 ## Checklist before executing this command
 Before you execute this command, you should have the following completed:
 
-- You should have a running **Ubuntu 22.04 server** with properly configured SSH access and DNS
+- You should have a running **Ubuntu 22.04+ server** with properly configured SSH access and DNS
 - The `.spin.yml` file should be configured 
 - The `.spin-inventory.ini` file should properly be configured
 
@@ -30,7 +30,9 @@ Before you execute this command, you should have the following completed:
 The following options are available to set when running this command.
 | Option | Short | Default | Description |
 | --- | --- | --- | --- |
-| `--user` | `-u` | `root` | The user to SSH into the server with. |
+| `--port` | `-p` | `22` | The port to SSH into the server with. |
+| `--user` | `-u` | The username of your HOST machine (run `whoami` in a new terminal) | The user to SSH into the server with. |
+| `--upgrade` | `-U` | Update only once per day. | Force upgrade the Ansible Collection on your machine before provisioning. |
 
 ## Learn More
 [Configuring your servers for "spin provision" →](/docs/guide/preparing-your-servers-for-spin)
