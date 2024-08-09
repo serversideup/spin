@@ -11,7 +11,7 @@ Initialize Spin on an existing project. This process will create all the files y
 ::
 
 ::note
-This process will create new files and may modify existing files. It's highly recommended you read through our [Add Spin to an Existing Project](/docs/guide/add-spin-to-an-existing-project) guide before running this command.
+This process will create new files and may modify existing files. It's highly recommended you read through our [Add Spin to an Existing Project](/docs/getting-started/add-spin-to-an-existing-project) guide before running this command.
 ::
 
 ## Usage
