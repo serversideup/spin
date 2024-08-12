@@ -169,7 +169,7 @@ action_deploy() {
             --inventory-file "$inventory_file" \
             --module-name ping \
             --list-hosts \
-            $(ansible_vault_args) 2>&1)
+            $(set_ansible_vault_args) 2>&1)
         exit_code=$?
 
         # Check for errors or no hosts

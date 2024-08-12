@@ -7,7 +7,7 @@ action_vault(){
     }
 
     # Read the vault arguments into an array
-    read -r -a vault_args < <(ansible_vault_args)
+    read -r -a vault_args < <(set_ansible_vault_args)
 
     # Check if ansible-vault is installed locally
     if [[ $(command -v ansible-vault)  ]]; then

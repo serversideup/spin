@@ -35,7 +35,7 @@ action_provision(){
     fi
 
     # Append vault args to additional ansible args
-    IFS=' ' read -r -a vault_args < <(ansible_vault_args)
+    IFS=' ' read -r -a vault_args < <(set_ansible_vault_args)
     additional_ansible_args+=("${vault_args[@]}")
 
     check_galaxy_pull
