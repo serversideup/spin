@@ -5,6 +5,13 @@ action_deploy() {
     spin_registry_name="spin-registry"
     env_file=""
 
+    if is_encrypted_with_ansible_vault ".spin.yml" && \
+    [ ! -f ".vault-password" ]; then
+        echo "${BOLD}${RED}❌Error: .spin.yml is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}"
+        echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}"
+        exit 1
+    fi
+
     # First, find the deployment environment
     for arg in "$@"; do
         if [[ "$arg" != -* && -z "$deployment_environment" ]]; then
