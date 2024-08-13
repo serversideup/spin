@@ -65,7 +65,7 @@ action_init() {
 
     if [ -z "$SPIN_USER_TODOS" ]; then
         echo "${BOLD}${GREEN}🚀 Your project is now ready for \"spin up\"!${RESET}"
-        echo "${BOLD}${YELLOW}👉 Learn how to use your template at https://github.com/$TEMPLATE_REPOSITORY"
+        echo "${BOLD}${YELLOW}👉 Learn how to use your template at https://github.com/$TEMPLATE_REPOSITORY${RESET}"
     else
         echo "${BOLD}${GREEN}🚀 Installation complete!${RESET}"
         echo "${BOLD}${BLUE} Some packages can't be installed automatically."
