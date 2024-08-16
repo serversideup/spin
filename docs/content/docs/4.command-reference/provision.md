@@ -32,7 +32,7 @@ The following options are available to set when running this command.
 | --- | --- | --- | --- |
 | `--port` | `-p` | `22` | The port to SSH into the server with. |
 | `--user` | `-u` | The username of your HOST machine (run `whoami` in a new terminal) | The user to SSH into the server with. |
-| `--upgrade` | `-U` | Update only once per day. | Force upgrade the Ansible Collection on your machine before provisioning. |
+| `--upgrade` | `-U` | Check for Ansible collection updates once per day. | Force upgrade the Ansible Collection on your machine before provisioning. |
 
 ## Learn More
 [Configuring your servers for "spin provision" →](/docs/getting-started/preparing-your-servers-for-spin)
