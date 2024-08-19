@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+add_user_todo_item() {
+    if [ -z "$SPIN_USER_TODOS" ]; then
+        SPIN_USER_TODOS="$1"
+    else
+        SPIN_USER_TODOS="$SPIN_USER_TODOS"$'\n'"$1"
+    fi
+}
+
 check_connection_with_cmd() {
     local cmd="$1"
     local api_url="$2"
