@@ -609,10 +609,11 @@ line_in_file() {
                     echo "Error: Replace action requires exactly two arguments (search and replace)" >&2
                     return 1
                 fi
-                if grep -qF -- "${args[0]}" "$file"; then
+                if grep -q -- "^${args[0]}" "$file"; then
                     # Escape forward slashes in the replacement string
                     local escaped_replace=$(echo "${args[1]}" | sed 's/\//\\\//g')
-                    sed_inplace "s/^.*${args[0]}.*$/${escaped_replace}/" "$file"
+                    # Match lines that start with the search term, followed by anything
+                    sed_inplace "s/^${args[0]}.*$/${escaped_replace}/" "$file"
                 else
                     echo "${args[1]}" >> "$file"
                 fi
