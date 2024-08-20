@@ -70,6 +70,9 @@ export EDITOR="subl -w"
 
 Add this to your `~/.bashrc` or `~/.zshrc` file to make it permanent.
 
+## Saving the file
+When you save the file with, Ansible Vault will automatically re-encrypt the file for you. You don't need to do anything else.
+
 ## Automating Vault Access
 If you're constantly being asked to provide a vault password, you can speed up your workflow by securely saving your password to a `.vault-password` file in your project root.
 
