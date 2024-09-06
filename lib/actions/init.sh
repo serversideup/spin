@@ -25,12 +25,13 @@ action_init() {
     # Check if the template has an init script and execute it
     if [ -f "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/install.sh" ]; then
         shift # Fix to remove repository arguments
+        sed -i 's/\r$//' "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/install.sh" # Fix line endings in case the file has Windows-style line endings
         source "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/install.sh" "${framework_args[@]}"
     else
         echo "${BOLD}${RED}🛑 The '$template_repository' template does not contain a 'init.sh' script. Unable to install.${RESET}"
         exit 1
     fi
-    
+
     if [ -z "$SPIN_PROJECT_DIRECTORY" ]; then
         echo "${BOLD}${RED}🛑 The 'SPIN_PROJECT_DIRECTORY' variable is not set. Unable to initialize.${RESET}"
         exit 1
@@ -61,6 +62,7 @@ action_init() {
 
     # Check if the template has a post-install script and execute it
     if [ -f "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/post-install.sh" ]; then
+        sed -i 's/\r$//' "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/post-install.sh" # Fix line endings in case the file has Windows-style line endings
         source "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/post-install.sh"
     fi
 
