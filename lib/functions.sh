@@ -266,7 +266,7 @@ download_spin_template_repository() {
   # Remaining positional arguments are considered framework arguments
   framework_args=("${args_without_options[@]}")
   export framework_args
-
+  
   # Determine the type of template
   case "$template" in
     laravel)
@@ -301,22 +301,20 @@ download_spin_template_repository() {
   SPIN_TEMPLATE_TEMPORARY_SRC_DIR=$(mktemp -d)
   export SPIN_TEMPLATE_TEMPORARY_SRC_DIR
 
-  local ssh_url="git@github.com:$TEMPLATE_REPOSITORY.git"
+  local api_url="https://api.github.com/repos/$TEMPLATE_REPOSITORY"
 
   # Third-party repository warning and confirmation
   if [[ "$template_type" != "official" ]]; then
-    if ! git ls-remote "$ssh_url" &> /dev/null; then
-      echo "${BOLD}${RED}🛑 Repository does not exist or you do not have access to it.${RESET}"
-      echo "${BOLD}${YELLOW}Be sure your GitHub account is configured to use your SSH keys.${RESET}"
-      echo ""
-      echo "${BOLD}${YELLOW}👇Try running this yourself to debug access:${RESET}"
-      echo "git ls-remote $ssh_url"
-      echo ""
-    fi
-    
     echo "${BOLD}${YELLOW}⚠️ You're downloading content from a third party repository.${RESET}"
 
-    display_repository_metadata "$TEMPLATE_REPOSITORY" "$branch"
+    if ! curl --output /dev/null --silent --head --fail "$api_url"; then
+      echo "${BOLD}${YELLOW}🚨 Metadata file not available for https://github.com/$TEMPLATE_REPOSITORY${RESET}"
+      echo "Please check the repository for more information."
+      echo 
+    else
+      display_repository_metadata "$TEMPLATE_REPOSITORY" "$branch"
+    fi
+
     echo "${BOLD}${BLUE}Make sure you trust the source of the repository before continuing.${RESET}"
     echo "Do you wish to continue? (y/n)"
     read -r -n 1 -p ""
@@ -329,9 +327,53 @@ download_spin_template_repository() {
   fi
 
   echo "${BOLD}${YELLOW}🔄 Downloading template...${RESET}"
-  echo "Cloning from $ssh_url"
   
-  git clone -b "$branch" "$ssh_url" "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR"
+  local https_url="https://github.com/$TEMPLATE_REPOSITORY.git"
+  local ssh_url="git@github.com:$TEMPLATE_REPOSITORY.git"
+
+  # Function to show progress
+  show_progress() {
+    local pid=$1
+    local delay=0.5
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+      local temp=${spinstr#?}
+      printf " [%c]  " "$spinstr"
+      local spinstr=$temp${spinstr%"$temp"}
+      sleep $delay
+      printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+  }
+
+  # Try HTTPS first if the API was accessible
+  if curl --output /dev/null --silent --head --fail "$api_url"; then
+    (
+      git clone -q -b "$branch" "$https_url" "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR"
+    ) &
+
+    show_progress $!
+
+    if [ -d "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/.git" ]; then
+      echo "${BOLD}${GREEN}✅ Template downloaded successfully via HTTPS.${RESET}"
+      return 0
+    fi
+  fi
+
+  # If HTTPS failed or API wasn't accessible, try SSH  
+  (
+    git clone -q -b "$branch" "$ssh_url" "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR"
+  ) &
+
+  show_progress $!
+
+  # Check if SSH clone was successful
+  if [ -d "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/.git" ]; then
+    echo "${BOLD}${GREEN}✅ Template downloaded successfully via SSH.${RESET}"
+  else
+    echo "${BOLD}${RED}❌ Failed to download template. Please check your internet connection and GitHub access.${RESET}"
+    exit 1
+  fi
 }
 
 export_compose_file_variable(){
