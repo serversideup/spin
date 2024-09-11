@@ -12,7 +12,7 @@
             <Meta name="msapplication-TileColor" content="#da532c"/>
             <Meta name="theme-color" content="#ffffff"/>
         </Head>
-        
+
         <GlobalServerSideUp
             :fixed="true"/>
 
