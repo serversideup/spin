@@ -238,13 +238,19 @@ download_spin_template_repository() {
   local branch=''
   local template_type=''
   local args_without_options=()
+  local local_src=false
   framework_args=()
-
+ 
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
       -b|--branch)
         branch="$2"
         shift 2  # Shift both the flag and its value
+        ;;
+      -l|--local)
+        SPIN_TEMPLATE_TEMPORARY_SRC_DIR="$2"
+        local_src=true
+        shift 2
         ;;
       -*)
         echo "${BOLD}${RED}🛑 Unsupported flag ${1}.${RESET}"
@@ -257,123 +263,137 @@ download_spin_template_repository() {
     esac
   done
 
-  # First positional argument should be the template or template repository
-  if [ ! -z "${args_without_options[0]}" ]; then
-    template="${args_without_options[0]}"
-    unset "args_without_options[0]"
+  if [[ $local_src == false ]]; then
+    # First positional argument should be the template or template repository
+    if [ ! -z "${args_without_options[0]}" ]; then
+      template="${args_without_options[0]}"
+      unset "args_without_options[0]"
+    fi
+  
+    # Determine the type of template
+    case "$template" in
+      laravel)
+        template_type=official
+        TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-basic"
+        ;;
+      laravel-pro)
+        template_type=official
+        TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-pro"
+        branch="${branch:-main}"
+        ;;
+      nuxt)
+        template_type=official
+        TEMPLATE_REPOSITORY="serversideup/spin-template-nuxt"
+        ;;
+      *)
+        template_type=external
+        TEMPLATE_REPOSITORY="$template"
+        ;;
+    esac
+    
+    export TEMPLATE_REPOSITORY
   fi
 
   # Remaining positional arguments are considered framework arguments
   framework_args=("${args_without_options[@]}")
   export framework_args
-  
-  # Determine the type of template
-  case "$template" in
-    laravel)
-      template_type=official
-      TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-basic"
-      ;;
-    laravel-pro)
-      template_type=official
-      TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-pro"
-      branch="${branch:-main}"
-      ;;
-    nuxt)
-      template_type=official
-      TEMPLATE_REPOSITORY="serversideup/spin-template-nuxt"
-      ;;
-    *)
-      template_type=external
-      TEMPLATE_REPOSITORY="$template"
-      ;;
-  esac
 
-  export TEMPLATE_REPOSITORY
-
-  # Determine the branch to download
-  [ -z "$branch" ] && branch=$(github_default_branch "$TEMPLATE_REPOSITORY")
-  if [[ -z "$branch" ]]; then
-    echo "${BOLD}${RED}Error: Couldn't determine the default branch for $TEMPLATE_REPOSITORY.${RESET}"
-    exit 1
-  fi
-  
-  trap cleanup_temp_repo_location EXIT
-  SPIN_TEMPLATE_TEMPORARY_SRC_DIR=$(mktemp -d)
-  export SPIN_TEMPLATE_TEMPORARY_SRC_DIR
-
-  local api_url="https://api.github.com/repos/$TEMPLATE_REPOSITORY"
-
-  # Third-party repository warning and confirmation
-  if [[ "$template_type" != "official" ]]; then
-    echo "${BOLD}${YELLOW}⚠️ You're downloading content from a third party repository.${RESET}"
-
-    if ! curl --output /dev/null --silent --head --fail "$api_url"; then
-      echo "${BOLD}${YELLOW}🚨 Metadata file not available for https://github.com/$TEMPLATE_REPOSITORY${RESET}"
-      echo "Please check the repository for more information."
-      echo 
-    else
-      display_repository_metadata "$TEMPLATE_REPOSITORY" "$branch"
+  # If the user didn't specify a local template, we'll download the template from Github
+  if [ -z "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR" ]; then
+    # Determine the branch to download
+    if [ -z "$branch" ]; then
+      # If branch is not specified, get the default branch
+      branch=$(github_default_branch "$TEMPLATE_REPOSITORY")
+      
+      # Check if we successfully got the default branch
+      if [[ -z "$branch" ]]; then
+        echo "${BOLD}${RED}Error: Couldn't determine the default branch for $TEMPLATE_REPOSITORY.${RESET}"
+        exit 1
+      fi
     fi
 
-    echo "${BOLD}${BLUE}Make sure you trust the source of the repository before continuing.${RESET}"
-    echo "Do you wish to continue? (y/n)"
-    read -r -n 1 -p ""
-    echo  # Move to a new line
+    # At this point, $branch is guaranteed to have a value
 
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-      echo -e "${BOLD}${RED}❌ Operation cancelled.${RESET}"
-      exit 1
+    trap cleanup_temp_repo_location EXIT
+    SPIN_TEMPLATE_TEMPORARY_SRC_DIR=$(mktemp -d)
+
+    local api_url="https://api.github.com/repos/$TEMPLATE_REPOSITORY"
+
+    # Third-party repository warning and confirmation
+    if [[ "$template_type" != "official" ]]; then
+      echo "${BOLD}${YELLOW}⚠️ You're downloading content from a third party repository.${RESET}"
+
+      if ! curl --output /dev/null --silent --head --fail "$api_url"; then
+        echo "${BOLD}${YELLOW}🚨 Metadata file not available for https://github.com/$TEMPLATE_REPOSITORY${RESET}"
+        echo "Please check the repository for more information."
+        echo 
+      else
+        display_repository_metadata "$TEMPLATE_REPOSITORY" "$branch"
+      fi
+
+      echo "${BOLD}${BLUE}Make sure you trust the source of the repository before continuing.${RESET}"
+      echo "Do you wish to continue? (y/n)"
+      read -r -n 1 -p ""
+      echo  # Move to a new line
+
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${BOLD}${RED}❌ Operation cancelled.${RESET}"
+        exit 1
+      fi
     fi
-  fi
 
-  echo "${BOLD}${YELLOW}🔄 Downloading template...${RESET}"
-  
-  local https_url="https://github.com/$TEMPLATE_REPOSITORY.git"
-  local ssh_url="git@github.com:$TEMPLATE_REPOSITORY.git"
+    echo "${BOLD}${YELLOW}🔄 Downloading template...${RESET}"
+    
+    local https_url="https://github.com/$TEMPLATE_REPOSITORY.git"
+    local ssh_url="git@github.com:$TEMPLATE_REPOSITORY.git"
 
-  # Function to show progress
-  show_progress() {
-    local pid=$1
-    local delay=0.5
-    local spinstr='|/-\'
-    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-      local temp=${spinstr#?}
-      printf " [%c]  " "$spinstr"
-      local spinstr=$temp${spinstr%"$temp"}
-      sleep $delay
-      printf "\b\b\b\b\b\b"
-    done
-    printf "    \b\b\b\b"
-  }
+    # Function to show progress
+    show_progress() {
+      local pid=$1
+      local delay=0.5
+      local spinstr='|/-\'
+      while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+      done
+      printf "    \b\b\b\b"
+    }
 
-  # Try HTTPS first if the API was accessible
-  if curl --output /dev/null --silent --head --fail "$api_url"; then
+    # Try HTTPS first if the API was accessible
+    if curl --output /dev/null --silent --head --fail "$api_url"; then
+      (
+        git clone -q -b "$branch" "$https_url" "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR"
+      ) &
+
+      show_progress $!
+
+      if [ -d "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/.git" ]; then
+        echo "${BOLD}${GREEN}✅ Template downloaded successfully via HTTPS.${RESET}"
+        return 0
+      fi
+    fi
+
+    # If HTTPS failed or API wasn't accessible, try SSH  
     (
-      git clone -q -b "$branch" "$https_url" "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR"
+      git clone -q -b "$branch" "$ssh_url" "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR"
     ) &
 
     show_progress $!
 
+    # Check if SSH clone was successful
     if [ -d "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/.git" ]; then
-      echo "${BOLD}${GREEN}✅ Template downloaded successfully via HTTPS.${RESET}"
-      return 0
+      echo "${BOLD}${GREEN}✅ Template downloaded successfully via SSH.${RESET}"
+    else
+      echo "${BOLD}${RED}❌ Failed to download template. Please check your internet connection and GitHub access.${RESET}"
+      exit 1
     fi
   fi
 
-  # If HTTPS failed or API wasn't accessible, try SSH  
-  (
-    git clone -q -b "$branch" "$ssh_url" "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR"
-  ) &
-
-  show_progress $!
-
-  # Check if SSH clone was successful
-  if [ -d "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/.git" ]; then
-    echo "${BOLD}${GREEN}✅ Template downloaded successfully via SSH.${RESET}"
-  else
-    echo "${BOLD}${RED}❌ Failed to download template. Please check your internet connection and GitHub access.${RESET}"
-    exit 1
-  fi
+  # Export so other functions can use it
+  export SPIN_TEMPLATE_TEMPORARY_SRC_DIR
 }
 
 export_compose_file_variable(){

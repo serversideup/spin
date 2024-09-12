@@ -20,11 +20,11 @@ action_init() {
         SPIN_ACTION="init"
         export SPIN_ACTION
     fi
-
     # Check if the template has an init script and execute it
     if [ -f "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/install.sh" ]; then
-        shift # Fix to remove repository arguments
-        source "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/install.sh" "${framework_args[@]}"
+        # Use source with the arguments passed individually
+        set -- "${framework_args[@]}"
+        source "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/install.sh" "$@"
     else
         echo "${BOLD}${RED}🛑 The '$template_repository' template does not contain a 'init.sh' script. Unable to install.${RESET}"
         exit 1
