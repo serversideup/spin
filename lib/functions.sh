@@ -751,18 +751,19 @@ needs_update() {
 }
 
 print_version() {
-
   # Use the local Git repo to show our version
   printf "${BOLD}${YELLOW}Spin Version:${RESET} \n"
-  printf "$(git -C $SPIN_HOME describe --tags) "
 
   if [[ "$(installation_type)" == "user" ]]; then
+    printf "$(git -C $SPIN_HOME describe --tags) "
     source $SPIN_CONFIG_FILE_LOCATION
     printf "[$TRACK] "
     printf "(User Installed)\n"
   elif [[ "$(installation_type)" == "project" ]]; then
     printf "(Project Installed)\n"
+    printf "Check local package.lock or composer.lock for version details\n"
   else
+    printf "$(git -C $SPIN_HOME describe --tags) "
     printf "(Development)\n"
   fi
 }
