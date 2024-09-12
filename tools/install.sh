@@ -240,6 +240,10 @@ umask g-w,o-w
   # Add the remote repository
   git remote add -f origin "$REMOTE" > /dev/null 2>&1
 
+  # Set explicit endings
+  git config core.eol lf
+  git config core.autocrlf false
+
   # Enable sparse checkout and configure it
   git config core.sparseCheckout true > /dev/null 2>&1
   echo "/*" > .git/info/sparse-checkout

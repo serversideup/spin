@@ -191,10 +191,10 @@ perform_upgrade() {
     git -C $SPIN_HOME fetch --all --tags > /dev/null
 
     # Set git-config values known to fix git errors
-    # Line endings (#4069)
+    # Line endings
     git -C $SPIN_HOME config core.eol lf
     git -C $SPIN_HOME config core.autocrlf false
-    # zeroPaddedFilemode fsck errors (#4963)
+    # zeroPaddedFilemode fsck errors
     git -C $SPIN_HOME config fsck.zeroPaddedFilemode ignore
     git -C $SPIN_HOME config fetch.fsck.zeroPaddedFilemode ignore
     git -C $SPIN_HOME config receive.fsck.zeroPaddedFilemode ignore
