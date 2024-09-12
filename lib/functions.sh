@@ -141,25 +141,6 @@ copy_template_files() {
   done < <(find "$src_dir" -type f -print)
 }
 
-create_config_folders() {
-    local content="*\n!.gitignore"
-
-        if [ $# -eq 0 ]; then
-        echo "No arguments provided. Usage: create_git_ignore path1 [path2 ...]"
-        return 1
-    fi
-
-    for path in "$@"; do
-        local dir="$path"
-        local filepath="${dir}/.gitignore"
-
-        mkdir -p "$dir"
-        echo -e "$content" > "$filepath"
-    done
-
-    echo "Configuration folders are created."
-}
-
 current_time_minus() {
   # Accepts parameters: The first passed argument should be the number of days to subtract
   # This will return a value of (current epoch time - number of days)
