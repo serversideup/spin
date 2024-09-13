@@ -249,6 +249,9 @@ download_spin_template_repository() {
     if [ ! -z "${args_without_options[0]}" ]; then
       template="${args_without_options[0]}"
       unset "args_without_options[0]"
+    else
+      echo "${BOLD}${RED}Error: No template specified for remote repository.${RESET}"
+      exit 1
     fi
   
     # Determine the type of template
@@ -279,10 +282,15 @@ download_spin_template_repository() {
   framework_args=("${args_without_options[@]}")
   export framework_args
 
-  # If the user didn't specify a local template, we'll download the template from Github
-  if [ -z "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR" ]; then
-    # Determine the branch to download
-    if [ -z "$branch" ]; then
+  # If the user specified a local template, we don't need to download anything
+  if [[ "$template_type" == "local" ]]; then
+    echo "${BOLD}${GREEN}✅ Using local template: $SPIN_TEMPLATE_TEMPORARY_SRC_DIR${RESET}"
+    return 0
+  fi
+
+  if [[ $local_src == false ]]; then
+    # Get the default branch if not specified
+    if [[ -z "$branch" ]]; then
       # If branch is not specified, get the default branch
       branch=$(github_default_branch "$TEMPLATE_REPOSITORY")
       
@@ -293,11 +301,9 @@ download_spin_template_repository() {
       fi
     fi
 
-    # At this point, $branch is guaranteed to have a value
-
+    # Create a temporary directory for the template
     trap cleanup_temp_repo_location EXIT
     SPIN_TEMPLATE_TEMPORARY_SRC_DIR=$(mktemp -d)
-
     local api_url="https://api.github.com/repos/$TEMPLATE_REPOSITORY"
 
     # Third-party repository warning and confirmation
