@@ -220,6 +220,7 @@ download_spin_template_repository() {
   local template_type=''
   local args_without_options=()
   local local_src=false
+  SPIN_INSTALL_DEPENDENCIES=${SPIN_INSTALL_DEPENDENCIES:-true}
   framework_args=()
  
   while [[ "$#" -gt 0 ]]; do
@@ -233,6 +234,10 @@ download_spin_template_repository() {
         local_src=true
         shift 2
         ;;
+      -s|--skip-dependency-install)
+        SPIN_INSTALL_DEPENDENCIES=false
+        shift
+        ;;
       -*)
         echo "${BOLD}${RED}🛑 Unsupported flag ${1}.${RESET}"
         exit 1
@@ -243,6 +248,8 @@ download_spin_template_repository() {
         ;;
     esac
   done
+
+  export SPIN_INSTALL_DEPENDENCIES
 
   if [[ $local_src == false ]]; then
     # First positional argument should be the template or template repository

@@ -12,6 +12,7 @@ action_init() {
         echo "Use a GitHub repo: spin init username/repo"
         exit 1
     fi
+
     download_spin_template_repository "$@"
 
     # Set the SPIN_ACTION to "init" if
