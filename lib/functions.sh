@@ -642,16 +642,13 @@ line_in_file() {
         return 1
     fi
 
-    if [[ ${#args[@]} -eq 0 ]]; then
+    if [[ ${#args[@]} -eq 0 && "$action" != "search" ]]; then
         echo "Error: No content specified" >&2
         return 1
     fi
 
     # Process each file
     for file in "${files[@]}"; do
-        # Create file if it doesn't exist
-        [[ -f "$file" ]] || touch "$file"
-
         case $action in
             ensure)
                 for line in "${args[@]}"; do
@@ -698,6 +695,13 @@ ${args[1]}" "$file"
                 else
                     echo "Error: Exact text '${args[0]}' not found in $file" >&2
                     return 1
+                fi
+                ;;
+            search)
+                if grep -qF -- "${args[0]}" "$file"; then
+                    return 0  # True, content found
+                else
+                    return 1  # False, content not found
                 fi
                 ;;
             *)
