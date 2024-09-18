@@ -704,6 +704,18 @@ ${args[1]}" "$file"
                     return 1  # False, content not found
                 fi
                 ;;
+            delete)
+                if [[ ${#args[@]} -ne 1 ]]; then
+                    echo "Error: Delete action requires exactly one argument (text to delete)" >&2
+                    return 1
+                fi
+                if grep -qF -- "${args[0]}" "$file"; then
+                    # Use sed to delete lines containing the specified text
+                    sed_inplace "/${args[0]}/d" "$file"
+                else
+                    echo "Warning: Text '${args[0]}' not found in $file" >&2
+                fi
+                ;;
             *)
                 echo "Error: Invalid action '$action'" >&2
                 return 1
