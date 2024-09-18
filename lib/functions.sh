@@ -880,29 +880,33 @@ prompt_to_encrypt_files(){
     done
 
     if [ ${#files_to_encrypt[@]} -ne 0 ]; then
-        echo "${BOLD}${YELLOW}⚠️ Your Spin configurations are not encrypted. We HIGHLY recommend encrypting it. Would you like to encrypt it now?${RESET}"
-        echo -n "Enter \"y\" or \"n\": "
-        read -r -n 1 encrypt_response
-        echo # move to a new line
+        while true; do
+            echo "${BOLD}${YELLOW}⚠️ Your Spin configurations are not encrypted. We HIGHLY recommend encrypting it. Would you like to encrypt it now?${RESET}"
+            echo -n "Enter \"y\" or \"n\": "
+            read -r -n 1 encrypt_response
+            echo # move to a new line
 
-        if [[ $encrypt_response =~ ^[Yy]$ ]]; then
-            echo "${BOLD}${BLUE}⚡️ Running Ansible Vault to encrypt Spin configurations...${RESET}"
-            echo "${BOLD}${YELLOW}⚠️ NOTE: This password will be required anytime someone needs to change these files.${RESET}"
-            echo "${BOLD}${YELLOW}We recommend using a RANDOM PASSWORD.${RESET}"
+            if [[ $encrypt_response =~ ^[Yy]$ ]]; then
+                echo "${BOLD}${BLUE}⚡️ Running Ansible Vault to encrypt Spin configurations...${RESET}"
+                echo "${BOLD}${YELLOW}⚠️ NOTE: This password will be required anytime someone needs to change these files.${RESET}"
+                echo "${BOLD}${YELLOW}We recommend using a RANDOM PASSWORD.${RESET}"
 
-            # Encrypt with Ansible Vault
-            run_ansible --mount-path "$absolute_path" ansible-vault encrypt "${files_to_encrypt[@]}"
+                # Encrypt with Ansible Vault
+                run_ansible --mount-path "$absolute_path" ansible-vault encrypt "${files_to_encrypt[@]}"
 
-            # Ensure the files are owned by the current user
-            run_ansible --mount-path "$absolute_path" chown "${SPIN_USER_ID}:${SPIN_GROUP_ID}" "${files_to_encrypt[@]}"
+                # Ensure the files are owned by the current user
+                run_ansible --mount-path "$absolute_path" chown "${SPIN_USER_ID}:${SPIN_GROUP_ID}" "${files_to_encrypt[@]}"
 
-            echo "ℹ️ You can save this password in a \".vault-password\" file in the root of your project to avoid this prompt."
-        elif [[ $encrypt_response =~ ^[Nn]$ ]]; then
-            echo "${BOLD}${BLUE}👋 Ok, we won't encrypt these files.${RESET} You can always encrypt it later by running \"spin vault encrypt\"."
-        else
-            echo "${BOLD}${RED}❌ Invalid response. Please respond with \"y\" or \"n\".${RESET} Run \"spin init\" to try again."
-            exit 1
-        fi
+                echo "ℹ️ You can save this password in a \".vault-password\" file in the root of your project to avoid this prompt."
+                break
+            elif [[ $encrypt_response =~ ^[Nn]$ ]]; then
+                echo "${BOLD}${BLUE}👋 Ok, we won't encrypt these files.${RESET} You can always encrypt it later by running \"spin vault encrypt\"."
+                break
+            else
+                echo "${BOLD}${RED}❌ Invalid response. Please respond with \"y\" or \"n\".${RESET}"
+                # The loop will continue, prompting the user again
+            fi
+        done
     fi
 }
 
