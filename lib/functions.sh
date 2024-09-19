@@ -668,7 +668,10 @@ line_in_file() {
                     # Match lines that start with the search term, followed by anything
                     sed_inplace "s/^${args[0]}.*$/${escaped_replace}/" "$file"
                 else
-                    echo "${args[1]}" >> "$file"
+                    # Check if the exact replacement line already exists
+                    if ! grep -qF -- "${args[1]}" "$file"; then
+                        echo "${args[1]}" >> "$file"
+                    fi
                 fi
                 ;;
             after)
