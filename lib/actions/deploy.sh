@@ -114,6 +114,15 @@ action_deploy() {
         docker stop "$spin_registry_name" >/dev/null 2>&1
     }
 
+    cleanup_ssh_tunnel() {
+        if [ -n "$tunnel_pid" ]; then
+            # Check if the process is still running
+            if ps -p "$tunnel_pid" > /dev/null; then
+                kill "$tunnel_pid"
+            fi
+        fi
+    }
+
     generate_md5_hashes() {
         # Check if the configs key exists
         if grep -q 'configs:' "$compose_file"; then
@@ -190,8 +199,6 @@ action_deploy() {
         echo "$output" | awk 'NR>1 {gsub(/\r/,""); print $1}'
     }
 
-    trap cleanup_registry EXIT
-
     # Check if any Dockerfiles exist
     dockerfiles=$(ls Dockerfile* 2>/dev/null)
     if [[ -n "$dockerfiles" ]]; then
@@ -199,6 +206,7 @@ action_deploy() {
         if [ -z "$(docker ps -q -f name=$spin_registry_name)" ]; then
             echo "${BOLD}${BLUE}🚀 Starting local Docker registry...${RESET}"
             docker run --rm -d -p "$registry_port:5000" -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name $spin_registry_name registry:2
+            trap cleanup_registry EXIT # Cleanup the registry when the script exits
         fi
 
         # Prepare the Ansible run
@@ -230,24 +238,42 @@ action_deploy() {
     fi
 
     # Prepare SSH connection
-    echo "${BOLD}${BLUE} Setting up SSH tunnel to Docker registry...${RESET}"
+    echo "${BOLD}${BLUE}⚡️ Setting up SSH tunnel to Docker registry...${RESET}"
 
     if [[ -n "$ssh_port" ]]; then
         ssh_port="$(get_ansible_variable "ssh_port")"
+        echo "   ℹ️ Using SSH port: $ssh_port"
+    else
+        echo "   ℹ️ Using default SSH port"
     fi
+
     swarm_manager_group="${SPIN_SWARM_MANAGER_GROUP:-"${deployment_environment}_manager_servers"}"
+    echo "${BOLD}${BLUE}🔍 Looking for swarm manager in group: $swarm_manager_group${RESET}"
+
     docker_swarm_manager=$(get_ansible_hosts "$swarm_manager_group" | head -n 1)
 
     if [ $? -ne 0 ] || [ -z "$docker_swarm_manager" ]; then
-        echo "${BOLD}${RED}Error: Failed to get a valid swarm manager host for group '$swarm_manager_group'.${RESET}" >&2
+        echo "${BOLD}${RED}❌ Error: Failed to get a valid swarm manager host for group '$swarm_manager_group'.${RESET}" >&2
         echo "${BOLD}${RED}Please check if the environment '$deployment_environment' exists in '$(basename "$inventory_file")'.${RESET}" >&2
         exit 1
+    else
+        echo "${BOLD}${GREEN}✅ Found swarm manager: $docker_swarm_manager${RESET}"
     fi
 
     # Create SSH tunnel to Docker registry
-    if ! ssh -f -n -N -R "${registry_port}:localhost:${registry_port}" -p "${ssh_port}" "${ssh_user}@${docker_swarm_manager}" -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3; then
-        echo "${BOLD}${RED}Failed to create SSH tunnel. Exiting...${RESET}"
-        echo "${BOLD}${YELLOW}Troubleshoot your connection by running:${RESET}"
+    echo "${BOLD}${BLUE}🚇 Creating SSH tunnel to Docker registry...${RESET}"
+    if ssh -f -n -N -R "${registry_port}:localhost:${registry_port}" -p "${ssh_port}" "${ssh_user}@${docker_swarm_manager}" -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3; then
+        echo "${BOLD}${GREEN}✅ SSH tunnel created successfully${RESET}"
+        echo "${BOLD}${BLUE}ℹ️ Tunneldetails:${RESET}"
+        echo "   🔗 Local port: ${registry_port}"
+        echo "   🖥️  Remote host: ${docker_swarm_manager}"
+        echo "   🔌 Remote port: ${registry_port}"
+        echo "   👤 SSH user: ${ssh_user}"
+        echo "   🔢 SSH port: ${ssh_port}"
+        echo "${BOLD}${BLUE}🔄 The tunnel will forward connections from the remote port ${registry_port} to localhost:${registry_port}${RESET}"
+    else
+        echo "${BOLD}${RED}❌ Failed to create SSH tunnel. Exiting...${RESET}"
+        echo "${BOLD}${YELLOW}🔧 Troubleshoot your connection by running:${RESET}"
         echo "${BOLD}${YELLOW}ssh -p $ssh_port $ssh_user@$docker_swarm_manager${RESET}"
         exit 1
     fi
@@ -255,7 +281,10 @@ action_deploy() {
     # Get the process ID of the SSH tunnel
     tunnel_pid=$(pgrep -f "ssh -f -n -N -R ${registry_port}:localhost:${registry_port}")
 
-    echo "${BOLD}${BLUE} SSH tunnel to Docker registry established.${RESET}"
+    # Set trap to call cleanup_ssh_tunnel on script exit
+    trap cleanup_ssh_tunnel EXIT
 
+    echo "${BOLD}${BLUE}🚀 Deploying Docker stack...${RESET}"
     deploy_docker_stack "$docker_swarm_manager" "$ssh_port"
+    echo "${BOLD}${GREEN}✅ Docker stack deployment completed.${RESET}"
 }
