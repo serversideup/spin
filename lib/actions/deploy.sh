@@ -103,14 +103,6 @@ action_deploy() {
     done
 
     cleanup_registry() {
-        if [ -n "$tunnel_pid" ]; then
-            # Check if the process is still running
-            if ps -p "$tunnel_pid" >/dev/null; then
-                kill "$tunnel_pid"
-            else
-                echo "Process $tunnel_pid not running."
-            fi
-        fi
         docker stop "$spin_registry_name" >/dev/null 2>&1
     }
 
