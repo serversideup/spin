@@ -264,7 +264,7 @@ action_deploy() {
     echo "${BOLD}${BLUE}🚇 Creating SSH tunnel to Docker registry...${RESET}"
     if ssh -f -n -N -R "${registry_port}:localhost:${registry_port}" -p "${ssh_port}" "${ssh_user}@${docker_swarm_manager}" -o ExitOnForwardFailure=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=3; then
         echo "${BOLD}${GREEN}✅ SSH tunnel created successfully${RESET}"
-        echo "${BOLD}${BLUE}ℹ️ Tunneldetails:${RESET}"
+        echo "${BOLD}${BLUE}ℹ️ Tunnel details:${RESET}"
         echo "   🔗 Local port: ${registry_port}"
         echo "   🖥️  Remote host: ${docker_swarm_manager}"
         echo "   🔌 Remote port: ${registry_port}"
