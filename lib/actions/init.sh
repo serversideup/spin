@@ -49,7 +49,7 @@ action_init() {
         "Dockerfile" \
         "docker-*.yml" \
         ".gitlab-ci.yml" \
-        ".spin*" \
+        ".spin*"
 
     copy_template_files "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/template" "$absolute_project_directory"
 
