@@ -460,7 +460,7 @@ get_ansible_variable(){
 
   # Check for variable presence
   if echo "$raw_ansible_output" | grep -q "${variable_name}"; then
-    trimmed_ansible_output=$(echo "$raw_ansible_output" | awk -F'"' '/"'"$variable_name"'":/ {print $4}')
+    trimmed_ansible_output=$(echo "$raw_ansible_output" | awk -F': ' '/"'"$variable_name"'"/ {print $2}' | tr -d '[:space:]')
     echo "$trimmed_ansible_output"
   else
     echo "Variable ${variable_name} not found" >&2
