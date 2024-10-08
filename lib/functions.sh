@@ -925,10 +925,19 @@ run_ansible() {
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
       --allow-ssh)
-        additional_docker_args+=("-v" "$HOME/.ssh/:/root/.ssh/" "-v" "$ansible_collections_path:/root/.ansible/collections")
-        # Mount the SSH Agent for macOS systems
-        if [[ "$(uname -s)" == "Darwin" ]]; then
-            additional_docker_args+=("-v" "/run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock" "-e" "SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock")
+        additional_docker_args+=("-v" "$HOME/.ssh/:/ssh/" "-v" "$ansible_collections_path:/etc/ansible/collections")
+        # Mount the SSH Agent for macOS and Linux (including WSL2) systems
+        if [ -n "$SSH_AUTH_SOCK" ]; then
+            case "$(uname -s)" in
+                Darwin)
+                    # macOS
+                    additional_docker_args+=("-v" "/run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock" "-e" "SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock")
+                    ;;
+                Linux)
+                    # Linux (including WSL2)
+                    additional_docker_args+=("-v" "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" "-e" "SSH_AUTH_SOCK=$SSH_AUTH_SOCK")
+                    ;;
+            esac
         fi
         shift
         ;;
@@ -943,7 +952,9 @@ run_ansible() {
     esac
   done
   docker run --rm -it \
-    --platform linux/amd64 \
+    -e "PUID=${SPIN_USER_ID}" \
+    -e "PGID=${SPIN_GROUP_ID}" \
+    -e "RUN_AS_USER=$(whoami)" \
     "${additional_docker_args[@]}" \
     "$SPIN_ANSIBLE_IMAGE" \
     "${args_without_options[@]}"
