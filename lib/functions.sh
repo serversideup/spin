@@ -448,15 +448,34 @@ get_ansible_variable(){
   local raw_ansible_output=''
   local trimmed_ansible_output=''
 
-  # Read the vault arguments into an array
-  read -r -a vault_args < <(set_ansible_vault_args)
+  # Check if the file is encrypted and .vault-password is missing
+  if is_encrypted_with_ansible_vault "$file" && [ ! -f ".vault-password" ]; then
+    echo "${BOLD}${RED}❌Error: $file is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}" >&2
+    echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}" >&2
+    exit 1
+  fi
 
+  # Set vault args
+  if [ -f ".vault-password" ]; then
+    vault_args+=("--vault-password-file" ".vault-password")
+  elif is_encrypted_with_ansible_vault "$file"; then
+    echo "${BOLD}${YELLOW}🔐 The file '$file' is encrypted. You will be prompted to enter your vault password.${RESET}" >&2
+    vault_args+=("--ask-vault-pass")
+  fi
+
+  # Run the ansible command
   raw_ansible_output=$(run_ansible --mount-path "$(pwd)" \
     ansible localhost -m debug \
       -a "var=${variable_name}" \
       -e "@${file}" \
-      "${vault_args[@]}"
-  )
+      "${vault_args[@]}" 2>&1)
+
+  # Check for errors in the output
+  if echo "$raw_ansible_output" | grep -q "ERROR!"; then
+    echo "${BOLD}${RED}Error: Failed to retrieve variable. Details:${RESET}" >&2
+    echo "$raw_ansible_output" >&2
+    exit 1
+  fi
 
   # Check for variable presence
   if echo "$raw_ansible_output" | grep -q "${variable_name}"; then
@@ -464,7 +483,7 @@ get_ansible_variable(){
     # Return the cleaned output
     echo "$trimmed_ansible_output"
   else
-    echo "Variable ${variable_name} not found" >&2
+    echo "${BOLD}${YELLOW}Warning: Variable ${variable_name} not found in $file${RESET}" >&2
     exit 1
   fi
 }

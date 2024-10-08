@@ -233,7 +233,10 @@ action_deploy() {
     echo "${BOLD}${BLUE}⚡️ Setting up SSH tunnel to Docker registry...${RESET}"
 
     if [[ -n "$ssh_port" ]]; then
-        ssh_port="$(get_ansible_variable "ssh_port")"
+        if ! ssh_port=$(get_ansible_variable "ssh_port"); then
+            echo "${BOLD}${RED}❌ Error: Failed to get SSH port from Ansible variables.${RESET}" >&2
+            exit 1
+        fi
         echo "   ℹ️ Using SSH port: $ssh_port"
     else
         echo "   ℹ️ Using default SSH port"
