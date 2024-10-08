@@ -30,7 +30,9 @@ action_provision(){
 
     # Set Ansible User
     additional_ansible_args+=("--extra-vars" "ansible_user=$ansible_user")
-    if [[ "$ansible_user" != "root" ]]; then
+    local use_passwordless_sudo="$(get_ansible_variable "use_passwordless_sudo")"
+    use_passwordless_sudo=${use_passwordless_sudo:-"false"}
+    if [ "$ansible_user" != "root" ] && [ "$use_passwordless_sudo" = 'false' ]; then
         additional_ansible_args+=("--ask-become-pass")
     fi
 
