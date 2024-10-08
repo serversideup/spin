@@ -16,7 +16,7 @@ export SPIN_GROUP_ID
 # Default Images
 SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:cli"}
 SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
-SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"willhallonline/ansible:2.16-alpine-3.19"}
+SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"docker.io/serversideup/ansible-core:2.17-alpine"}
 SPIN_ANSIBLE_COLLECTION_NAME=${SPIN_ANSIBLE_COLLECTION_NAME:-"serversideup.spin"}
 
 # Script Configuration
