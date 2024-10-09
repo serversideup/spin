@@ -27,6 +27,13 @@ action_provision(){
                 ;;
         esac
     done
+    
+    echo "Starting Ansible..."
+    # Check if the Docker image exists and pull if it doesn't
+    if ! docker image inspect ${SPIN_ANSIBLE_IMAGE} &> /dev/null; then
+        echo "Docker image ${SPIN_ANSIBLE_IMAGE} not found. Pulling..."
+        docker pull ${SPIN_ANSIBLE_IMAGE}
+    fi
 
     # Set Ansible User
     additional_ansible_args+=("--extra-vars" "ansible_user=$ansible_user")
