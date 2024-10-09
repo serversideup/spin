@@ -479,7 +479,7 @@ get_ansible_variable(){
 
   # Check for variable presence
   if echo "$raw_ansible_output" | grep -q "${variable_name}"; then
-    trimmed_ansible_output=$(echo "$raw_ansible_output" | awk -F': ' '/"'"$variable_name"'"/ {print $2}' | tr -d '[:space:]' | sed 's/\x1b\[[0-9;]*m//g')
+    trimmed_ansible_output=$(echo "$raw_ansible_output" | awk -F': ' '/"'"$variable_name"'"/ {print $2}' | tr -d '[:space:]"' | sed 's/\x1b\[[0-9;]*m//g')
     # Return the cleaned output
     echo "$trimmed_ansible_output"
   else
