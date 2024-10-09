@@ -669,6 +669,11 @@ line_in_file() {
 
     # Process each file
     for file in "${files[@]}"; do
+        # Create the file if it doesn't exist
+        if [[ ! -f "$file" ]]; then
+            touch "$file"
+        fi
+
         case $action in
             ensure)
                 for line in "${args[@]}"; do
