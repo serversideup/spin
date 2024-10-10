@@ -102,15 +102,33 @@ action_deploy() {
         esac
     done
 
-    cleanup_registry() {
-        docker stop "$spin_registry_name" >/dev/null 2>&1
+    stop_registry() {
+        if docker ps -q -f name="$spin_registry_name" | grep -q .; then
+            echo "Stopping local Docker registry..."
+            docker stop "$spin_registry_name" >/dev/null 2>&1
+            echo "Local Docker registry stopped."
+        fi
+    }
+
+    cleanup_on_exit() {
+        local exit_code=$?
+
+        if [ $exit_code -ne 0 ]; then
+            echo "Failure detected. Cleaning up local services..."
+        fi
+        stop_registry
+        cleanup_ssh_tunnel
+
+        exit $exit_code
     }
 
     cleanup_ssh_tunnel() {
         if [ -n "$tunnel_pid" ]; then
             # Check if the process is still running
             if ps -p "$tunnel_pid" > /dev/null; then
+                echo "Stopping local SSH tunnel..."
                 kill "$tunnel_pid"
+                echo "Local SSH tunnel stopped."
             fi
         fi
     }
@@ -191,14 +209,20 @@ action_deploy() {
         echo "$output" | awk 'NR>1 {gsub(/\r/,""); print $1}'
     }
 
+    # Clean up services on exit
+    trap cleanup_on_exit EXIT
+
     # Check if any Dockerfiles exist
     dockerfiles=$(ls Dockerfile* 2>/dev/null)
     if [[ -n "$dockerfiles" ]]; then
         # Bring up a local docker registry
         if [ -z "$(docker ps -q -f name=$spin_registry_name)" ]; then
+            # Ensure the registry cache directory exists with the correct user and group ID
+            mkdir -p "$SPIN_CACHE_DIR/registry"
+
+            # Start the registry with the correct user and group ID
             echo "${BOLD}${BLUE}🚀 Starting local Docker registry...${RESET}"
-            docker run --rm -d -p "$registry_port:5000" -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name $spin_registry_name registry:2
-            trap cleanup_registry EXIT # Cleanup the registry when the script exits
+            docker run --rm -d -p "$registry_port:5000" --user "${SPIN_USER_ID}:${SPIN_GROUP_ID}" -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name $spin_registry_name registry:2
         fi
 
         # Prepare the Ansible run
@@ -276,10 +300,9 @@ action_deploy() {
     # Get the process ID of the SSH tunnel
     tunnel_pid=$(pgrep -f "ssh -f -n -N -R ${registry_port}:localhost:${registry_port}")
 
-    # Set trap to call cleanup_ssh_tunnel on script exit
-    trap cleanup_ssh_tunnel EXIT
-
     echo "${BOLD}${BLUE}🚀 Deploying Docker stack...${RESET}"
     deploy_docker_stack "$docker_swarm_manager" "$ssh_port"
+    stop_registry
+    cleanup_ssh_tunnel
     echo "${BOLD}${GREEN}✅ Docker stack deployment completed.${RESET}"
 }
