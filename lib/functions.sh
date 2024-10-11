@@ -946,10 +946,15 @@ run_ansible() {
   # Create the collections directory if it doesn't exist
   mkdir -p "$ansible_collections_path"
 
+  # Create the known_hosts file if it doesn't exist
+  if [[ ! -f "$HOME/.ssh/known_hosts" ]]; then
+    touch "$HOME/.ssh/known_hosts"
+  fi
+
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
       --allow-ssh)
-        additional_docker_args+=("-v" "$HOME/.ssh/:/ssh/" "-v" "$ansible_collections_path:/etc/ansible/collections")
+        additional_docker_args+=("-v" "$HOME/.ssh/:/ssh/:ro" "-v" "$HOME/.ssh/known_hosts:/ssh/known_hosts:rw" "-v" "$ansible_collections_path:/etc/ansible/collections")
         # Mount the SSH Agent for macOS and Linux (including WSL2) systems
         if [ -n "$SSH_AUTH_SOCK" ]; then
             case "$(uname -s)" in
