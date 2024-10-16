@@ -213,7 +213,10 @@ action_deploy() {
     trap cleanup_on_exit EXIT
 
     # Check if any Dockerfiles exist
+    set +e
     dockerfiles=$(ls Dockerfile* 2>/dev/null)
+    set -e
+    
     if [[ -n "$dockerfiles" ]]; then
         # Bring up a local docker registry
         if [ -z "$(docker ps -q -f name=$spin_registry_name)" ]; then
@@ -249,8 +252,7 @@ action_deploy() {
             fi
         done
     else
-        echo "${BOLD}${RED} No Dockerfiles found in the directory. Be sure you're running this command from the project root.${RESET}"
-        exit 1
+        echo "${BOLD}${BLUE}🐳 No Dockerfiles found in the directory. Skipping building image...${RESET}"
     fi
 
     # Prepare SSH connection
