@@ -445,49 +445,61 @@ get_ansible_variable(){
   local variable_name="$1"
   local file="${2:-".spin.yml"}"
   local vault_args=()
-  local raw_ansible_output=''
-  local trimmed_ansible_output=''
+  local raw_output=''
+  local cleaned_output=''
 
   # Check if the file is encrypted and .vault-password is missing
-  if is_encrypted_with_ansible_vault "$file" && [ ! -f ".vault-password" ]; then
-    echo "${BOLD}${RED}❌Error: $file is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}" >&2
-    echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}" >&2
-    exit 1
-  fi
+  if is_encrypted_with_ansible_vault "$file"; then
+    if [ ! -f ".vault-password" ]; then
+      echo "${BOLD}${RED}❌Error: $file is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}" >&2
+      echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}" >&2
+      return 1
+    fi
 
-  # Set vault args
-  if [ -f ".vault-password" ]; then
     vault_args+=("--vault-password-file" ".vault-password")
-  elif is_encrypted_with_ansible_vault "$file"; then
-    echo "${BOLD}${YELLOW}🔐 The file '$file' is encrypted. You will be prompted to enter your vault password.${RESET}" >&2
-    vault_args+=("--ask-vault-pass")
-  fi
 
-  # Run the ansible command
-  raw_ansible_output=$(run_ansible --mount-path "$(pwd)" \
+    raw_output=$(run_ansible --mount-path "$(pwd)" \
     ansible localhost -m debug \
       -a "var=${variable_name}" \
       -e "@${file}" \
       "${vault_args[@]}" 2>&1)
 
-  # Check for errors in the output
-  if echo "$raw_ansible_output" | grep -q "ERROR!"; then
-    echo "${BOLD}${RED}Error: Failed to retrieve variable. Details:${RESET}" >&2
-    echo "$raw_ansible_output" >&2
-    exit 1
-  fi
+    # Check for errors in the output
+    if echo "$raw_output" | grep -q "ERROR!"; then
+      echo "${BOLD}${RED}Error: Failed to retrieve variable. Details:${RESET}" >&2
+      echo "$raw_output" >&2
+      return 1
+    fi
 
-  # Check for variable presence
-  if echo "$raw_ansible_output" | grep -q "${variable_name}"; then
-    trimmed_ansible_output=$(echo "$raw_ansible_output" | awk -F': ' '/"'"$variable_name"'"/ {print $2}' | tr -d '[:space:]"' | sed 's/\x1b\[[0-9;]*m//g')
-    # Return the cleaned output
-    echo "$trimmed_ansible_output"
+    # Check for variable presence
+    if echo "$raw_output" | grep -q "${variable_name}"; then
+      cleaned_output=$(echo "$raw_output" | awk -F': ' '/"'"$variable_name"'"/ {print $2}' | sed 's/^"\(.*\)"$/\1/' | sed "s/^'\(.*\)'$/\1/" | sed 's/\x1b\[[0-9;]*m//g')
+    else
+      echo "${BOLD}${YELLOW}Warning: Variable ${variable_name} not found in $file${RESET}" >&2
+      return 1
+    fi
   else
-    echo "${BOLD}${YELLOW}Warning: Variable ${variable_name} not found in $file${RESET}" >&2
-    exit 1
+    cleaned_output=$(docker run --rm -i --user "${SPIN_USER_ID}:${SPIN_GROUP_ID}" -v "$(pwd)":/workdir -w /workdir "$SPIN_YQ_IMAGE" eval ".$variable_name" "$file")
   fi
-}
 
+  # Handle different variable types
+  case "$cleaned_output" in
+    true|false)
+      echo "$cleaned_output"
+      ;;
+    [0-9]*)
+      echo "$cleaned_output"
+      ;;
+    *)
+      # For strings, re-add quotes if they were present in the original
+      if [[ "$raw_output" == *\"$cleaned_output\"* || "$raw_output" == *\'$cleaned_output\'* ]]; then
+        echo "\"$cleaned_output\""
+      else
+        echo "$cleaned_output"
+      fi
+      ;;
+  esac
+}
 
 get_github_release() {
   release_type="$1"
@@ -813,6 +825,9 @@ prompt_and_update_file() {
     local details=""
     local success_message=""
     local prompt="Enter your response"
+    local output_only=false
+    local validate=""
+    local clear_screen=false
 
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -841,6 +856,18 @@ prompt_and_update_file() {
                 success_message="$2"
                 shift 2
                 ;;
+            --output-only)
+                output_only=true
+                shift
+                ;;
+            --validate)
+                validate="$2"
+                shift 2
+                ;;
+            --clear-screen)
+                clear_screen=true
+                shift
+                ;;
             *)
                 echo "Unknown option: $1" >&2
                 return 1
@@ -849,27 +876,73 @@ prompt_and_update_file() {
     done
 
     # Validate required parameters
-    if [[ ${#files[@]} -eq 0 || -z "$title" || -z "$search_default" ]]; then
-        echo "Error: Missing required parameters" >&2
+    if [[ -z "$title" ]]; then
+        echo -e "${BOLD}${RED}Error: Missing required parameter 'title' for prompt_and_update_file function.${RESET}" >&2
         return 1
     fi
-
-    echo "${BOLD}${BLUE}$title${RESET}"
-    if [[ -n "$details" ]]; then
-        echo "$details"
+    if [[ "$output_only" == false ]]; then
+        if [[ ${#files[@]} -eq 0 ]]; then
+            echo "Error: No files specified for update. Please use the --file option to specify at least one file or set --output-only to true." >&2
+            return 1
+        fi
+        if [[ -z "$search_default" ]]; then
+            echo -e "${BOLD}${RED}Error: Missing required parameter 'search-default' for file update mode.${RESET}" >&2
+            return 1
+        fi
     fi
-    read -p "${BOLD}${YELLOW}$prompt [$search_default]:${RESET} " user_response
 
-    # Use the user's input if provided, otherwise use the search_default
-    value_to_use="${user_response:-$search_default}"
+    if [[ "$clear_screen" == true ]]; then
+        clear >&2
+    fi
 
-    # Update each specified file
-    for file in "${files[@]}"; do
-        line_in_file --action exact --file "$file" "$search_default" "$value_to_use"
+    echo -e "${BOLD}${BLUE}$title${RESET}" >&2
+    if [[ -n "$details" ]]; then
+        echo -e "$details" >&2
+    fi
+
+    local value_to_use=""
+    while true; do
+        if [[ -n "$search_default" ]]; then
+            read -p "$(echo -e "${BOLD}${YELLOW}$prompt [$search_default]:${RESET} ")" user_response >&2
+            value_to_use="${user_response:-$search_default}"
+        else
+            read -p "$(echo -e "${BOLD}${YELLOW}$prompt:${RESET} ")" value_to_use >&2
+        fi
+
+        # Validate input if --validate flag is set
+        if [[ -n "$validate" ]]; then
+            case "$validate" in
+                email)
+                    if [[ "$value_to_use" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$ ]]; then
+                        break
+                    else
+                        echo -e "${BOLD}${RED}Invalid email address. Please try again.${RESET}" >&2
+                        continue
+                    fi
+                    ;;
+                # Add more validation options here in the future
+                *)
+                    echo "Unknown validation type: $validate" >&2
+                    return 1
+                    ;;
+            esac
+        else
+            break
+        fi
     done
 
-    if [[ -n "$success_message" ]]; then
-        echo "✅ $success_message"
+    if [[ "$output_only" == true ]]; then
+        # Just output the value to stdout
+        echo "$value_to_use"
+    else
+        # Update each specified file
+        for file in "${files[@]}"; do
+            line_in_file --action exact --file "$file" "$search_default" "$value_to_use"
+        done
+
+        if [[ -n "$success_message" ]]; then
+            echo -e "✅ $success_message" >&2
+        fi
     fi
 }
 
@@ -1081,3 +1154,11 @@ update_last_pull_timestamp() {
     # Replace the original .spin-last-pull file with the updated temporary file
     mv "$file.tmp" "$file"
 }
+
+
+
+
+
+
+
+
