@@ -18,7 +18,6 @@ action_provision(){
                 ;;
             --upgrade|-U)
                 force_ansible_upgrade=true
-                export force_ansible_upgrade
                 shift
                 ;;
             *)
@@ -51,7 +50,7 @@ action_provision(){
     IFS=' ' read -r -a vault_args < <(set_ansible_vault_args)
     additional_ansible_args+=("${vault_args[@]}")
 
-    check_galaxy_pull
+    check_galaxy_pull "$force_ansible_upgrade"
     run_ansible --allow-ssh --mount-path "$(pwd)" \
         ansible-playbook serversideup.spin.provision \
         --inventory ./.spin-inventory.ini \

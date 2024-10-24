@@ -4,7 +4,7 @@ action_deploy() {
     deployment_environment=""
     spin_registry_name="spin-registry"
     env_file=""
-
+    force_ansible_upgrade=false
     if is_encrypted_with_ansible_vault ".spin.yml" && \
     [ ! -f ".vault-password" ]; then
         echo "${BOLD}${RED}❌Error: .spin.yml is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}"
@@ -92,6 +92,10 @@ action_deploy() {
         --port | -p)
             ssh_port="$2"
             shift 2
+            ;;
+        --upgrade|-U)
+            force_ansible_upgrade=true
+            shift
             ;;
         *)
             if [[ -z "$deployment_environment" ]]; then # capture the first positional argument as environment
@@ -226,7 +230,7 @@ action_deploy() {
         fi
 
         # Prepare the Ansible run
-        check_galaxy_pull
+        check_galaxy_pull "$force_ansible_upgrade"
 
         # Build and push each Dockerfile
         for dockerfile in $dockerfiles; do
