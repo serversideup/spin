@@ -39,7 +39,7 @@ action_provision(){
     additional_ansible_args+=("--extra-vars" "ansible_user=$ansible_user")
     local use_passwordless_sudo
     if ! use_passwordless_sudo=$(get_ansible_variable "use_passwordless_sudo"); then
-        echo "Failed to get ansible variable. Exiting." >&2
+        echo "${BOLD}${RED}❌ Error: Failed to get ansible variable.${RESET}" >&2
         exit 1
     fi
     use_passwordless_sudo=${use_passwordless_sudo:-"false"}
