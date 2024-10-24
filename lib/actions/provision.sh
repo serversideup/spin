@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 action_provision(){
     additional_ansible_args=()
-    ansible_user="$USER"  # Default to the current user
+    ansible_user="$USER"  # Default to the current user who runs the command
     force_ansible_upgrade=false
     unprocessed_args=()
     
@@ -52,7 +52,7 @@ action_provision(){
     additional_ansible_args+=("${vault_args[@]}")
 
     check_galaxy_pull
-    run_ansible --allow-ssh --mount-path $(pwd) \
+    run_ansible --allow-ssh --mount-path "$(pwd)" \
         ansible-playbook serversideup.spin.provision \
         --inventory ./.spin-inventory.ini \
         --extra-vars @./.spin.yml \
