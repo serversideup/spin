@@ -207,12 +207,12 @@ get_install_version() {
 }
 
 set_configuration_file() {
-  mkdir -p $SPIN_HOME/conf/
-  echo "TRACK=$TRACK" > $SPIN_HOME/conf/spin.conf
+  mkdir -p "$SPIN_HOME/conf/"
+  echo "TRACK=$TRACK" > "$SPIN_HOME/conf/spin.conf"
 }
 
 save_last_update_check_time() {
-  echo $(date +"%s") > $SPIN_CACHE_DIR/.spin-last-update
+  "$(date +"%s")" > "$SPIN_CACHE_DIR/.spin-last-update"
 }
 
 setup_spin() {
@@ -371,4 +371,4 @@ main() {
   print_success
 }
 
-main $@
+main "$@"
