@@ -30,9 +30,9 @@ action_provision(){
     
     echo "Starting Ansible..."
     # Check if the Docker image exists and pull if it doesn't
-    if ! docker image inspect ${SPIN_ANSIBLE_IMAGE} &> /dev/null; then
+    if ! docker image inspect "${SPIN_ANSIBLE_IMAGE}" &> /dev/null; then
         echo "Docker image ${SPIN_ANSIBLE_IMAGE} not found. Pulling..."
-        docker pull ${SPIN_ANSIBLE_IMAGE}
+        docker pull "${SPIN_ANSIBLE_IMAGE}"
     fi
 
     # Set Ansible User
