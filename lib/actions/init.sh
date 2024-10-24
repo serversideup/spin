@@ -39,13 +39,13 @@ action_init() {
     absolute_project_directory=$(realpath "$SPIN_PROJECT_DIRECTORY")
 
     line_in_file --file "$absolute_project_directory/.gitignore" \
-        ".vault-password"
+        ".vault-password" \
+        ".spin.yml"
     line_in_file --file "$absolute_project_directory/.dockerignore" \
         ".vault-password" \
         ".github" \
         ".git" \
         ".infrastructure" \
-        "!.infrastructure/conf/traefik/dev/certificates/ssu-ca.pem" \
         "Dockerfile" \
         "docker-*.yml" \
         ".gitlab-ci.yml" \
