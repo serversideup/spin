@@ -68,7 +68,7 @@ action_deploy() {
     build_platform="${SPIN_BUILD_PLATFORM:-"linux/amd64"}"
     image_prefix="${SPIN_BUILD_IMAGE_PREFIX:-"localhost:$registry_port"}"
     image_tag="${SPIN_BUILD_TAG:-"latest"}"
-    inventory_file="${SPIN_INVENTORY_FILE:-"/ansible/.spin-inventory.ini"}"
+    inventory_file="${SPIN_INVENTORY_FILE:-"/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh"}"
     ssh_port="${SPIN_SSH_PORT:-''}"
     ssh_user="${SPIN_SSH_USER:-"deploy"}"
     spin_project_name="${SPIN_PROJECT_NAME:-"spin"}"
@@ -191,6 +191,7 @@ action_deploy() {
         local host_group="$1"
         local output
         local exit_code
+        local inventory_file="${SPIN_INVENTORY_FILE:-"/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh"}"
 
         # Run the Ansible command to get the list of hosts and capture both output and exit code
         output=$(run_ansible --mount-path "$(pwd)" \

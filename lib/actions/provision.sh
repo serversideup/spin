@@ -4,6 +4,7 @@ action_provision(){
     ansible_user="$USER"  # Default to the current user who runs the command
     force_ansible_upgrade=false
     unprocessed_args=()
+    local inventory_file="${SPIN_INVENTORY_FILE:-"/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh"}"
     
     # Process arguments
     while [[ "$#" -gt 0 ]]; do
@@ -26,7 +27,7 @@ action_provision(){
                 ;;
         esac
     done
-    
+
     echo "Starting Ansible..."
     # Check if the Docker image exists and pull if it doesn't
     if ! docker image inspect "${SPIN_ANSIBLE_IMAGE}" &> /dev/null; then
@@ -53,7 +54,7 @@ action_provision(){
     check_galaxy_pull "$force_ansible_upgrade"
     run_ansible --allow-ssh --mount-path "$(pwd)" \
         ansible-playbook serversideup.spin.provision \
-        --inventory ./.spin-inventory.ini \
+        --inventory "$inventory_file" \
         --extra-vars @./.spin.yml \
         "${additional_ansible_args[@]}" \
         "${unprocessed_args[@]}"

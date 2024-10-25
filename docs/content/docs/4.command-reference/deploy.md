@@ -76,7 +76,7 @@ You can also modify the behavior of the `spin deploy` command by setting environ
 | --- | --- | --- |
 | `SPIN_BUILD_PLATFORM` | `linux/amd64` | The platform to build the Docker image with. |
 | `SPIN_BUILD_TAGS` | `latest` | The tags to use when building the Docker image. |
-| `SPIN_INVENTORY_FILE` | `.spin-inventory.ini` | The inventory file to use for the deployment. |
+| `SPIN_INVENTORY_FILE` | `/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh` | The inventory file or dynamic inventory script to use for the deployment. |
 | `SPIN_PROJECT_NAME` | `spin` | The name of the project to use for the deployment. |
 | `SPIN_REGISTRY_PORT` | `5080` | The port to use on your local machine for the temporary registry. |
 | `SPIN_TRAEFIK_CONFIG_FILE` | `./.infrastructure/conf/traefik/prod/traefik.yml` | The Traefik configuration file to use for the deployment. |
@@ -116,7 +116,7 @@ The script sets default values for various deployment parameters, which can be o
 - `SPIN_BUILD_PLATFORM`: Platform for building the Docker image (default is "linux/amd64").
 - `SPIN_BUILD_IMAGE_PREFIX`: Prefix for the Docker image name (default is "localhost:<registry_port>").
 - `SPIN_BUILD_TAG`: Tag for the Docker image (default is "latest").
-- `SPIN_INVENTORY_FILE`: Path to the Ansible inventory file (default is "/ansible/.spin-inventory.ini").
+- `SPIN_INVENTORY_FILE`: Path to the Ansible inventory file or dynamic inventory script (default is "/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh").
 - `SPIN_SSH_PORT`: SSH port for connecting to the server.
 - `SPIN_SSH_USER`: SSH user for connecting to the server (default is "deploy").
 - `SPIN_PROJECT_NAME`: Name of the project (default is "spin").
