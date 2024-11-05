@@ -6,7 +6,7 @@ layout: docs
 ---
 # spin prune
 ::lead-p
-Clear the local Docker cache on your machine.
+Clear the local Docker and Spin caches on your machine.
 ::
 
 ## Usage
@@ -18,6 +18,12 @@ label: Usage for "spin prune"
 spin prune [OPTIONS]
 ```
 ::
+
+## Options
+The following options are available to set when running this command.
+| Option | Short | Default | Description |
+| --- | --- | --- | --- |
+| `--force` | `-f` | `false` | Force the deletion of the local Docker and Spin caches. |
 
 ## Official Documentation & Additional Options
 This command is a shortcut for [`docker system prune --all`](https://docs.docker.com/engine/reference/commandline/system_prune/) and can accept additional options that you pass to it. Spin defaults the `--all` for you already, so no need to add that.

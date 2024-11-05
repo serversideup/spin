@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 action_prune(){
-  echo "${BOLD}${YELLOW}🚨 You're about to delete some data.${RESET}"
+  # Check for force flag
+  if [[ ! "$*" =~ "-f"|"--force" ]]; then
+    echo "${BOLD}${YELLOW}🚨 You're about to delete some data.${RESET}"
+  fi
+  
   docker system prune --all $@
   echo "${BOLD}${GREEN}✅ Docker cache cleared.${RESET}"
 
