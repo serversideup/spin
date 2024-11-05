@@ -17,7 +17,7 @@ export SPIN_GROUP_ID
 SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:cli"}
 SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
 SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"docker.io/serversideup/ansible-core:2.17-alpine"}
-SPIN_ANSIBLE_COLLECTION_NAME=${SPIN_ANSIBLE_COLLECTION_NAME:-"git+https://github.com/serversideup/ansible-collection-spin.git,hardware-support"}
+SPIN_ANSIBLE_COLLECTION_NAME=${SPIN_ANSIBLE_COLLECTION_NAME:-"serversideup.spin"}
 SPIN_YQ_IMAGE=${SPIN_YQ_IMAGE:-"docker.io/mikefarah/yq:4.44.2"}
 SPIN_GH_CLI_IMAGE=${SPIN_GH_CLI_IMAGE:-"docker.io/serversideup/github-cli:alpine"}
 
