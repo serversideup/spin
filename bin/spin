@@ -17,8 +17,9 @@ export SPIN_GROUP_ID
 SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:cli"}
 SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
 SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"docker.io/serversideup/ansible-core:2.17-alpine"}
-SPIN_ANSIBLE_COLLECTION_NAME=${SPIN_ANSIBLE_COLLECTION_NAME:-"serversideup.spin"}
+SPIN_ANSIBLE_COLLECTION_NAME=${SPIN_ANSIBLE_COLLECTION_NAME:-"git+https://github.com/serversideup/ansible-collection-spin.git,hardware-support"}
 SPIN_YQ_IMAGE=${SPIN_YQ_IMAGE:-"docker.io/mikefarah/yq:4.44.2"}
+SPIN_GH_CLI_IMAGE=${SPIN_GH_CLI_IMAGE:-"docker.io/serversideup/github-cli:alpine"}
 
 # Script Configuration
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -45,7 +46,7 @@ case "$1" in
   "" | base64 | debug | help | update | version | --version | -v)
     : # Silent output for the user, but we're skipping the compose check too.
     ;;
-  init | kill | mkpasswd | new | prune | provision | vault)
+  configure | gh | init | kill | maintain | mkpasswd | new | prune | provision | vault)
     check_if_docker_is_running
   ;;
   *)
@@ -68,6 +69,10 @@ if [ $# -gt 0 ]; then
       source "$SPIN_HOME/lib/actions/build.sh"
       action_build "$@"
     ;;
+    configure)
+      source "$SPIN_HOME/lib/actions/configure.sh"
+      action_configure "$@"
+    ;;
     debug)
       source "$SPIN_HOME/lib/actions/debug.sh"
       action_debug "$@"
@@ -88,6 +93,10 @@ if [ $# -gt 0 ]; then
       source "$SPIN_HOME/lib/actions/help.sh"
       action_help
     ;;
+    gh)
+      source "$SPIN_HOME/lib/actions/gh.sh"
+      action_gh "$@"
+    ;;
     init)
       source "$SPIN_HOME/lib/actions/init.sh"
       action_init "$@"
@@ -103,6 +112,10 @@ if [ $# -gt 0 ]; then
     logs)
       source "$SPIN_HOME/lib/actions/logs.sh"
       action_logs "$@"
+    ;;
+    maintain)
+      source "$SPIN_HOME/lib/actions/maintain.sh"
+      action_maintain "$@"
     ;;
     mkpasswd)
       source "$SPIN_HOME/lib/actions/mkpasswd.sh"

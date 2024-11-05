@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-action_provision(){
+action_maintain(){
     additional_ansible_args=()
     spin_remote_user="$USER"  # Default to the current user who runs the command
     force_ansible_upgrade=false
@@ -57,7 +57,7 @@ action_provision(){
 
     check_galaxy_pull "$force_ansible_upgrade"
     run_ansible --allow-ssh --mount-path "$(pwd)" \
-        ansible-playbook serversideup.spin.provision \
+        ansible-playbook serversideup.spin.maintain \
         --inventory "$inventory_file" \
         --extra-vars @./.spin.yml \
         "${additional_ansible_args[@]}" \

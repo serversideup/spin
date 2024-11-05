@@ -22,9 +22,8 @@ spin provision [ -p|--port <port> -u|--user <user> -U|--upgrade ]
 ## Checklist before executing this command
 Before you execute this command, you should have the following completed:
 
-- You should have a running **Ubuntu 22.04+ server** with properly configured SSH access and DNS
+- You should have a running **Ubuntu 22.04+ server** with properly configured SSH access
 - The `.spin.yml` file should be configured 
-- The `.spin-inventory.ini` file should properly be configured
 
 ## Options
 The following options are available to set when running this command.
