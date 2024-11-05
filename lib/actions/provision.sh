@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 action_provision(){
     additional_ansible_args=()
-    ansible_user="$USER"  # Default to the current user who runs the command
+    spin_remote_user="$USER"  # Default to the current user who runs the command
     force_ansible_upgrade=false
     unprocessed_args=()
     local inventory_file="${SPIN_INVENTORY_FILE:-"/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh"}"
@@ -9,8 +9,12 @@ action_provision(){
     # Process arguments
     while [[ "$#" -gt 0 ]]; do
         case "$1" in
+            --host|-h)
+                additional_ansible_args+=("--extra-vars target=$2")
+                shift 2
+                ;;
             --user|-u)
-                ansible_user="$2"  # Override default user with specified user
+                spin_remote_user="$2"  # Override default user with specified user
                 shift 2
                 ;;
             --port|-p)
@@ -36,14 +40,14 @@ action_provision(){
     fi
 
     # Set Ansible User
-    additional_ansible_args+=("--extra-vars" "ansible_user=$ansible_user")
+    additional_ansible_args+=("--extra-vars" "spin_remote_user=$spin_remote_user")
     local use_passwordless_sudo
     if ! use_passwordless_sudo=$(get_ansible_variable "use_passwordless_sudo"); then
         echo "${BOLD}${RED}❌ Error: Failed to get ansible variable.${RESET}" >&2
         exit 1
     fi
     use_passwordless_sudo=${use_passwordless_sudo:-"false"}
-    if [ "$ansible_user" != "root" ] && [ "$use_passwordless_sudo" = 'false' ]; then
+    if [ "$spin_remote_user" != "root" ] && [ "$use_passwordless_sudo" = 'false' ]; then
         additional_ansible_args+=("--ask-become-pass")
     fi
 

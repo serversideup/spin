@@ -30,6 +30,7 @@ Before you execute this command, you should have the following completed:
 The following options are available to set when running this command.
 | Option | Short | Default | Description |
 | --- | --- | --- | --- |
+| `--host` | `-h` | <none> | The hostname or group of hosts you'd like to provision. |
 | `--port` | `-p` | `22` | The port to SSH into the server with. |
 | `--user` | `-u` | The username of your HOST machine (run `whoami` in a new terminal) | The user to SSH into the server with. |
 | `--upgrade` | `-U` | Check for Ansible collection updates once per day. | Force upgrade the Ansible Collection on your machine before provisioning. |
