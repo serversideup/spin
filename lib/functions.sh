@@ -8,6 +8,24 @@ add_user_todo_item() {
     fi
 }
 
+base64_encode() {
+    local input="$1"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        base64 -i "$input"
+    else
+        base64 "$input"
+    fi
+}
+
+base64_decode() {
+    local input="$1"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        base64 -D "$input"
+    else
+        base64 -d "$input"
+    fi
+}
+
 check_connection_with_cmd() {
     local cmd="$1"
     local api_url="$2"
@@ -650,6 +668,7 @@ line_in_file() {
     local action="ensure"
     local files=()
     local args=()
+    local ignore_missing=false
 
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -661,6 +680,10 @@ line_in_file() {
             --action)
                 action="$2"
                 shift 2
+                ;;
+            --ignore-missing)
+                ignore_missing=true
+                shift
                 ;;
             *)
                 args+=("$1")
@@ -734,8 +757,12 @@ ${args[1]}" "$file"
                 if grep -qF -- "${args[0]}" "$file"; then
                     sed_inplace "s/${args[0]}/${args[1]}/g" "$file"
                 else
-                    echo "Error: Exact text '${args[0]}' not found in $file" >&2
-                    return 1
+                    if [[ "$ignore_missing" == true ]]; then
+                        return 0
+                    else
+                        echo "Error: Exact text '${args[0]}' not found in $file" >&2
+                        return 1
+                    fi
                 fi
                 ;;
             search)
@@ -1019,6 +1046,7 @@ run_ansible() {
   
   # Create the collections directory if it doesn't exist
   mkdir -p "$ansible_collections_path"
+  additional_docker_args+=("-v" "$ansible_collections_path:/etc/ansible/collections")
 
   # Create the known_hosts file if it doesn't exist
   if [[ ! -f "$HOME/.ssh/known_hosts" ]]; then
@@ -1028,7 +1056,7 @@ run_ansible() {
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
       --allow-ssh)
-        additional_docker_args+=("-v" "$HOME/.ssh/:/ssh/:ro" "-v" "$HOME/.ssh/known_hosts:/ssh/known_hosts:rw" "-v" "$ansible_collections_path:/etc/ansible/collections")
+        additional_docker_args+=("-v" "$HOME/.ssh/:/ssh/:ro" "-v" "$HOME/.ssh/known_hosts:/ssh/known_hosts:rw")
         # Mount the SSH Agent for macOS and Linux (including WSL2) systems
         if [ -n "$SSH_AUTH_SOCK" ]; then
             case "$(uname -s)" in
@@ -1048,6 +1076,14 @@ run_ansible() {
         additional_docker_args+=("-v" "${2}:/ansible")
         shift 2
         ;;
+      --minimal-output)
+        additional_docker_args+=(
+            -e "ANSIBLE_STDOUT_CALLBACK=minimal"
+            -e "ANSIBLE_DISPLAY_SKIPPED_HOSTS=false"
+            -e "ANSIBLE_DISPLAY_OK_HOSTS=false"
+        )
+        shift
+        ;;
       *)
         args_without_options+=("$1")
         shift
@@ -1061,6 +1097,81 @@ run_ansible() {
     "${additional_docker_args[@]}" \
     "$SPIN_ANSIBLE_IMAGE" \
     "${args_without_options[@]}"
+}
+
+run_gh() {
+  # Check if gh is installed locally
+  if command -v gh >/dev/null 2>&1; then
+    # Execute gh command locally with all arguments
+    gh "$@"
+    return $?  # Explicitly return the exit code from gh
+  fi
+
+  # Fall back to Docker implementation if gh is not installed
+  local additional_docker_args=()
+  local gh_command=("$@")
+  local use_tty=false
+  local interactive_commands=(
+    "auth login" "auth refresh"
+    "issue create" "issue edit"
+    "pr create" "pr edit" "pr review"
+    "repo create" "repo fork"
+    "gist create" "gist edit"
+  )
+
+  # Check if the command needs interactive TTY
+  local cmd_string="${gh_command[*]}"
+  for interactive_cmd in "${interactive_commands[@]}"; do
+    if [[ "$cmd_string" == "$interactive_cmd"* ]]; then
+      use_tty=true
+      break
+    fi
+  done
+
+  # Ensure the gh config directory exists
+  if [[ ! -d "$HOME/.config/gh" ]]; then
+    mkdir -p "$HOME/.config/gh"
+  fi
+
+  # Mount SSH if available
+  if [[ -d "$HOME/.ssh" ]]; then
+    additional_docker_args+=("-v" "$HOME/.ssh/:/ssh/:ro" "-v" "$HOME/.ssh/known_hosts:/ssh/known_hosts:rw")
+  fi
+
+  # Mount SSH Agent if available
+  if [ -n "$SSH_AUTH_SOCK" ]; then
+      case "$(uname -s)" in
+        Darwin)
+          # macOS
+          additional_docker_args+=("-v" "/run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock" "-e" "SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock")
+          ;;
+        Linux)
+          # Linux (including WSL2)
+          additional_docker_args+=("-v" "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" "-e" "SSH_AUTH_SOCK=$SSH_AUTH_SOCK")
+          ;;
+      esac
+    fi
+
+  # Run GH CLI via Docker
+  if [ "$use_tty" = true ]; then
+    docker run --rm -it \
+      -e "PUID=${SPIN_USER_ID}" \
+      -e "PGID=${SPIN_GROUP_ID}" \
+      -e "RUN_AS_USER=$(whoami)" \
+      -v "$(pwd):/workdir" \
+      -v "$HOME/.config/gh:/config/gh:rw" \
+      "${additional_docker_args[@]}" \
+      "$SPIN_GH_CLI_IMAGE" gh "${gh_command[@]}"
+  else
+    docker run --rm \
+      -e "PUID=${SPIN_USER_ID}" \
+      -e "PGID=${SPIN_GROUP_ID}" \
+      -e "RUN_AS_USER=$(whoami)" \
+      -v "$(pwd):/workdir" \
+      -v "$HOME/.config/gh:/config/gh:rw" \
+      "${additional_docker_args[@]}" \
+      "$SPIN_GH_CLI_IMAGE" gh "${gh_command[@]}"
+  fi
 }
 
 save_current_time_to_cache_file() {
@@ -1156,10 +1267,61 @@ update_last_pull_timestamp() {
     mv "$file.tmp" "$file"
 }
 
+prepare_ansible_args() {
+    # Return values will be stored in these global variables
+    SPIN_ANSIBLE_ARGS=()
+    SPIN_UNPROCESSED_ARGS=()
+    SPIN_REMOTE_USER="$USER"
+    SPIN_FORCE_UPGRADE=false
+    
+    # Process arguments
+    while [[ "$#" -gt 0 ]]; do
+        case "$1" in
+            --host|-h)
+                SPIN_ANSIBLE_ARGS+=("--extra-vars" "target=$2")
+                shift 2
+                ;;
+            --user|-u)
+                SPIN_REMOTE_USER="$2"
+                shift 2
+                ;;
+            --port|-p)
+                SPIN_ANSIBLE_ARGS+=("--extra-vars" "ansible_port=$2")
+                shift 2
+                ;;
+            --upgrade|-U)
+                SPIN_FORCE_UPGRADE=true
+                shift
+                ;;
+            *)
+                SPIN_UNPROCESSED_ARGS+=("$1")
+                shift
+                ;;
+        esac
+    done
 
+    # Set Ansible User
+    SPIN_ANSIBLE_ARGS+=("--extra-vars" "spin_remote_user=$SPIN_REMOTE_USER")
+    local use_passwordless_sudo
+    if ! use_passwordless_sudo=$(get_ansible_variable "use_passwordless_sudo"); then
+        echo "${BOLD}${RED}❌ Error: Failed to get ansible variable.${RESET}" >&2
+        return 1
+    fi
+    use_passwordless_sudo=${use_passwordless_sudo:-"false"}
+    if [ "$SPIN_REMOTE_USER" != "root" ] && [ "$use_passwordless_sudo" = 'false' ]; then
+        SPIN_ANSIBLE_ARGS+=("--ask-become-pass")
+    fi
 
+    # Append vault args to additional ansible args
+    IFS=' ' read -r -a vault_args < <(set_ansible_vault_args)
+    SPIN_ANSIBLE_ARGS+=("${vault_args[@]}")
 
+    # Check Docker image
+    echo "Starting Ansible..."
+    if ! docker image inspect "${SPIN_ANSIBLE_IMAGE}" &> /dev/null; then
+        echo "Docker image ${SPIN_ANSIBLE_IMAGE} not found. Pulling..."
+        docker pull "${SPIN_ANSIBLE_IMAGE}"
+    fi
 
-
-
-
+    check_galaxy_pull "$SPIN_FORCE_UPGRADE"
+}

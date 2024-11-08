@@ -46,6 +46,7 @@ action_init() {
         ".github" \
         ".git" \
         ".infrastructure" \
+        "!.infrastructure/**/local-ca.pem" \
         "Dockerfile" \
         "docker-*.yml" \
         ".gitlab-ci.yml" \
