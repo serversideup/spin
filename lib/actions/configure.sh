@@ -4,6 +4,9 @@
 # Main Action Handler
 #################################
 action_configure() {
+
+  validate_project_setup
+
   case "$1" in
     gha)
       shift
@@ -21,6 +24,10 @@ action_configure() {
 # Helper Functions
 #################################
 configure_gha() {
+    local deploy_public_key_content=''
+    local environment_file=''
+
+    # Ensure environment is specified
     if [ $# -eq 0 ]; then
         echo "${BOLD}${RED}❌ No environment specified${RESET}"
         echo "Usage: spin configure gha <environment>"
@@ -28,81 +35,62 @@ configure_gha() {
         return 1
     fi
 
-    local gha_environment="$1"
+    # Check if GitHub CLI image exists locally
+    if ! docker image inspect "$SPIN_GH_CLI_IMAGE" >/dev/null 2>&1; then
+        echo "${BOLD}${BLUE}🐳 Pulling GitHub CLI image...${RESET}"
+        if ! docker pull "$SPIN_GH_CLI_IMAGE"; then
+            echo "${BOLD}${RED}❌ Failed to pull GitHub CLI image${RESET}"
+            exit 1
+        fi
+    fi
+
+    # Set and validate envioronment
+    gha_environment="$1"
     shift # Remove the first argument
-    local gha_environment_uppercase=$(echo "$gha_environment" | tr '[:lower:]' '[:upper:]')
-    
-    validate_repository_setup || exit 1
-    
-    local environment_file
+    gha_environment_uppercase=$(echo "$gha_environment" | tr '[:lower:]' '[:upper:]')
+    validate_github_repository_setup || exit 1
     environment_file=$(validate_environment_file "$gha_environment") || exit 1
 
+    # Set ENV_BASE_64
     gh_set_env --base64 --variable "${gha_environment_uppercase}_ENV_FILE_BASE64" --file "$environment_file"
 
-    configure_gha_deployment_key "$@"
-    configure_gha_authorized_keys
+    # Ensure deployment key exists
+    if [ ! -f "$SPIN_CI_FOLDER/SSH_DEPLOY_PRIVATE_KEY" ]; then
+      echo "🔑 Generating deployment key"
+      ssh-keygen -t ed25519 -C "deploy-key" -f "$SPIN_CI_FOLDER/SSH_DEPLOY_PRIVATE_KEY" -N ""
+      echo "${BOLD}${GREEN}✅ Deployment key generated${RESET}"
+    else
+      echo "🔑 Using existing deployment key found at \"$SPIN_CI_FOLDER/SSH_DEPLOY_PRIVATE_KEY\""
+    fi
 
-}
+    deploy_public_key_content=$(cat "$SPIN_CI_FOLDER/SSH_DEPLOY_PRIVATE_KEY.pub")
 
-configure_gha_deployment_key() {
-  local inventory_file="${SPIN_INVENTORY_FILE:-"/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh"}"
-  local infrastructure_folder=".infrastructure"
+    # Prepare CI variables with Ansible
+    echo "🔑 Preparing CI variables with Ansible"
+    prepare_ansible_run "$@"
+    run_ansible --allow-ssh --mount-path "$(pwd):/ansible" \
+      ansible-playbook serversideup.spin.prepare_ci_environment \
+      --inventory "$SPIN_INVENTORY_FILE" \
+      --extra-vars @./.spin.yml \
+      --extra-vars "spin_environment=$gha_environment" \
+      --extra-vars "spin_ci_folder=$SPIN_CI_FOLDER" \
+      --extra-vars "deploy_public_key='$deploy_public_key_content'" \
+      "${SPIN_ANSIBLE_ARGS[@]}" \
+      "${SPIN_UNPROCESSED_ARGS[@]}"
+    
+    echo "🔑 Adding GitHub Actions secrets..."
+    # Loop through all files in the CI folder (sorted alphabetically)
+    find "$SPIN_CI_FOLDER" -type f -maxdepth 1 | sort | while read -r filepath; do
+        file=$(basename "$filepath")
+        # Skip files with file extensions and .gitignore
+        if [[ "$file" != *.* ]]; then
+            # Convert filename to uppercase for secret name
+            secret_name=$(echo "$file" | tr '[:lower:]' '[:upper:]')
+            gh_set_env --variable "$secret_name" --file "$SPIN_CI_FOLDER/$file"
+        fi
+    done    
 
-  if [ ! -d "$infrastructure_folder" ]; then
-    echo "${BOLD}${RED}❌ Infrastructure folder not found${RESET}"
-    echo "Please ensure you're in the root of your project."
-    return 1
-  fi
-
-  if [ ! -d "$infrastructure_folder/deploy-keys" ] || [ ! -f "$infrastructure_folder/deploy-keys/.gitignore" ]; then
-    mkdir -p "$infrastructure_folder/deploy-keys"
-    echo "*" > "$infrastructure_folder/deploy-keys/.gitignore"
-    echo "!.gitignore" >> "$infrastructure_folder/deploy-keys/.gitignore"
-  fi
-
-  if [ ! -f "$infrastructure_folder/deploy-keys/id_ed25519_deploy" ]; then
-    echo "🔑 Generating deployment key"
-    ssh-keygen -t ed25519 -C "deploy-key" -f "$infrastructure_folder/deploy-keys/id_ed25519_deploy" -N ""
-    echo "${BOLD}${GREEN}✅ Deployment key generated${RESET}"
-  else
-    echo "🔑 Using existing deployment key found at \"$infrastructure_folder/deploy-keys/id_ed25519_deploy\""
-  fi
-
-  # Read the public key content
-  local deploy_public_key
-  deploy_public_key=$(cat "$infrastructure_folder/deploy-keys/id_ed25519_deploy.pub")
-
-  echo "🔑 Adding deployment key to GitHub repository"
-  gh_set_env --variable "SSH_DEPLOY_PRIVATE_KEY" --file "$infrastructure_folder/deploy-keys/id_ed25519_deploy"
-
-  echo "🔐 Adding deployment key to servers"
-  prepare_ansible_args "$@"
-  run_ansible --allow-ssh --mount-path "$(pwd)" \
-        ansible-playbook serversideup.spin.update_deploy_key \
-        --inventory "$inventory_file" \
-        --extra-vars @./.spin.yml \
-        --extra-vars "deploy_public_key='$deploy_public_key'" \
-        "${SPIN_ANSIBLE_ARGS[@]}" \
-        "${SPIN_UNPROCESSED_ARGS[@]}"
-  
-  echo "${BOLD}${GREEN}✅ Deployment key added to servers${RESET}"
-}
-
-configure_gha_authorized_keys() {
-  echo "🔑 Gathering authorized keys for sudo users"
-  local authorized_keys
-  authorized_keys=$(run_ansible --minimal-output --mount-path "$(pwd)" \
-    ansible-playbook serversideup.spin.get_sudo_keys \
-    --extra-vars @./.spin.yml \
-    | sed -n 's/.*"msg": "\(.*\)".*/\1/p' \
-    | sed 's/\\\\n/\n/g')  # Handle the double escaped newlines
-
-  echo "🔑 Adding authorized keys to GitHub repository"
-  echo "$authorized_keys"
-
-  # Add the authorized keys to GitHub secrets
-  gh_set_env --variable "AUTHORIZED_KEYS" --value "$authorized_keys"
-  
+  echo "${BOLD}${BLUE}🚀 You're now ready to push to deploy!${RESET}"
 }
 
 gh_set_env() {
@@ -191,6 +179,38 @@ repository_exists() {
   git rev-parse --is-inside-work-tree >/dev/null 2>&1
 }
 
+validate_project_setup() {
+
+  # Validate infrastructure folder is present
+  if [ ! -d ".infrastructure" ]; then
+      echo "${BOLD}${RED}❌ Infrastructure folder not found${RESET}"
+      echo "Please ensure you're in the root of your project."
+      return 1
+  fi
+
+  if [ ! -f ".spin.yml" ]; then
+    echo "${BOLD}${RED}❌ .spin.yml not found${RESET}"
+    echo "Please ensure you're in the root of your project and a .spin.yml file exists."
+    return 1
+  fi
+
+  if is_encrypted_with_ansible_vault ".spin.yml" && \
+    [ ! -f ".vault-password" ]; then
+        echo "${BOLD}${RED}❌Error: .spin.yml is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}"
+        echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}"
+        return 1
+  fi
+
+  # Create ci folder if it doesn't exist
+  if [ ! -d "$SPIN_CI_FOLDER" ] || [ ! -f "$SPIN_CI_FOLDER/.gitignore" ]; then
+    mkdir -p "$SPIN_CI_FOLDER"
+    echo "*" > "$SPIN_CI_FOLDER/.gitignore"
+    echo "!.gitignore" >> "$SPIN_CI_FOLDER/.gitignore"
+  fi
+
+  return 0
+}
+
 validate_environment_file() {
   local gha_environment="$1"
   local env_file=".env.$gha_environment"
@@ -207,7 +227,7 @@ validate_environment_file() {
   fi
 }
 
-validate_repository_setup() {
+validate_github_repository_setup() {
   if ! repository_exists; then
     echo "${BOLD}${RED}❌ Repository not detected.${RESET}"
     echo "Please ensure you're in the root of your project. If you need to create a repository, run \`git init\` then \`spin gh repo create\` to create one."

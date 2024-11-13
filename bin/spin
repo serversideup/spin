@@ -16,9 +16,7 @@ export SPIN_GROUP_ID
 # Default Images
 SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:cli"}
 SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
-SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"docker.io/serversideup/ansible-core:2.17-alpine"}
-SPIN_ANSIBLE_COLLECTION_NAME=${SPIN_ANSIBLE_COLLECTION_NAME:-"serversideup.spin"}
-SPIN_YQ_IMAGE=${SPIN_YQ_IMAGE:-"docker.io/mikefarah/yq:4.44.2"}
+SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"docker.io/serversideup/ansible-core:2.18-alpine"}
 SPIN_GH_CLI_IMAGE=${SPIN_GH_CLI_IMAGE:-"docker.io/serversideup/github-cli:alpine"}
 
 # Script Configuration
@@ -26,8 +24,14 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 SPIN_HOME=$(dirname "$SCRIPT_DIR") #Assume the parent directory of this script is the home
 SPIN_CACHE_DIR=${SPIN_CACHE_DIR:-$SPIN_HOME/cache}
 SPIN_CONFIG_FILE_LOCATION=${SPIN_CONFIG_FILE_LOCATION:-"$SPIN_HOME/conf/spin.conf"}
+SPIN_CI_FOLDER=${SPIN_CI_FOLDER:-".infrastructure/conf/ci"}
 AUTO_UPDATE_INTERVAL_IN_DAYS=${AUTO_UPDATE_INTERVAL_IN_DAYS:-14}
 AUTO_PULL_INTERVAL_IN_DAYS=${AUTO_PULL_INTERVAL_IN_DAYS:-1}
+
+# Ansible Variables
+SPIN_ANSIBLE_COLLECTION_NAME="${SPIN_ANSIBLE_COLLECTION_NAME:-"serversideup.spin"}"
+SPIN_INVENTORY_FILE="${SPIN_INVENTORY_FILE:-"/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh"}"
+SPIN_ANSIBLE_COLLECTIONS_PATH="$SPIN_CACHE_DIR/collections"
 
 # Import common functions
 source "$SPIN_HOME/lib/functions.sh"
