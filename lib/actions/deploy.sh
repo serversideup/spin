@@ -4,14 +4,6 @@
 # Helper functions
 ################################################################################
 
-stop_registry() {
-        if docker ps -q -f name="$spin_registry_name" | grep -q .; then
-            echo "Stopping local Docker registry..."
-            docker stop "$spin_registry_name" >/dev/null 2>&1
-            echo "Local Docker registry stopped."
-        fi
-}
-
 cleanup_on_exit() {
     local exit_code=$?
 
@@ -32,26 +24,6 @@ cleanup_ssh_tunnel() {
             kill "$tunnel_pid"
             echo "Local SSH tunnel stopped."
         fi
-    fi
-}
-
-generate_md5_hashes() {
-    # Check if the configs key exists
-    if grep -q 'configs:' "$compose_file"; then
-        # Extract config file paths
-        local config_files
-        config_files=$(awk '/configs:/{flag=1;next}/^[^ ]/{flag=0}flag' "$compose_file" | grep 'file:' | awk '{print $2}')
-
-        for config_file_path in $config_files; do
-            if [ -f "$config_file_path" ]; then
-                local config_md5_hash
-                config_md5_hash=$(get_md5_hash "$config_file_path" | awk '{ print $1 }')
-                config_md5_var="SPIN_MD5_HASH_$(basename "$config_file_path" | tr '[:lower:]' '[:upper:]' | tr '.' '_')"
-
-                eval "$config_md5_var=$config_md5_hash"
-                export $config_md5_var
-            fi
-        done
     fi
 }
 
@@ -82,6 +54,34 @@ deploy_docker_stack() {
     else
         echo "${BOLD}${RED}❌ Failed to deploy Docker stack on $manager_host.${RESET}"
         exit 1
+    fi
+}
+
+generate_md5_hashes() {
+    # Check if the configs key exists
+    if grep -q 'configs:' "$compose_file"; then
+        # Extract config file paths
+        local config_files
+        config_files=$(awk '/configs:/{flag=1;next}/^[^ ]/{flag=0}flag' "$compose_file" | grep 'file:' | awk '{print $2}')
+
+        for config_file_path in $config_files; do
+            if [ -f "$config_file_path" ]; then
+                local config_md5_hash
+                config_md5_hash=$(get_md5_hash "$config_file_path" | awk '{ print $1 }')
+                config_md5_var="SPIN_MD5_HASH_$(basename "$config_file_path" | tr '[:lower:]' '[:upper:]' | tr '.' '_')"
+
+                eval "$config_md5_var=$config_md5_hash"
+                export $config_md5_var
+            fi
+        done
+    fi
+}
+
+stop_registry() {
+    if docker ps -q -f name="$spin_registry_name" | grep -q .; then
+        echo "Stopping local Docker registry..."
+        docker stop "$spin_registry_name" >/dev/null 2>&1
+        echo "Local Docker registry stopped."
     fi
 }
 

@@ -29,7 +29,7 @@ AUTO_UPDATE_INTERVAL_IN_DAYS=${AUTO_UPDATE_INTERVAL_IN_DAYS:-14}
 AUTO_PULL_INTERVAL_IN_DAYS=${AUTO_PULL_INTERVAL_IN_DAYS:-1}
 
 # Ansible Variables
-SPIN_ANSIBLE_COLLECTION_NAME="${SPIN_ANSIBLE_COLLECTION_NAME:-"serversideup.spin"}"
+SPIN_ANSIBLE_COLLECTION_NAME="${SPIN_ANSIBLE_COLLECTION_NAME:-"git+https://github.com/serversideup/ansible-collection-spin.git,hardware-support"}"
 SPIN_INVENTORY_FILE="${SPIN_INVENTORY_FILE:-"/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh"}"
 SPIN_ANSIBLE_COLLECTIONS_PATH="$SPIN_CACHE_DIR/collections"
 
