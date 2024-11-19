@@ -1,4 +1,94 @@
 #!/usr/bin/env bash
+
+################################################################################
+# Helper functions
+################################################################################
+
+stop_registry() {
+        if docker ps -q -f name="$spin_registry_name" | grep -q .; then
+            echo "Stopping local Docker registry..."
+            docker stop "$spin_registry_name" >/dev/null 2>&1
+            echo "Local Docker registry stopped."
+        fi
+}
+
+cleanup_on_exit() {
+    local exit_code=$?
+
+    if [ $exit_code -ne 0 ]; then
+        echo "❌ Failure detected. Cleaning up local services..."
+    fi
+    stop_registry
+    cleanup_ssh_tunnel
+
+    exit $exit_code
+}
+
+cleanup_ssh_tunnel() {
+    if [ -n "$tunnel_pid" ]; then
+        # Check if the process is still running
+        if ps -p "$tunnel_pid" > /dev/null; then
+            echo "Stopping local SSH tunnel..."
+            kill "$tunnel_pid"
+            echo "Local SSH tunnel stopped."
+        fi
+    fi
+}
+
+generate_md5_hashes() {
+    # Check if the configs key exists
+    if grep -q 'configs:' "$compose_file"; then
+        # Extract config file paths
+        local config_files
+        config_files=$(awk '/configs:/{flag=1;next}/^[^ ]/{flag=0}flag' "$compose_file" | grep 'file:' | awk '{print $2}')
+
+        for config_file_path in $config_files; do
+            if [ -f "$config_file_path" ]; then
+                local config_md5_hash
+                config_md5_hash=$(get_md5_hash "$config_file_path" | awk '{ print $1 }')
+                config_md5_var="SPIN_MD5_HASH_$(basename "$config_file_path" | tr '[:lower:]' '[:upper:]' | tr '.' '_')"
+
+                eval "$config_md5_var=$config_md5_hash"
+                export $config_md5_var
+            fi
+        done
+    fi
+}
+
+deploy_docker_stack() {
+    local manager_host="$1"
+    local ssh_port="$2"
+    local compose_args=()
+
+    # Set default compose files if none were provided
+    if [[ ${#compose_files[@]} -eq 0 ]]; then
+        compose_files=("docker-compose.yml" "docker-compose.prod.yml")
+    fi
+
+    # Build the compose arguments
+    for compose_file in "${compose_files[@]}"; do
+        if [[ -n "$compose_file" ]]; then
+            # Compute MD5 hashes if necessary
+            generate_md5_hashes "$compose_file"
+            compose_args+=("--compose-file" "$compose_file")
+        fi
+    done
+
+    local docker_host="ssh://$ssh_user@$manager_host:$ssh_port"
+    echo "${BOLD}${BLUE}📤 Deploying Docker stack with compose files: ${compose_files[*]} on $manager_host...${RESET}"
+    docker -H "$docker_host" stack deploy "${compose_args[@]}" --detach=false --prune "$spin_project_name-$deployment_environment"
+    if [ $? -eq 0 ]; then
+        echo "${BOLD}${BLUE}🎉 Successfully deployed Docker stack on $manager_host.${RESET}"
+    else
+        echo "${BOLD}${RED}❌ Failed to deploy Docker stack on $manager_host.${RESET}"
+        exit 1
+    fi
+}
+
+################################################################################
+# Main deploy action
+################################################################################
+
 action_deploy() {
     compose_files=()
     deployment_environment=""
@@ -7,8 +97,7 @@ action_deploy() {
     env_file=""
     force_ansible_upgrade=false
     
-    if is_encrypted_with_ansible_vault ".spin.yml" && \
-    [ ! -f ".vault-password" ]; then
+    if is_encrypted_with_ansible_vault ".spin.yml" && [ ! -f ".vault-password" ]; then
         echo "${BOLD}${RED}❌Error: .spin.yml is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}"
         echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}"
         exit 1
@@ -146,9 +235,6 @@ action_deploy() {
                 exit 1
             fi
         done
-    else
-        echo "${BOLD}${RED} No Dockerfiles found in the directory. Be sure you're running this command from the project root.${RESET}"
-        exit 1
     fi
 
     # Get deployment host information
@@ -187,8 +273,6 @@ action_deploy() {
         -o ServerAliveCountMax=3
         -o StrictHostKeyChecking=accept-new
     )
-
-    echo "${BOLD}${BLUE}📝 Debug: Executing SSH command: ${ssh_cmd[*]}${RESET}"
     
     if "${ssh_cmd[@]}"; then
         echo "${BOLD}${GREEN}✅ SSH tunnel created successfully${RESET}"
@@ -215,85 +299,4 @@ action_deploy() {
     stop_registry
     cleanup_ssh_tunnel
     echo "${BOLD}${GREEN}✅ Docker stack deployment completed.${RESET}"
-}
-
-stop_registry() {
-        if docker ps -q -f name="$spin_registry_name" | grep -q .; then
-            echo "Stopping local Docker registry..."
-            docker stop "$spin_registry_name" >/dev/null 2>&1
-            echo "Local Docker registry stopped."
-        fi
-}
-
-cleanup_on_exit() {
-    local exit_code=$?
-
-    if [ $exit_code -ne 0 ]; then
-        echo "❌ Failure detected. Cleaning up local services..."
-    fi
-    stop_registry
-    cleanup_ssh_tunnel
-
-    exit $exit_code
-}
-
-cleanup_ssh_tunnel() {
-    if [ -n "$tunnel_pid" ]; then
-        # Check if the process is still running
-        if ps -p "$tunnel_pid" > /dev/null; then
-            echo "Stopping local SSH tunnel..."
-            kill "$tunnel_pid"
-            echo "Local SSH tunnel stopped."
-        fi
-    fi
-}
-
-generate_md5_hashes() {
-    # Check if the configs key exists
-    if grep -q 'configs:' "$compose_file"; then
-        # Extract config file paths
-        local config_files
-        config_files=$(awk '/configs:/{flag=1;next}/^[^ ]/{flag=0}flag' "$compose_file" | grep 'file:' | awk '{print $2}')
-
-        for config_file_path in $config_files; do
-            if [ -f "$config_file_path" ]; then
-                local config_md5_hash
-                config_md5_hash=$(get_md5_hash "$config_file_path" | awk '{ print $1 }')
-                config_md5_var="SPIN_MD5_HASH_$(basename "$config_file_path" | tr '[:lower:]' '[:upper:]' | tr '.' '_')"
-
-                eval "$config_md5_var=$config_md5_hash"
-                export $config_md5_var
-            fi
-        done
-    fi
-}
-
-deploy_docker_stack() {
-    local manager_host="$1"
-    local ssh_port="$2"
-    local compose_args=()
-
-    # Set default compose files if none were provided
-    if [[ ${#compose_files[@]} -eq 0 ]]; then
-        compose_files=("docker-compose.yml" "docker-compose.prod.yml")
-    fi
-
-    # Build the compose arguments
-    for compose_file in "${compose_files[@]}"; do
-        if [[ -n "$compose_file" ]]; then
-            # Compute MD5 hashes if necessary
-            generate_md5_hashes "$compose_file"
-            compose_args+=("--compose-file" "$compose_file")
-        fi
-    done
-
-    local docker_host="ssh://$ssh_user@$manager_host:$ssh_port"
-    echo "${BOLD}${BLUE}📤 Deploying Docker stack with compose files: ${compose_files[*]} on $manager_host...${RESET}"
-    docker -H "$docker_host" stack deploy "${compose_args[@]}" --detach=false --prune "$spin_project_name-$deployment_environment"
-    if [ $? -eq 0 ]; then
-        echo "${BOLD}${BLUE}🎉 Successfully deployed Docker stack on $manager_host.${RESET}"
-    else
-        echo "${BOLD}${RED}❌ Failed to deploy Docker stack on $manager_host.${RESET}"
-        exit 1
-    fi
 }
