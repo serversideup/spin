@@ -97,11 +97,7 @@ action_deploy() {
     env_file=""
     force_ansible_upgrade=false
     
-    if is_encrypted_with_ansible_vault ".spin.yml" && [ ! -f ".vault-password" ]; then
-        echo "${BOLD}${RED}❌Error: .spin.yml is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}"
-        echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}"
-        exit 1
-    fi
+    validate_project_setup
 
     # Set deployment environment for first argument that doesn't start with a dash
     for arg in "$@"; do
@@ -187,7 +183,7 @@ action_deploy() {
             shift 2
             ;;
         --upgrade|-U)
-            force_ansible_upgrade=true
+            SPIN_FORCE_INSTALL_GALAXY_DEPS=true
             shift
             ;;
         *)
@@ -250,7 +246,7 @@ action_deploy() {
       "${SPIN_ANSIBLE_ARGS[@]}" \
       "${SPIN_UNPROCESSED_ARGS[@]}"
 
-    docker_swarm_manager=$(cat "$SPIN_CI_FOLDER/${deployment_environment_uppercase}_SSH_REMOTE_HOST")
+    docker_swarm_manager=$(cat "$SPIN_CI_FOLDER/${deployment_environment_uppercase}_SSH_REMOTE_HOSTNAME")
 
     if [ $? -ne 0 ] || [ -z "$docker_swarm_manager" ]; then
         echo "${BOLD}${RED}❌ Error: Failed to get a valid swarm manager host for group '$deployment_environment'.${RESET}" >&2
@@ -291,8 +287,8 @@ action_deploy() {
         exit 1
     fi
 
-    # Get the process ID of the SSH tunnel
-    tunnel_pid=$(pgrep -f "ssh -f -n -N -R ${registry_port}:localhost:${registry_port}")
+    # Get the process ID of the SSH tunnel using POSIX-compliant commands
+    tunnel_pid=$(ps aux | grep "ssh -f -n -N -R ${registry_port}:localhost:${registry_port}" | grep -v grep | awk '{print $2}')
 
     echo "${BOLD}${BLUE}🚀 Deploying Docker stack...${RESET}"
     deploy_docker_stack "$docker_swarm_manager" "$ssh_port"

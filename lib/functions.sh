@@ -455,34 +455,38 @@ get_ansible_variable(){
   local variable_name="$1"
   local raw_output=''
   local clean_output=''
+  shift
 
   if [[ -z "$variable_name" ]]; then
     echo "${BOLD}${RED}❌ No variable name specified.${RESET}" >&2
     return 1
   fi
 
+  # Temporarily disable trace output if it's enabled
+  local trace_enabled=0
+  if [[ $- == *x* ]]; then
+    set +x
+    trace_enabled=1
+  fi
+
   # Run ansible command and capture output
-  raw_output=$(docker run --rm \
-    -e "PUID=${SPIN_USER_ID}" \
-    -e "PGID=${SPIN_GROUP_ID}" \
-    -e "RUN_AS_USER=$(whoami)" \
-    -e "ANSIBLE_STDOUT_CALLBACK=minimal" \
-    -e "ANSIBLE_DISPLAY_SKIPPED_HOSTS=false" \
-    -e "ANSIBLE_DISPLAY_OK_HOSTS=false" \
-    -v "$(pwd):/ansible" \
-    -v "$SPIN_ANSIBLE_COLLECTIONS_PATH:/etc/ansible/collections" \
-    "$SPIN_ANSIBLE_IMAGE" \
+  raw_output=$(run_ansible --minimal-output \
     ansible-playbook serversideup.spin.get_variable \
     --inventory "$SPIN_INVENTORY_FILE" \
     --extra-vars @./.spin.yml \
     --extra-vars "variable_name=$variable_name" 2>&1) || {
       echo "${BOLD}${RED}❌ Failed to get ansible variable: $variable_name${RESET}" >&2
       echo "${BOLD}${RED}Error: $raw_output${RESET}" >&2
+      # Restore trace output if it was enabled
+      if [[ $trace_enabled -eq 1 ]]; then set -x; fi
       return 1
     }
 
   # Extract just the value from the msg field
   clean_output=$(echo "$raw_output" | grep -o '"msg": .*' | sed 's/"msg": //;s/^"//;s/"$//')
+
+  # Restore trace output if it was enabled
+  if [[ $trace_enabled -eq 1 ]]; then set -x; fi
 
   # Return the cleaned output
   echo "$clean_output"
@@ -815,7 +819,9 @@ prepare_ansible_run() {
     SPIN_ANSIBLE_ARGS=()
     SPIN_UNPROCESSED_ARGS=()
     SPIN_REMOTE_USER="$USER"
-    SPIN_FORCE_INSTALL_GALAXY_DEPS=false
+    SPIN_FORCE_INSTALL_GALAXY_DEPS=${SPIN_FORCE_INSTALL_GALAXY_DEPS:-false}
+    SPIN_INVENTORY_FILE="${SPIN_INVENTORY_FILE:-"/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh"}"
+    SPIN_ANSIBLE_COLLECTIONS_PATH="$SPIN_CACHE_DIR/collections"
     
     # Process arguments
     while [[ "$#" -gt 0 ]]; do
@@ -843,6 +849,10 @@ prepare_ansible_run() {
         esac
     done
 
+    if [[ -f ".spin-inventory.ini" ]]; then
+        SPIN_INVENTORY_FILE="/ansible/.spin-inventory.ini"
+    fi
+
     # Create the collections directory if it doesn't exist
     if [[ ! -d "$SPIN_ANSIBLE_COLLECTIONS_PATH" ]]; then
         mkdir -p "$SPIN_ANSIBLE_COLLECTIONS_PATH"
@@ -859,17 +869,6 @@ prepare_ansible_run() {
         "$SPIN_ANSIBLE_IMAGE" \
         ansible-galaxy collection install "${SPIN_ANSIBLE_COLLECTION_NAME}" --force
       save_current_time_to_cache_file ".spin-ansible-collection-pull"
-    fi
-
-    # Set remote Ansible user
-    SPIN_ANSIBLE_ARGS+=("--extra-vars" "spin_remote_user=$SPIN_REMOTE_USER")
-    
-    # Set the --ask-become-pass flag if passwordless sudo is not enabled
-    local use_passwordless_sudo
-    use_passwordless_sudo=$(get_ansible_variable "use_passwordless_sudo")
-    use_passwordless_sudo=${use_passwordless_sudo:-"true"}
-    if [ "$SPIN_REMOTE_USER" != "root" ] && [ "$use_passwordless_sudo" = 'false' ]; then
-        SPIN_ANSIBLE_ARGS+=("--ask-become-pass")
     fi
 
     # Append vault args to additional ansible args
@@ -1094,6 +1093,7 @@ run_ansible() {
   local allow_ssh=false
   local minimal_output=false
   local set_env=false
+  local debug=${SPIN_DEBUG:-false}
   SPIN_FORCE_INSTALL_GALAXY_DEPS=${SPIN_FORCE_INSTALL_GALAXY_DEPS:-false}
 
   # List of environment variables that can be forwarded to Ansible container
@@ -1133,7 +1133,7 @@ run_ansible() {
         shift 2
         ;;
       *)
-        args_without_options+=("$1")
+        ansible_args+=("$1")
         shift
         ;;
     esac
@@ -1141,6 +1141,17 @@ run_ansible() {
 
   if [[ "$allow_ssh" == true ]]; then
     additional_docker_args+=("-v" "$HOME/.ssh/:/ssh/:ro" "-v" "$HOME/.ssh/known_hosts:/ssh/known_hosts:rw")
+
+    # Set remote Ansible user
+    ansible_args+=("--extra-vars" "spin_remote_user=$SPIN_REMOTE_USER")
+
+    # Check if we need to ask for sudo password
+    local use_passwordless_sudo
+    use_passwordless_sudo=$(get_ansible_variable "use_passwordless_sudo")
+    use_passwordless_sudo=${use_passwordless_sudo:-"true"}
+    if [ "$SPIN_REMOTE_USER" != "root" ] && [ "$use_passwordless_sudo" = 'false' ]; then
+        ansible_args+=("--ask-become-pass")
+    fi
 
     # Mount the SSH Agent for macOS and Linux (including WSL2) systems
     if [ -n "$SSH_AUTH_SOCK" ]; then
@@ -1187,13 +1198,17 @@ run_ansible() {
     additional_docker_args+=("-v" "$SPIN_ANSIBLE_COLLECTIONS_PATH:/etc/ansible/collections")
   fi
 
+  if [[ "$debug" == true ]]; then
+    ansible_args+=("-vvvv")
+  fi
+
   docker run --rm -it \
     -e "PUID=${SPIN_USER_ID}" \
     -e "PGID=${SPIN_GROUP_ID}" \
     -e "RUN_AS_USER=$(whoami)" \
     "${additional_docker_args[@]}" \
     "$SPIN_ANSIBLE_IMAGE" \
-    "${args_without_options[@]}"
+    "${ansible_args[@]}"
 }
 
 run_gh() {
@@ -1367,4 +1382,37 @@ update_last_pull_timestamp() {
 
     # Replace the original .spin-last-pull file with the updated temporary file
     mv "$file.tmp" "$file"
+}
+
+validate_project_setup() {
+
+  # Validate infrastructure folder is present
+  if [ ! -d ".infrastructure" ]; then
+      echo "${BOLD}${RED}❌ Infrastructure folder not found${RESET}"
+      echo "Please ensure you're in the root of your project."
+      return 1
+  fi
+
+  if [ ! -f ".spin.yml" ]; then
+    echo "${BOLD}${RED}❌ .spin.yml not found${RESET}"
+    echo "Please ensure you're in the root of your project and a .spin.yml file exists."
+    return 1
+  fi
+
+  if is_encrypted_with_ansible_vault ".spin.yml" && \
+    [ ! -f ".vault-password" ]; then
+        echo "${BOLD}${RED}❌Error: .spin.yml is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}"
+        echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}"
+        return 1
+  fi
+
+  # Create ci folder if it doesn't exist
+  if [ ! -d "$SPIN_CI_FOLDER" ] || [ ! -f "$SPIN_CI_FOLDER/.gitignore" ]; then
+    echo "${BOLD}${YELLOW}⚠️ Warning: The CI folder is missing, we will create this for you.${RESET}"
+    mkdir -p "$SPIN_CI_FOLDER"
+    echo "*" > "$SPIN_CI_FOLDER/.gitignore"
+    echo "!.gitignore" >> "$SPIN_CI_FOLDER/.gitignore"
+  fi
+
+  return 0
 }

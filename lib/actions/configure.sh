@@ -179,38 +179,6 @@ repository_exists() {
   git rev-parse --is-inside-work-tree >/dev/null 2>&1
 }
 
-validate_project_setup() {
-
-  # Validate infrastructure folder is present
-  if [ ! -d ".infrastructure" ]; then
-      echo "${BOLD}${RED}❌ Infrastructure folder not found${RESET}"
-      echo "Please ensure you're in the root of your project."
-      return 1
-  fi
-
-  if [ ! -f ".spin.yml" ]; then
-    echo "${BOLD}${RED}❌ .spin.yml not found${RESET}"
-    echo "Please ensure you're in the root of your project and a .spin.yml file exists."
-    return 1
-  fi
-
-  if is_encrypted_with_ansible_vault ".spin.yml" && \
-    [ ! -f ".vault-password" ]; then
-        echo "${BOLD}${RED}❌Error: .spin.yml is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}"
-        echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}"
-        return 1
-  fi
-
-  # Create ci folder if it doesn't exist
-  if [ ! -d "$SPIN_CI_FOLDER" ] || [ ! -f "$SPIN_CI_FOLDER/.gitignore" ]; then
-    mkdir -p "$SPIN_CI_FOLDER"
-    echo "*" > "$SPIN_CI_FOLDER/.gitignore"
-    echo "!.gitignore" >> "$SPIN_CI_FOLDER/.gitignore"
-  fi
-
-  return 0
-}
-
 validate_environment_file() {
   local gha_environment="$1"
   local env_file=".env.$gha_environment"
