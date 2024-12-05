@@ -7,6 +7,7 @@ action_provision(){
         exit 1
     fi
     
+    echo "Preparing Ansible run..." >&2
     prepare_ansible_run "$@"
     run_ansible --set-env --allow-ssh --mount-path "$(pwd):/ansible" \
         ansible-playbook serversideup.spin.provision \

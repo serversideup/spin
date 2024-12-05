@@ -275,7 +275,8 @@ download_spin_template_repository() {
     case "$template" in
       laravel)
         template_type=official
-        TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-basic"
+        TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-pro"
+        branch="${branch:-"onboarding-optimization"}"
         ;;
       laravel-pro)
         template_type=official
@@ -469,10 +470,28 @@ get_ansible_variable(){
     trace_enabled=1
   fi
 
-  # Run ansible command and capture output
-  raw_output=$(run_ansible --minimal-output \
-    ansible-playbook serversideup.spin.get_variable \
+  # Get vault args if needed
+  local vault_args=()
+  IFS=' ' read -r -a vault_args < <(set_ansible_vault_args)
+
+  echo "Gathering environment information..." >&2
+
+  # Run ansible command directly with docker
+  raw_output=$(docker run --rm -i \
+    -e "PUID=${SPIN_USER_ID}" \
+    -e "PGID=${SPIN_GROUP_ID}" \
+    -e "RUN_AS_USER=$(whoami)" \
+    -e "ANSIBLE_STDOUT_CALLBACK=minimal" \
+    -e "ANSIBLE_DISPLAY_SKIPPED_HOSTS=false" \
+    -e "ANSIBLE_DISPLAY_OK_HOSTS=false" \
+    -v "$SPIN_ANSIBLE_COLLECTIONS_PATH:/etc/ansible/collections" \
+    -v "$(pwd):/ansible" \
+    -w /ansible \
+    "$SPIN_ANSIBLE_IMAGE" \
+    ansible-playbook \
+    serversideup.spin.get_variable \
     --inventory "$SPIN_INVENTORY_FILE" \
+    "${vault_args[@]}" \
     --extra-vars @./.spin.yml \
     --extra-vars "variable_name=$variable_name" 2>&1) || {
       echo "${BOLD}${RED}❌ Failed to get ansible variable: $variable_name${RESET}" >&2
@@ -1089,16 +1108,14 @@ prompt_to_encrypt_files(){
 
 run_ansible() {
   local additional_docker_args=()
+  local ansible_args=()
   local args_without_options=()
   local allow_ssh=false
   local minimal_output=false
   local set_env=false
   local debug=${SPIN_DEBUG:-false}
   SPIN_FORCE_INSTALL_GALAXY_DEPS=${SPIN_FORCE_INSTALL_GALAXY_DEPS:-false}
-
   # List of environment variables that can be forwarded to Ansible container
-  # Only add variables that are required for cloud provider authentication
-  # Format: PROVIDER_TOKEN_NAME
   local env_vars_to_forward=(
     "HCLOUD_TOKEN"
     "DO_API_TOKEN"
@@ -1312,10 +1329,22 @@ send_to_upgrade_script () {
 
 set_ansible_vault_args() {
   local vault_args=()
+  local variable_file=".spin.yml"
 
   if [[ -f .vault-password ]]; then
+    # Validate the vault password file using Docker
+    if ! docker run --rm -i \
+      -e "PUID=${SPIN_USER_ID}" \
+      -e "PGID=${SPIN_GROUP_ID}" \
+      -e "RUN_AS_USER=$(whoami)" \
+      -v "$(pwd):/ansible" \
+      "$SPIN_ANSIBLE_IMAGE" \
+      ansible-vault view --vault-password-file=".vault-password" "$variable_file" >/dev/null 2>&1; then
+      echo "${BOLD}${RED}❌ Invalid vault password provided for file .vault-password${RESET}" >&2
+      exit 1
+    fi
     vault_args+=("--vault-password-file" ".vault-password")
-  elif is_encrypted_with_ansible_vault ".spin.yml" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
+  elif is_encrypted_with_ansible_vault "$variable_file" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
     echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}" >&2
     vault_args+=("--ask-vault-pass")
   fi
