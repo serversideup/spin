@@ -3,6 +3,7 @@ head.title: 'vault | Command Reference - Spin by Server Side Up'
 title: 'vault'
 description: 'Command reference for "spin vault"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/vault
 ---
 # spin vault
 ::lead-p

@@ -3,6 +3,7 @@ head.title: 'deploy | Command Reference - Spin by Server Side Up'
 title: 'deploy'
 description: 'Command reference for "spin deploy"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/deploy
 ---
 # spin deploy
 ::lead-p

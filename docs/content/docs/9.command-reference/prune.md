@@ -3,6 +3,7 @@ head.title: 'prune | Command Reference - Spin by Server Side Up'
 title: 'prune'
 description: 'Command reference for "spin prune"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/prune
 ---
 # spin prune
 ::lead-p

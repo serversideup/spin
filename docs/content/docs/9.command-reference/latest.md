@@ -3,6 +3,7 @@ head.title: 'latest | Command Reference - Spin by Server Side Up'
 title: 'latest'
 description: 'Command reference for "spin latest"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/latest
 ---
 # spin latest
 ::lead-p

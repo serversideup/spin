@@ -3,6 +3,7 @@ head.title: 'base64 | Command Reference - Spin by Server Side Up'
 title: 'base64'
 description: 'Command reference for "spin base64"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/base64
 ---
 # spin base64
 ::lead-p

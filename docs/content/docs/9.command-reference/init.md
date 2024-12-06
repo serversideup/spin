@@ -3,6 +3,7 @@ head.title: 'init | Command Reference - Spin by Server Side Up'
 title: 'init'
 description: 'Command reference for "spin init"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/init
 ---
 
 # spin init

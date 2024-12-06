@@ -3,6 +3,7 @@ head.title: 'provision | Command Reference - Spin by Server Side Up'
 title: 'provision'
 description: 'Command reference for "spin provision"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/provision
 ---
 # spin provision
 ::lead-p

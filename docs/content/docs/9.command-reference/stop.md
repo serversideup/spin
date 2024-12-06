@@ -3,6 +3,7 @@ head.title: 'Stop | Command Reference - Spin by Server Side Up'
 title: 'stop'
 description: 'Command reference for "spin stop"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/stop
 ---
 # spin stop
 ::lead-p

@@ -3,6 +3,7 @@ head.title: 'up | Command Reference - Spin by Server Side Up'
 title: 'up'
 description: 'Command reference for "spin up"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/up
 ---
 # spin up
 ::lead-p

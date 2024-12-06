@@ -3,6 +3,7 @@ head.title: 'update | Command Reference - Spin by Server Side Up'
 title: 'update'
 description: 'Command reference for "spin update"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/update
 ---
 # spin update
 ::lead-p

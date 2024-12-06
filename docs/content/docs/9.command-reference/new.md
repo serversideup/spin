@@ -3,6 +3,7 @@ head.title: 'new | Command Reference - Spin by Server Side Up'
 title: 'new'
 description: 'Command reference for "spin new"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/new
 ---
 # spin new
 ::lead-p

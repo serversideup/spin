@@ -3,6 +3,7 @@ head.title: 'debug | Command Reference - Spin by Server Side Up'
 title: 'debug'
 description: 'Command reference for "spin debug"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/debug
 ---
 # spin debug
 ::lead-p

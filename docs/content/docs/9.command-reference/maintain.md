@@ -3,6 +3,7 @@ head.title: 'maintain | Command Reference - Spin by Server Side Up'
 title: 'maintain'
 description: 'Command reference for "spin maintain"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/maintain
 ---
 # spin maintain
 ::lead-p

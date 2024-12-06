@@ -3,6 +3,7 @@ head.title: 'exec | Command Reference - Spin by Server Side Up'
 title: 'exec'
 description: 'Command reference for "spin exec"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/exec
 ---
 # spin exec
 ::lead-p

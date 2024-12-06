@@ -3,6 +3,7 @@ head.title: 'ps | Command Reference - Spin by Server Side Up'
 title: 'ps'
 description: 'Command reference for "spin ps"'
 layout: docs
+canonical: https://serversideup.net/open-source/spin/docs/command-reference/ps
 ---
 # spin ps
 ::lead-p
