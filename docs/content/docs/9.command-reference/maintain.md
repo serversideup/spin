@@ -15,7 +15,7 @@ Apply updates to your inventory of servers.
 label: Usage for "spin maintain"
 ---
 ```bash
-spin maintain [ -p|--port <port> -u|--user <user> -U|--upgrade ]
+spin maintain [environment] [ -p|--port <port> -u|--user <user> -U|--upgrade ]
 ```
 ::
 
@@ -29,6 +29,7 @@ Before you execute this command, you should have the following completed:
 The following options are available to set when running this command.
 | Option | Short | Default | Description |
 | --- | --- | --- | --- |
+| `environment` | - | `all` | Optional. The target environment to maintain (e.g., `production`, `staging`). |
 | `--host` | `-h` | <none> | The hostname or group of hosts you'd like to apply updates to. |
 | `--port` | `-p` | `22` | The port to SSH into the server with. |
 | `--user` | `-u` | The username of your HOST machine (run `whoami` in a new terminal) | The user to SSH into the server with. |

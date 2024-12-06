@@ -15,7 +15,7 @@ Provision and set up your inventory of servers. Before running this command, mak
 label: Usage for "spin provision"
 ---
 ```bash
-spin provision [ -p|--port <port> -u|--user <user> -U|--upgrade ]
+spin provision [environment] [ -p|--port <port> -u|--user <user> -U|--upgrade ]
 ```
 ::
 
@@ -49,6 +49,7 @@ You can learn more [how servers work with Spin](/docs/server-configuration/spin-
 The following options are available to set when running this command.
 | Option | Short | Default | Description |
 | --- | --- | --- | --- |
+| `environment` | - | `all` | Optional. The target environment to provision (e.g., `production`, `staging`). |
 | `--host` | `-h` | <none> | The hostname or group of hosts you'd like to provision. |
 | `--port` | `-p` | `22` | The port to SSH into the server with. |
 | `--user` | `-u` | The username of your HOST machine (run `whoami` in a new terminal) | The user to SSH into the server with. |
