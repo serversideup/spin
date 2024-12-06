@@ -1415,6 +1415,8 @@ update_last_pull_timestamp() {
 
 validate_project_setup() {
 
+  validate_spin_yml
+
   # Validate infrastructure folder is present
   if [ ! -d ".infrastructure" ]; then
       echo "${BOLD}${RED}❌ Infrastructure folder not found${RESET}"
@@ -1422,6 +1424,18 @@ validate_project_setup() {
       return 1
   fi
 
+  # Create ci folder if it doesn't exist
+  if [ ! -d "$SPIN_CI_FOLDER" ] || [ ! -f "$SPIN_CI_FOLDER/.gitignore" ]; then
+    echo "${BOLD}${YELLOW}⚠️ Warning: The CI folder is missing, we will create this for you.${RESET}"
+    mkdir -p "$SPIN_CI_FOLDER"
+    echo "*" > "$SPIN_CI_FOLDER/.gitignore"
+    echo "!.gitignore" >> "$SPIN_CI_FOLDER/.gitignore"
+  fi
+
+  return 0
+}
+
+validate_spin_yml() {
   if [ ! -f ".spin.yml" ]; then
     echo "${BOLD}${RED}❌ .spin.yml not found${RESET}"
     echo "Please ensure you're in the root of your project and a .spin.yml file exists."
@@ -1433,14 +1447,6 @@ validate_project_setup() {
         echo "${BOLD}${RED}❌Error: .spin.yml is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}"
         echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}"
         return 1
-  fi
-
-  # Create ci folder if it doesn't exist
-  if [ ! -d "$SPIN_CI_FOLDER" ] || [ ! -f "$SPIN_CI_FOLDER/.gitignore" ]; then
-    echo "${BOLD}${YELLOW}⚠️ Warning: The CI folder is missing, we will create this for you.${RESET}"
-    mkdir -p "$SPIN_CI_FOLDER"
-    echo "*" > "$SPIN_CI_FOLDER/.gitignore"
-    echo "!.gitignore" >> "$SPIN_CI_FOLDER/.gitignore"
   fi
 
   return 0
