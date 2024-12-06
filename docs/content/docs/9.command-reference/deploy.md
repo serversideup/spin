@@ -22,7 +22,7 @@ spin deploy [ -c|--compose-file <compose-file> -p|--port <port> -u|--user <user>
 ## Before getting started
 Be sure you have "provisioned" your server before running this command. If you haven't, you can do so by running `spin provision` before running `spin deploy`.
 
-[Learn how to prepare a server →](/docs/getting-started/preparing-your-servers-for-spin)
+[Learn how to prepare a server →](/docs/server-configuration/server-configuration-basics)
 
 ## Example Deployment Command
 To deploy your application to the production environment, you can use the following command:

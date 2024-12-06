@@ -55,4 +55,4 @@ The following options are available to set when running this command.
 | `--upgrade` | `-U` | Check for Ansible collection updates once per day. | Force upgrade the Ansible Collection on your machine before provisioning. |
 
 ## Learn More
-[Configuring your servers for "spin provision" →](/docs/getting-started/preparing-your-servers-for-spin)
+[Configuring your servers for "spin provision" →](/docs/server-configuration/server-configuration-basics)
