@@ -188,11 +188,11 @@ get_install_version() {
     return 0
   fi
   if [ "$TRACK" = "beta" ]; then
-    # Get only the pre-release
+    # Get the latest release (including pre-releases). We just want the 
+    # absolute latest release, regardless of pre-release or stable
     curl --silent \
       -H "Accept: application/vnd.github.v3+json" \
       "https://api.github.com/repos/serversideup/spin/releases" | \
-    grep -B2 '"prerelease": true' | \
     grep '"tag_name":' | \
     sed -E 's/.*"([^"]+)".*/\1/' | \
     head -n 1
@@ -212,7 +212,7 @@ set_configuration_file() {
 }
 
 save_last_update_check_time() {
-  date +"%s" > "$SPIN_CACHE_DIR/.spin-last-update"
+  "$(date +"%s")" > "$SPIN_CACHE_DIR/.spin-last-update"
 }
 
 setup_spin() {
