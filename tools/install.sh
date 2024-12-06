@@ -25,7 +25,7 @@
 #
 #
 # You can also pass some arguments to the install script to set some these options:
-#   --beta: use the latest pre-release
+#   --beta: use the latest release (regardless of pre-release or stable)
 # For example:
 #   bash install.sh --beta
 # or:
