@@ -184,7 +184,7 @@ command_exists() {
 
 get_install_version() {
   if [ ! -z "$BRANCH" ]; then
-    echo $BRANCH
+    echo "$BRANCH"
     return 0
   fi
   if [ "$TRACK" = "beta" ]; then
@@ -212,7 +212,7 @@ set_configuration_file() {
 }
 
 save_last_update_check_time() {
-  "$(date +"%s")" > "$SPIN_CACHE_DIR/.spin-last-update"
+  date +"%s" > "$SPIN_CACHE_DIR/.spin-last-update"
 }
 
 setup_spin() {
