@@ -212,7 +212,7 @@ set_configuration_file() {
 }
 
 save_last_update_check_time() {
-  "$(date +"%s")" > "$SPIN_CACHE_DIR/.spin-last-update"
+  date +"%s" > "$SPIN_CACHE_DIR/.spin-last-update"
 }
 
 setup_spin() {
