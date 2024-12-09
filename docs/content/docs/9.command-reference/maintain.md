@@ -11,6 +11,10 @@ Apply updates to your inventory of servers.
 ::
 
 ## Usage
+::note
+When you perform maintenance on your server, your server may experience brief downtime if it the updates require a reboot. Be sure to run this command during a communicated maintenance window.
+::
+
 ::code-panel
 ---
 label: Usage for "spin maintain"
@@ -19,6 +23,8 @@ label: Usage for "spin maintain"
 spin maintain [environment] [ -p|--port <port> -u|--user <user> -U|--upgrade ]
 ```
 ::
+
+![Spin Maintain Command](/images/docs/whats-spin/spin-maintain.png)
 
 ## Checklist before executing this command
 Before you execute this command, you should have the following completed:
