@@ -30,7 +30,15 @@ spin maintain [environment] [ -p|--port <port> -u|--user <user> -U|--upgrade ]
 Before you execute this command, you should have the following completed:
 
 - You should have a running **Ubuntu 22.04+ server** with properly configured SSH access
-- The `.spin.yml` file should be configured 
+- The `.spin.yml` file should be configured
+
+## What this command does
+The above command will:
+
+- Connect to your server(s)
+- Update the all operating system packages
+- Update Docker
+- Reboot the server (if needed)
 
 ## Options
 The following options are available to set when running this command.
