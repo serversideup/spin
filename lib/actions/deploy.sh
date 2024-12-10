@@ -211,7 +211,7 @@ action_deploy() {
         fi
 
         # Build and push each Dockerfile
-        for dockerfile in $dockerfiles; do
+        for dockerfile in "${dockerfiles[@]}"; do
             # Generate variable name based on Dockerfile name
             var_name=$(echo "$dockerfile" | tr '[:lower:].' '[:upper:]_')
             var_name="SPIN_IMAGE_${var_name}"
