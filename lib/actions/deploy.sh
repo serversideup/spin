@@ -99,12 +99,42 @@ action_deploy() {
     
     validate_project_setup
 
-    # Set deployment environment for first argument that doesn't start with a dash
-    for arg in "$@"; do
-        if [[ "$arg" != -* && -z "$deployment_environment" ]]; then
-            deployment_environment="$arg"
-            break
-        fi
+    # Process arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+        --user | -u)
+            ssh_user="$2"
+            shift 2
+            ;;
+        --compose-file | -c)
+            if [[ -n "$2" && "$2" != -* ]]; then
+                compose_files+=("$2")
+                shift 2
+            else
+                echo "${BOLD}${RED}❌Error: '-c' option requires a Docker Compose file as argument.${RESET}"
+                exit 1
+            fi
+            ;;
+        --port | -p)
+            ssh_port="$2"
+            shift 2
+            ;;
+        --upgrade|-U)
+            SPIN_FORCE_INSTALL_GALAXY_DEPS=true
+            shift
+            ;;
+        -*)
+            echo "${BOLD}${RED}❌Error: Unknown option $1${RESET}"
+            exit 1
+            ;;
+        *)
+            # Only set deployment_environment if it hasn't been set yet
+            if [[ -z "$deployment_environment" ]]; then
+                deployment_environment="$1"
+            fi
+            shift
+            ;;
+        esac
     done
 
     # If no environment specified, default to production
@@ -161,39 +191,6 @@ action_deploy() {
     ssh_port="${SPIN_SSH_PORT:-22}"
     ssh_user="${SPIN_SSH_USER:-"deploy"}"
     spin_project_name="${SPIN_PROJECT_NAME:-"spin"}"
-
-    # Process arguments
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-        --user | -u)
-            ssh_user="$2"
-            shift 2
-            ;;
-        --compose-file | -c)
-            if [[ -n "$2" && "$2" != -* ]]; then
-                compose_files+=("$2")
-                shift 2
-            else
-                echo "${BOLD}${RED}❌Error: '-c' option requires a Docker Compose file as argument.${RESET}"
-                exit 1
-            fi
-            ;;
-        --port | -p)
-            ssh_port="$2"
-            shift 2
-            ;;
-        --upgrade|-U)
-            SPIN_FORCE_INSTALL_GALAXY_DEPS=true
-            shift
-            ;;
-        *)
-            if [[ -z "$deployment_environment" ]]; then # capture the first positional argument as environment
-                deployment_environment="$1"
-            fi
-            shift
-            ;;
-        esac
-    done
 
     # Clean up services on exit
     trap cleanup_on_exit EXIT
