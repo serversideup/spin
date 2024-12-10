@@ -44,7 +44,7 @@ configure_gha() {
         fi
     fi
 
-    # Set and validate envioronment
+    # Set and validate environment
     gha_environment="$1"
     shift # Remove the first argument
     gha_environment_uppercase=$(echo "$gha_environment" | tr '[:lower:]' '[:upper:]')
