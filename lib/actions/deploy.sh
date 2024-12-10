@@ -195,9 +195,11 @@ action_deploy() {
     # Clean up services on exit
     trap cleanup_on_exit EXIT
 
-    # Check if any Dockerfiles exist
-    dockerfiles=$(ls Dockerfile* 2>/dev/null)
-    if [[ -n "$dockerfiles" ]]; then
+    # Check if any Dockerfiles exist (using safer glob handling)
+    shopt -s nullglob
+    dockerfiles=( Dockerfile* )
+    shopt -u nullglob
+    if [[ ${#dockerfiles[@]} -gt 0 ]]; then
         # Bring up a local docker registry
         if [ -z "$(docker ps -q -f name=$spin_registry_name)" ]; then
             # Ensure the registry cache directory exists with the correct user and group ID
@@ -228,6 +230,8 @@ action_deploy() {
                 exit 1
             fi
         done
+    else
+        echo "${BOLD}${YELLOW}🐳 No Dockerfiles found in the directory. Skipping Docker image build...${RESET}"
     fi
 
     # Get deployment host information
