@@ -1,5 +1,5 @@
 <template>
-    <nav>
+    <nav id="docs-navigation">
         <ul role="list">
             <li class="relative my-6">
                 <h2 class="text-xs font-semibold text-white">
@@ -39,12 +39,6 @@
                     'md:mt-0': groupIndex === 0
                 }"
             />
-
-            <li class="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
-                <AppLink :href="'#'" :variant="'filled'" class="w-full">
-                    Sign in
-                </AppLink>
-            </li>
         </ul>
     </nav>
 </template>
@@ -53,4 +47,13 @@
 const route = useRoute();
 
 const { navigation, toc } = useContent();
+
+onMounted(() => {
+    console.log(route.path);
+    const element = document.querySelector(`[data-attr-link-id="${route.path}"]`);
+    if (element) {
+        // Can we scroll to this element without using smooth?
+        element.scrollIntoView();
+    }
+})
 </script>
