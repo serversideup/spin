@@ -1302,7 +1302,7 @@ run_gh() {
     -e "PUID=${SPIN_USER_ID}" \
     -e "PGID=${SPIN_GROUP_ID}" \
     -e "RUN_AS_USER=$(whoami)" \
-    -v "$(pwd):/workdir" \
+    -v "$(pwd):/app" \
     -v "$HOME/.config/gh:/config/gh:rw" \
     "${additional_docker_args[@]}" \
     "$SPIN_GH_CLI_IMAGE" gh "${gh_command[@]}"
