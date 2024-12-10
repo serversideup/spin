@@ -239,11 +239,21 @@ action_deploy() {
       --extra-vars @./.spin.yml \
       --extra-vars "spin_environment=$deployment_environment" \
       --extra-vars "spin_ci_folder=$SPIN_CI_FOLDER" \
-      --tags "get-host" \
+      --tags "get-host,get-authorized-keys" \
       "${SPIN_ANSIBLE_ARGS[@]}" \
       "${SPIN_UNPROCESSED_ARGS[@]}"
 
     docker_swarm_manager=$(cat "$SPIN_CI_FOLDER/${deployment_environment_uppercase}_SSH_REMOTE_HOSTNAME")
+
+    # Read and export authorized keys
+    if [[ -f "$SPIN_CI_FOLDER/AUTHORIZED_KEYS" ]]; then
+        # Read the file content and escape newlines for Docker
+        AUTHORIZED_KEYS=$(awk 1 ORS='\\n' "$SPIN_CI_FOLDER/AUTHORIZED_KEYS" | sed 's/\\n$//')
+        export AUTHORIZED_KEYS
+        echo "${BOLD}${BLUE}🔑 Authorized keys loaded and exported as AUTHORIZED_KEYS${RESET}"
+    else
+        echo "${BOLD}${YELLOW}⚠️  Warning: No AUTHORIZED_KEYS file found in $SPIN_CI_FOLDER${RESET}"
+    fi
 
     if [ $? -ne 0 ] || [ -z "$docker_swarm_manager" ]; then
         echo "${BOLD}${RED}❌ Error: Failed to get a valid swarm manager host for group '$deployment_environment'.${RESET}" >&2
