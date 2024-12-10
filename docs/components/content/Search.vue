@@ -106,17 +106,19 @@ import DocsIcon from './DocsIcon.vue';
 import HeartIcon from './HeartIcon.vue';
 import GitHubIcon from './GitHubIcon.vue';
 
+import hotkeys from 'hotkeys-js';
+
 /**
  * CMD + K shortcut for activating the modal
  */
 const show = ref(false);
-const { meta, k } = useMagicKeys();
 
-watchEffect(() => {
-    if (meta.value && k.value) {
+if( import.meta.client ){   
+    hotkeys('ctrl+k,command+k', (event, handler) => {
         show.value = true;
-    }
-});
+        event.preventDefault();
+    });
+}
 
 /**
  * Event handler for opening the modal

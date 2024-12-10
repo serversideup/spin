@@ -24,6 +24,7 @@
     "surge": "^0.23.1"
   },
   "dependencies": {
-    "@heroicons/vue": "^2.1.1"
+    "@heroicons/vue": "^2.1.1",
+    "hotkeys-js": "^3.13.7"
   }
 }
