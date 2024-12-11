@@ -191,6 +191,7 @@ action_deploy() {
     ssh_port="${SPIN_SSH_PORT:-22}"
     ssh_user="${SPIN_SSH_USER:-"deploy"}"
     spin_project_name="${SPIN_PROJECT_NAME:-"spin"}"
+    registry_image="${SPIN_REGISTRY_IMAGE:-"registry:2"}"
 
     # Clean up services on exit
     trap cleanup_on_exit EXIT
@@ -207,7 +208,7 @@ action_deploy() {
 
             # Start the registry with the correct user and group ID
             echo "${BOLD}${BLUE}🚀 Starting local Docker registry...${RESET}"
-            docker run --rm -d -p "$registry_port:5000" --user "${SPIN_USER_ID}:${SPIN_GROUP_ID}" -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name $spin_registry_name registry:2
+            docker run --rm -d -p "$registry_port:5000" --user "${SPIN_USER_ID}:${SPIN_GROUP_ID}" -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name $spin_registry_name "$registry_image"
         fi
 
         # Build and push each Dockerfile
