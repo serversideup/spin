@@ -7,7 +7,7 @@ canonical: https://serversideup.net/open-source/spin/docs/command-reference/up
 ---
 # spin up
 ::lead-p
-Bring up all containers defined in `docker-compose.yml` and `docker-compose.$SPIN_ENV.yml` (`$SPIN_ENV` defaults to `dev`).
+Bring up all containers defined in `compose.yaml` and `compose.$SPIN_ENV.yaml` (`$SPIN_ENV` defaults to `dev`).
 ::
 
 ## Usage
@@ -33,7 +33,7 @@ spin up --build
 ```
 ::
 
-You can add options at the end of the command (like the `--build` shown above. The above command will bring up your containers, but then also force a new build (if you have builds configured in your "docker-compose.dev.yml" file).
+You can add options at the end of the command (like the `--build` shown above. The above command will bring up your containers, but then also force a new build (if you have builds configured in your "compose.dev.yaml" file).
 
 ## Defaults
 The `spin up` command defaults to running:
@@ -42,7 +42,7 @@ The `spin up` command defaults to running:
 label: Command default
 ---
 ```bash
-COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml docker compose up
+COMPOSE_FILE=compose.yaml:compose.dev.yaml docker compose up
 ```
 ::
 
@@ -57,7 +57,7 @@ This command is a shortcut for [`docker compose up`](https://docs.docker.com/com
 
 
 ## Special notes
-* Make sure to have a `docker-compose.yml` and **by default** a `docker-compose.dev.yml` in your project before running
+* Make sure to have a `compose.yaml` and **by default** a `compose.dev.yaml` in your project before running
 * Spin will automatically pull image updates (only if the machine is connected to the Internet)
 * Spin will remove any orphan containers
 
@@ -69,16 +69,16 @@ label: Example project root
 ---
 ```
 .
-├── docker-compose.ci.yml
-├── docker-compose.production.yml
-├── docker-compose.staging.yml
-├── docker-compose.testing.yml
-└── docker-compose.yml
+├── compose.ci.yaml
+├── compose.production.yaml
+├── compose.staging.yaml
+├── compose.testing.yaml
+└── compose.yaml
 ```
 ::
 
 
-By default, Spin uses `docker-compose.yml` and `docker-compose.dev.yml`.
+By default, Spin uses `compose.yaml` and `compose.dev.yaml`.
 
 If you want to change that, you just need to set `$SPIN_ENV`:
 ::code-panel
@@ -98,6 +98,6 @@ This will essentially run:
 label: Above command will execute this below
 ---
 ```bash
-COMPOSE_FILE=docker-compose.yml:docker-compose.testing.yml docker compose up
+COMPOSE_FILE=compose.yaml:compose.testing.yaml docker compose up
 ```
 ::

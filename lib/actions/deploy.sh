@@ -34,12 +34,32 @@ deploy_docker_stack() {
 
     # Set default compose files if none were provided
     if [[ ${#compose_files[@]} -eq 0 ]]; then
-        compose_files=("docker-compose.yml" "docker-compose.prod.yml")
+        # Check for compose.yaml first, then docker-compose.yml
+        if [[ -f "compose.yaml" ]]; then
+            compose_files+=("compose.yaml")
+        elif [[ -f "docker-compose.yml" ]]; then
+            compose_files+=("docker-compose.yml")
+        else
+            echo "${BOLD}${RED}❌Error: Neither compose.yaml nor docker-compose.yml found in the current directory.${RESET}"
+            exit 1
+        fi
+
+        # Check for production override files
+        if [[ -f "compose.prod.yaml" ]]; then
+            compose_files+=("compose.prod.yaml")
+        elif [[ -f "docker-compose.prod.yml" ]]; then
+            compose_files+=("docker-compose.prod.yml")
+        fi
     fi
 
     # Build the compose arguments
     for compose_file in "${compose_files[@]}"; do
         if [[ -n "$compose_file" ]]; then
+            # Check if the file exists
+            if [[ ! -f "$compose_file" ]]; then
+                echo "${BOLD}${RED}❌Error: Compose file '$compose_file' not found.${RESET}"
+                exit 1
+            fi
             # Compute MD5 hashes if necessary
             generate_md5_hashes "$compose_file"
             compose_args+=("--compose-file" "$compose_file")

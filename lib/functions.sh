@@ -86,39 +86,56 @@ check_if_compose_files_exist() {
     read -ra files <<< "$compose_files"
 
     # Flags to track if default and env-specific files are missing
-    local default_missing=false
+    local default_missing=true
     local env_missing_file=""
+
+    # First, check if any default compose file exists
+    if [[ -f "compose.yaml" ]]; then
+        default_missing=false
+        default_file="compose.yaml"
+    elif [[ -f "docker-compose.yml" ]]; then
+        default_missing=false
+        default_file="docker-compose.yml"
+    fi
 
     # Iterate through each file and check for its existence
     for file in "${files[@]}"; do
         if [[ ! -f "$file" ]]; then
-            if [[ "$file" == "docker-compose.yml" ]]; then
-                default_missing=true
-            else
-                env_missing_file="$file"
+            # Skip the default files as we've already checked them
+            if [[ "$file" != "compose.yaml" && "$file" != "docker-compose.yml" ]]; then
+                # For environment files, check both yaml and yml versions
+                local base_name="${file%.*}"
+                if [[ -f "${base_name}.yaml" ]]; then
+                    continue
+                elif [[ -f "${base_name}.yml" ]]; then
+                    continue
+                else
+                    env_missing_file="$file"
+                fi
             fi
         fi
     done
 
     # Handle the missing file scenarios
     if $default_missing && [[ -n "$env_missing_file" ]]; then
-        printf '%s\n' "${BOLD}${YELLOW}[spin] 🛑 Missing files: docker-compose.yml and $env_missing_file!${RESET}"
+        printf '%s\n' "${BOLD}${YELLOW}[spin] 🛑 Missing files: compose.yaml and $env_missing_file!${RESET}"
         echo "👉 Be sure you're running 'spin' from your project root."
         exit 1
     elif [[ -n "$env_missing_file" ]]; then
-        printf '%s\n' "${BOLD}${YELLOW}[spin] ⚠️ $env_missing_file is missing, but a docker-compose.yml file exists.${RESET}"
-        printf "Do you want to proceed using just docker-compose.yml? (y/n) "
+        base_name="${env_missing_file%.*}"
+        printf '%s\n' "${BOLD}${YELLOW}[spin] ⚠️ Neither ${base_name}.yaml nor ${base_name}.yml is found, but $default_file exists.${RESET}"
+        printf "Do you want to proceed using just $default_file? (y/n) "
         # Read a single character as input
         read -n 1 decision
         echo  # Move to a new line for clarity
         if [[ "$decision" != "y" && "$decision" != "Y" ]]; then
-            echo "🛑 $env_missing_file doesn't exist. Set a different environment with \"SPIN_ENV\"."
+            echo "🛑 Environment-specific compose file doesn't exist. Set a different environment with \"SPIN_ENV\"."
             exit 1
         else
-            export COMPOSE_FILE="docker-compose.yml"
+            export COMPOSE_FILE="$default_file"
         fi
     elif $default_missing; then
-        printf '%s\n' "${BOLD}${YELLOW}[spin] 🛑 Missing file: docker-compose.yml!${RESET}"
+        printf '%s\n' "${BOLD}${YELLOW}[spin] 🛑 Missing file: Neither compose.yaml nor docker-compose.yml found!${RESET}"
         echo "👉 Be sure you're running 'spin' from your project root."
         exit 1
     fi
@@ -405,12 +422,24 @@ export_compose_file_variable(){
   # Convert the SPIN_ENV variable into an array of environments
   IFS=',' read -ra ENV_ARRAY <<< "$SPIN_ENV"
 
-  # Initialize the COMPOSE_FILE variable
-  COMPOSE_FILE="docker-compose.yml"
+  # Initialize the COMPOSE_FILE variable with the first available default file
+  if [[ -f "compose.yaml" ]]; then
+      COMPOSE_FILE="compose.yaml"
+  else
+      COMPOSE_FILE="docker-compose.yml"
+  fi
 
   # Loop over each environment and append the corresponding compose file
   for env in "${ENV_ARRAY[@]}"; do
-    COMPOSE_FILE="$COMPOSE_FILE:docker-compose.$env.yml"
+      # Check for .yaml first, then .yml
+      if [[ -f "compose.$env.yaml" ]]; then
+          COMPOSE_FILE="$COMPOSE_FILE:compose.$env.yaml"
+      elif [[ -f "docker-compose.$env.yml" ]]; then
+          COMPOSE_FILE="$COMPOSE_FILE:docker-compose.$env.yml"
+      else
+          # If neither exists, default to the new format
+          COMPOSE_FILE="$COMPOSE_FILE:compose.$env.yaml"
+      fi
   done
 
   # Export the COMPOSE_FILE variable
@@ -418,7 +447,7 @@ export_compose_file_variable(){
 
   # Check if 'set -x' is enabled
   if [[ $- == *x* ]]; then
-      # If 'set -x' is enabled, echo the COMPOSE_FILE variable
+      # If 'set -x' is enabled, echo the variables
       echo "SPIN_ENV: $SPIN_ENV"
       echo "COMPOSE_FILE: $COMPOSE_FILE"
   fi

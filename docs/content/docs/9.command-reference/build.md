@@ -7,7 +7,7 @@ canonical: https://serversideup.net/open-source/spin/docs/command-reference/buil
 ---
 # spin build
 ::lead-p
-Trigger a build of your docker-compose files.
+Trigger a build of your compose files.
 ::
 
 ## Usage
@@ -20,4 +20,4 @@ spin build [OPTIONS]
 ```
 ::
 ## Official Documentation & Additional Options
-This command is a shortcut for [`docker-compose build`](https://docs.docker.com/compose/reference/build/) and can accept additional options that you pass to it.
+This command is a shortcut for [`docker compose build`](https://docs.docker.com/compose/reference/build/) and can accept additional options that you pass to it.
