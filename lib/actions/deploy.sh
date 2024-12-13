@@ -51,6 +51,14 @@ deploy_docker_stack() {
     docker -H "$docker_host" stack deploy "${compose_args[@]}" --detach=false --prune "$spin_project_name-$deployment_environment"
     if [ $? -eq 0 ]; then
         echo "${BOLD}${BLUE}🎉 Successfully deployed Docker stack on $manager_host.${RESET}"
+        
+        # Clean up unused images
+        echo "${BOLD}${BLUE}🧹 Cleaning up unused Docker images on $manager_host...${RESET}"
+        if docker -H "$docker_host" image prune -f; then
+            echo "${BOLD}${BLUE}✨ Successfully cleaned up unused Docker images.${RESET}"
+        else
+            echo "${BOLD}${YELLOW}⚠️ Warning: Failed to clean up unused Docker images.${RESET}"
+        fi
     else
         echo "${BOLD}${RED}❌ Failed to deploy Docker stack on $manager_host.${RESET}"
         exit 1
@@ -187,7 +195,7 @@ action_deploy() {
     registry_port="${SPIN_REGISTRY_PORT:-5080}"
     build_platform="${SPIN_BUILD_PLATFORM:-"linux/amd64"}"
     image_prefix="${SPIN_BUILD_IMAGE_PREFIX:-"localhost:$registry_port"}"
-    image_tag="${SPIN_BUILD_TAG:-"latest"}"
+    image_tag="${SPIN_BUILD_TAG:-$(date +%Y%m%d%H%M%S)}"
     ssh_port="${SPIN_SSH_PORT:-22}"
     ssh_user="${SPIN_SSH_USER:-"deploy"}"
     spin_project_name="${SPIN_PROJECT_NAME:-"spin"}"
@@ -208,26 +216,32 @@ action_deploy() {
 
             # Start the registry with the correct user and group ID
             echo "${BOLD}${BLUE}🚀 Starting local Docker registry...${RESET}"
-            docker run --rm -d -p "$registry_port:5000" --user "${SPIN_USER_ID}:${SPIN_GROUP_ID}" -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name $spin_registry_name "$registry_image"
+            docker run --rm -d -p "$registry_port:5000" --user "${SPIN_USER_ID}:${SPIN_GROUP_ID}" -v "$SPIN_CACHE_DIR/registry:/var/lib/registry" --name "$spin_registry_name" "$registry_image"
         fi
 
         # Build and push each Dockerfile
         for dockerfile in "${dockerfiles[@]}"; do
             # Generate variable name based on Dockerfile name
-            var_name=$(echo "$dockerfile" | tr '[:lower:].' '[:upper:]_')
-            var_name="SPIN_IMAGE_${var_name}"
+            spin_image_var_name=$(echo "$dockerfile" | tr '[:lower:].' '[:upper:]_')
+            spin_image_var_name="SPIN_IMAGE_${spin_image_var_name}"
 
             # Set and export image name
-            image_name="${image_prefix}/$(echo "$dockerfile" | tr '[:upper:]' '[:lower:]'):${image_tag}"
-            export "$var_name=$image_name"
+            full_docker_image_name="${image_prefix}/$(echo "$dockerfile" | tr '[:upper:]' '[:lower:]')"
+            versioned_image="${full_docker_image_name}:${image_tag}"
+            latest_image="${full_docker_image_name}:latest"
+            
+            # Export the versioned image name for other scripts to use
+            export "$spin_image_var_name=$versioned_image"
 
-            # Build the Docker image
-            echo "${BOLD}${BLUE}🐳 Building Docker image '$image_name' from '$dockerfile'...${RESET}"
-            docker buildx build --push --platform "$build_platform" -t "$image_name" -f "$dockerfile" .
-            if [ $? -eq 0 ]; then
-                echo "${BOLD}${BLUE}📦 Successfully built '$image_name' from '$dockerfile'...${RESET}"
+            # Build and tag the Docker image with both tags
+            echo "${BOLD}${BLUE}🐳 Building Docker image '$versioned_image' from '$dockerfile'...${RESET}"
+            if docker buildx build --push --platform "$build_platform" \
+                -t "$versioned_image" \
+                -t "$latest_image" \
+                -f "$dockerfile" .; then
+                echo "${BOLD}${BLUE}📦 Successfully built '$versioned_image' from '$dockerfile'...${RESET}"
             else
-                echo "${BOLD}${RED}❌ Failed to build '$image_name' from '$dockerfile'.${RESET}"
+                echo "${BOLD}${RED}❌ Failed to build '$versioned_image' from '$dockerfile'.${RESET}"
                 exit 1
             fi
         done
@@ -255,7 +269,7 @@ action_deploy() {
         # Read the file content and escape newlines for Docker
         AUTHORIZED_KEYS=$(awk 1 ORS='\\n' "$SPIN_CI_FOLDER/AUTHORIZED_KEYS" | sed 's/\\n$//')
         export AUTHORIZED_KEYS
-        echo "${BOLD}${BLUE}🔑 Authorized keys loaded and exported as AUTHORIZED_KEYS${RESET}"
+        echo "${BOLD}${BLUE} Authorized keys loaded and exported as AUTHORIZED_KEYS${RESET}"
     else
         echo "${BOLD}${YELLOW}⚠️  Warning: No AUTHORIZED_KEYS file found in $SPIN_CI_FOLDER${RESET}"
     fi
