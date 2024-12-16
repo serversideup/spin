@@ -1333,18 +1333,26 @@ set_ansible_vault_args() {
 
   if [[ -f .vault-password ]]; then
     # Validate the vault password file using Docker
-    if ! docker run --rm -i \
-      -e "PUID=${SPIN_USER_ID}" \
-      -e "PGID=${SPIN_GROUP_ID}" \
-      -e "RUN_AS_USER=$(whoami)" \
-      -v "$(pwd):/ansible" \
-      "$SPIN_ANSIBLE_IMAGE" \
-      ansible-vault view --vault-password-file=".vault-password" "$variable_file" >/dev/null 2>&1; then
-      echo "${BOLD}${RED}❌ Invalid vault password provided for file .vault-password${RESET}" >&2
-      exit 1
+    if is_encrypted_with_ansible_vault "$variable_file"; then
+     set +e # Disable error checking for the duration of this block
+     docker run --rm -i \
+        -e "PUID=${SPIN_USER_ID}" \
+        -e "PGID=${SPIN_GROUP_ID}" \
+        -e "RUN_AS_USER=$(whoami)" \
+        -v "$(pwd):/ansible" \
+        "$SPIN_ANSIBLE_IMAGE" \
+        ansible-vault view --vault-password-file="/ansible/.vault-password" "$variable_file" > /dev/null 2>&1
+
+      validation_result=$?
+      set -e # Re-enable error checking
+      if [ $validation_result -ne 0 ]; then
+        echo "${BOLD}${RED}❌ Invalid password provided in '.vault-password' file. Please check your password and try again.${RESET}" >&2
+        exit $validation_result
+      fi
     fi
+
     vault_args+=("--vault-password-file" ".vault-password")
-  elif is_encrypted_with_ansible_vault "$variable_file" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
+  elif is_encrypted_with_ansible_vault "$variable_file" || is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
     echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}" >&2
     vault_args+=("--ask-vault-pass")
   fi
