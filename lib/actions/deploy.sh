@@ -3,7 +3,6 @@
 ################################################################################
 # Helper functions
 ################################################################################
-
 cleanup_on_exit() {
     local exit_code=$?
 
@@ -111,7 +110,7 @@ action_deploy() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
         --user | -u)
-            ssh_user="$2"
+            SPIN_SSH_USER="$2"
             shift 2
             ;;
         --compose-file | -c)
@@ -124,7 +123,7 @@ action_deploy() {
             fi
             ;;
         --port | -p)
-            ssh_port="$2"
+            SPIN_SSH_PORT="$2"
             shift 2
             ;;
         --upgrade|-U)
