@@ -6,9 +6,6 @@ action_vault(){
         "${vault_run_command[@]}" --help | sed 's/ansible-vault/spin vault/g'
     }
 
-    # Read the vault arguments into an array
-    read -r -a vault_args < <(set_ansible_vault_args)
-
     # Check if ansible-vault is installed locally
     if [[ $(command -v ansible-vault)  ]]; then
         vault_run_command=("ansible-vault")
@@ -17,6 +14,9 @@ action_vault(){
         vault_run_command=("run_ansible" "--mount-path" "$(pwd):/ansible" "ansible-vault")
         run_type="docker"
     fi
+
+    # Read the vault arguments into an array
+    read -r -a vault_args < <(set_ansible_vault_args "$run_type")
 
     # Check if any argument is '--help'
     for arg in "$@"; do

@@ -1330,6 +1330,7 @@ send_to_upgrade_script () {
 set_ansible_vault_args() {
   local vault_args=()
   local variable_file=".spin.yml"
+  local run_type="${1:-docker}"
 
   if [[ -f .vault-password ]]; then
     # Validate the vault password file using Docker
@@ -1351,7 +1352,11 @@ set_ansible_vault_args() {
       fi
     fi
 
-    vault_args+=("--vault-password-file" "/ansible/.vault-password")
+    if [[ "$run_type" == "local" ]]; then
+      vault_args+=("--vault-password-file" ".vault-password")
+    else
+      vault_args+=("--vault-password-file" "/ansible/.vault-password")
+    fi
   elif is_encrypted_with_ansible_vault "$variable_file" || is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
     echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}" >&2
     vault_args+=("--ask-vault-pass")
