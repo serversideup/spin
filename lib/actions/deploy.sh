@@ -193,7 +193,7 @@ action_deploy() {
     # Set default values (can be overridden by .env file or command line arguments)
     registry_port="${SPIN_REGISTRY_PORT:-5080}"
     build_platform="${SPIN_BUILD_PLATFORM:-"linux/amd64"}"
-    image_prefix="${SPIN_BUILD_IMAGE_PREFIX:-"localhost:$registry_port"}"
+    image_prefix="${SPIN_BUILD_IMAGE_PREFIX:-"127.0.0.1:$registry_port"}"
     image_tag="${SPIN_BUILD_TAG:-$(date +%Y%m%d%H%M%S)}"
     ssh_port="${SPIN_SSH_PORT:-22}"
     ssh_user="${SPIN_SSH_USER:-"deploy"}"
@@ -286,7 +286,7 @@ action_deploy() {
     # Build SSH command with proper quoting
     ssh_cmd=(
         ssh -f -n -N 
-        -R "${registry_port}:localhost:${registry_port}"
+        -R "${registry_port}:127.0.0.1:${registry_port}"
         -p "${ssh_port}"
         "${ssh_user}@${docker_swarm_manager}"
         -o ExitOnForwardFailure=yes
@@ -303,7 +303,7 @@ action_deploy() {
         echo "   🔌 Remote port: ${registry_port}"
         echo "   👤 SSH user: ${ssh_user}"
         echo "   🔢 SSH port: ${ssh_port}"
-        echo "${BOLD}${BLUE}🔄 The tunnel will forward connections from the remote port ${registry_port} to localhost:${registry_port}${RESET}"
+        echo "${BOLD}${BLUE}🔄 The tunnel will forward connections from the remote port ${registry_port} to 127.0.0.1:${registry_port}${RESET}"
     else
         ssh_exit_code=$?
         echo "${BOLD}${RED}❌ Failed to create SSH tunnel (Exit code: $ssh_exit_code)${RESET}"
@@ -313,7 +313,7 @@ action_deploy() {
     fi
 
     # Get the process ID of the SSH tunnel using POSIX-compliant commands
-    tunnel_pid=$(ps aux | grep "ssh -f -n -N -R ${registry_port}:localhost:${registry_port}" | grep -v grep | awk '{print $2}')
+    tunnel_pid=$(ps aux | grep "ssh -f -n -N -R ${registry_port}:127.0.0.1:${registry_port}" | grep -v grep | awk '{print $2}')
 
     echo "${BOLD}${BLUE}🚀 Deploying Docker stack...${RESET}"
     deploy_docker_stack "$docker_swarm_manager" "$ssh_port"
