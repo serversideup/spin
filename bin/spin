@@ -3,6 +3,11 @@ set -e
 
 # Default Environment
 SPIN_ENV=${SPIN_ENV:-dev}
+SPIN_DEBUG=${SPIN_DEBUG:-false}
+
+if [[ "$SPIN_DEBUG" == "true" ]]; then
+  set -x
+fi
 
 # Set up our structure for our re-used commands
 export COMPOSE_CMD=${COMPOSE_CMD:-"docker compose"}
