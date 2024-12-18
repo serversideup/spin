@@ -1351,7 +1351,7 @@ set_ansible_vault_args() {
       fi
     fi
 
-    vault_args+=("--vault-password-file" ".vault-password")
+    vault_args+=("--vault-password-file" "/ansible/.vault-password")
   elif is_encrypted_with_ansible_vault "$variable_file" || is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
     echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}" >&2
     vault_args+=("--ask-vault-pass")
@@ -1361,6 +1361,9 @@ set_ansible_vault_args() {
 }
 
 setup_color() {
+    # Disable debug tracing temporarily
+    { set +x; } 2>/dev/null
+
     RAINBOW="
       $(printf '\033[38;5;196m')
       $(printf '\033[38;5;202m')
@@ -1374,6 +1377,11 @@ setup_color() {
     BOLD=$(printf '\033[1m')
     RESET=$(printf '\033[m')
     MAGENTA=$(printf '\033[1;35m')
+
+    # Restore debug tracing if it was enabled
+    if [[ "${SPIN_DEBUG:-false}" == "true" ]]; then
+        set -x
+    fi
 }
 
 show_existing_files_warning() {
