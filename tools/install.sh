@@ -25,7 +25,7 @@
 #
 #
 # You can also pass some arguments to the install script to set some these options:
-#   --beta: use the latest pre-release
+#   --beta: use the latest release (regardless of pre-release or stable)
 # For example:
 #   bash install.sh --beta
 # or:
@@ -184,7 +184,7 @@ command_exists() {
 
 get_install_version() {
   if [ ! -z "$BRANCH" ]; then
-    echo $BRANCH
+    echo "$BRANCH"
     return 0
   fi
   if [ "$TRACK" = "beta" ]; then
@@ -207,12 +207,12 @@ get_install_version() {
 }
 
 set_configuration_file() {
-  mkdir -p $SPIN_HOME/conf/
-  echo "TRACK=$TRACK" > $SPIN_HOME/conf/spin.conf
+  mkdir -p "$SPIN_HOME/conf/"
+  echo "TRACK=$TRACK" > "$SPIN_HOME/conf/spin.conf"
 }
 
 save_last_update_check_time() {
-  echo $(date +"%s") > $SPIN_CACHE_DIR/.spin-last-update
+  date +"%s" > "$SPIN_CACHE_DIR/.spin-last-update"
 }
 
 setup_spin() {
@@ -371,4 +371,4 @@ main() {
   print_success
 }
 
-main $@
+main "$@"

@@ -188,19 +188,19 @@ perform_upgrade() {
 
     echo "${BLUE}Updating Spin to \"$new_version\"...${RESET}"
 
-    git -C $SPIN_HOME fetch --all --tags > /dev/null
+    git -C "$SPIN_HOME" fetch --all --tags > /dev/null
 
     # Set git-config values known to fix git errors
     # Line endings
-    git -C $SPIN_HOME config core.eol lf
-    git -C $SPIN_HOME config core.autocrlf false
+    git -C "$SPIN_HOME" config core.eol lf
+    git -C "$SPIN_HOME" config core.autocrlf false
     # zeroPaddedFilemode fsck errors
-    git -C $SPIN_HOME config fsck.zeroPaddedFilemode ignore
-    git -C $SPIN_HOME config fetch.fsck.zeroPaddedFilemode ignore
-    git -C $SPIN_HOME config receive.fsck.zeroPaddedFilemode ignore
-    git -C $SPIN_HOME config rebase.autoStash true
+    git -C "$SPIN_HOME" config fsck.zeroPaddedFilemode ignore
+    git -C "$SPIN_HOME" config fetch.fsck.zeroPaddedFilemode ignore
+    git -C "$SPIN_HOME" config receive.fsck.zeroPaddedFilemode ignore
+    git -C "$SPIN_HOME" config rebase.autoStash true
 
-    if ! git -C $SPIN_HOME checkout "tags/$new_version" -b "$new_version"; then
+    if ! git -C "$SPIN_HOME" checkout "tags/$new_version" -b "$new_version"; then
         fmt_error 'Update of "spin" failed.'
         exit 1
     fi

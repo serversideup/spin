@@ -15,6 +15,7 @@
                     }">
                         <NuxtLink 
                             :to="link._path"
+                            :data-attr-link-id="link._path"
                             class="flex justify-between gap-2 py-1 pr-3 text-sm transition"
                             :class="{
                                 'text-white': link._path === route.path,
@@ -55,4 +56,5 @@ const route = useRoute();
 const scrollTo = (id) => {
     document.getElementById( id.replace('#', '') ).scrollIntoView(true, {behavior: "smooth"})
 }
+
 </script>

@@ -8,6 +8,24 @@ add_user_todo_item() {
     fi
 }
 
+base64_encode() {
+    local input="$1"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        base64 -i "$input"
+    else
+        base64 "$input"
+    fi
+}
+
+base64_decode() {
+    local input="$1"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        base64 -D "$input"
+    else
+        base64 -d "$input"
+    fi
+}
+
 check_connection_with_cmd() {
     local cmd="$1"
     local api_url="$2"
@@ -27,14 +45,6 @@ check_connection_with_cmd() {
             return 1
             ;;
     esac
-}
-
-check_galaxy_pull(){
-  if [[ $(needs_update ".spin-ansible-collection-pull" "1") || "$force_ansible_upgrade" == true ]]; then
-    run_ansible --allow-ssh --mount-path $(pwd) \
-      ansible-galaxy collection install "${SPIN_ANSIBLE_COLLECTION_NAME}" --upgrade
-    save_current_time_to_cache_file ".spin-ansible-collection-pull"
-  fi
 }
 
 check_for_upgrade() {
@@ -227,7 +237,7 @@ download_spin_template_repository() {
     case "$1" in
       -b|--branch)
         branch="$2"
-        shift 2  # Shift both the flag and its value
+        shift 2
         ;;
       -l|--local)
         SPIN_TEMPLATE_TEMPORARY_SRC_DIR="$2"
@@ -265,12 +275,13 @@ download_spin_template_repository() {
     case "$template" in
       laravel)
         template_type=official
-        TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-basic"
+        TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-pro"
+        branch="${branch:-"main"}"
         ;;
       laravel-pro)
         template_type=official
         TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-pro"
-        branch="${branch:-main}"
+        branch="${branch:-"main"}"
         ;;
       nuxt)
         template_type=official
@@ -443,51 +454,62 @@ filter_out_spin_arguments() {
 
 get_ansible_variable(){
   local variable_name="$1"
-  local file="${2:-".spin.yml"}"
+  local raw_output=''
+  local clean_output=''
+  shift
+
+  if [[ -z "$variable_name" ]]; then
+    echo "${BOLD}${RED}❌ No variable name specified.${RESET}" >&2
+    return 1
+  fi
+
+  # Temporarily disable trace output if it's enabled
+  local trace_enabled=0
+  if [[ $- == *x* ]]; then
+    set +x
+    trace_enabled=1
+  fi
+
+  # Get vault args if needed
   local vault_args=()
-  local raw_ansible_output=''
-  local trimmed_ansible_output=''
+  IFS=' ' read -r -a vault_args < <(set_ansible_vault_args)
 
-  # Check if the file is encrypted and .vault-password is missing
-  if is_encrypted_with_ansible_vault "$file" && [ ! -f ".vault-password" ]; then
-    echo "${BOLD}${RED}❌Error: $file is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}" >&2
-    echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}" >&2
-    exit 1
-  fi
+  echo "Gathering environment information..." >&2
 
-  # Set vault args
-  if [ -f ".vault-password" ]; then
-    vault_args+=("--vault-password-file" ".vault-password")
-  elif is_encrypted_with_ansible_vault "$file"; then
-    echo "${BOLD}${YELLOW}🔐 The file '$file' is encrypted. You will be prompted to enter your vault password.${RESET}" >&2
-    vault_args+=("--ask-vault-pass")
-  fi
+  # Run ansible command directly with docker
+  raw_output=$(docker run --rm -i \
+    -e "PUID=${SPIN_USER_ID}" \
+    -e "PGID=${SPIN_GROUP_ID}" \
+    -e "RUN_AS_USER=$(whoami)" \
+    -e "ANSIBLE_STDOUT_CALLBACK=minimal" \
+    -e "ANSIBLE_DISPLAY_SKIPPED_HOSTS=false" \
+    -e "ANSIBLE_DISPLAY_OK_HOSTS=false" \
+    -v "$SPIN_ANSIBLE_COLLECTIONS_PATH:/etc/ansible/collections" \
+    -v "$(pwd):/ansible" \
+    -w /ansible \
+    "$SPIN_ANSIBLE_IMAGE" \
+    ansible-playbook \
+    serversideup.spin.get_variable \
+    --inventory "$SPIN_INVENTORY_FILE" \
+    "${vault_args[@]}" \
+    --extra-vars @./.spin.yml \
+    --extra-vars "variable_name=$variable_name" 2>&1) || {
+      echo "${BOLD}${RED}❌ Failed to get ansible variable: $variable_name${RESET}" >&2
+      echo "${BOLD}${RED}Error: $raw_output${RESET}" >&2
+      # Restore trace output if it was enabled
+      if [[ $trace_enabled -eq 1 ]]; then set -x; fi
+      return 1
+    }
 
-  # Run the ansible command
-  raw_ansible_output=$(run_ansible --mount-path "$(pwd)" \
-    ansible localhost -m debug \
-      -a "var=${variable_name}" \
-      -e "@${file}" \
-      "${vault_args[@]}" 2>&1)
+  # Extract just the value from the msg field
+  clean_output=$(echo "$raw_output" | grep -o '"msg": .*' | sed 's/"msg": //;s/^"//;s/"$//')
 
-  # Check for errors in the output
-  if echo "$raw_ansible_output" | grep -q "ERROR!"; then
-    echo "${BOLD}${RED}Error: Failed to retrieve variable. Details:${RESET}" >&2
-    echo "$raw_ansible_output" >&2
-    exit 1
-  fi
+  # Restore trace output if it was enabled
+  if [[ $trace_enabled -eq 1 ]]; then set -x; fi
 
-  # Check for variable presence
-  if echo "$raw_ansible_output" | grep -q "${variable_name}"; then
-    trimmed_ansible_output=$(echo "$raw_ansible_output" | awk -F': ' '/"'"$variable_name"'"/ {print $2}' | tr -d '[:space:]"' | sed 's/\x1b\[[0-9;]*m//g')
-    # Return the cleaned output
-    echo "$trimmed_ansible_output"
-  else
-    echo "${BOLD}${YELLOW}Warning: Variable ${variable_name} not found in $file${RESET}" >&2
-    exit 1
-  fi
+  # Return the cleaned output
+  echo "$clean_output"
 }
-
 
 get_github_release() {
   release_type="$1"
@@ -503,24 +525,30 @@ get_github_release() {
 }
 
 get_file_from_github_release() {
+  local source_type="release"  # Default to release downloads
 
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
       -r|--repo)
         local repo="$2"
-        shift 2  # Shift both the flag and its value
+        shift 2
         ;;
       -t|--release-type)
         local release_type="$2"
-        shift 2  # Shift both the flag and its value
+        shift 2
+        ;;
+      -b|--branch)
+        local branch="$2"
+        source_type="branch"
+        shift 2
         ;;
       -s|--src)
         local source_file="$2"
-        shift 2  # Shift both the flag and its value
+        shift 2
         ;;
       -d|--dest)
         local destination_file="$2"
-        shift 2  # Shift both the flag and its value
+        shift 2
         ;;
       *)
         echo "${BOLD}${RED}🛑 Unsupported flag ${1}.${RESET}"
@@ -532,12 +560,20 @@ get_file_from_github_release() {
   destination_filename=$(basename "$destination_file")
 
   if [[ -f "$destination_file" ]]; then
-          trap show_existing_files_warning EXIT
-          echo "👉 ${MAGENTA}\"$destination_filename\" already exists. Skipping...${RESET}"
-          return 0
+    trap show_existing_files_warning EXIT
+    echo "👉 ${MAGENTA}\"$destination_filename\" already exists. Skipping...${RESET}"
+    return 0
   fi
 
-  curl --silent --location --output "$destination_file" "https://raw.githubusercontent.com/$repo/$(get_github_release "$release_type" "$repo")/$source_file"
+  # Construct the URL based on source type
+  local download_url
+  if [[ "$source_type" == "branch" ]]; then
+    download_url="https://raw.githubusercontent.com/$repo/$branch/$source_file"
+  else
+    download_url="https://raw.githubusercontent.com/$repo/$(get_github_release "$release_type" "$repo")/$source_file"
+  fi
+
+  curl --silent --location --output "$destination_file" "$download_url"
   echo "✅ \"$destination_filename\" has been created."
 }
 
@@ -637,6 +673,7 @@ line_in_file() {
     local action="ensure"
     local files=()
     local args=()
+    local ignore_missing=false
 
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -648,6 +685,10 @@ line_in_file() {
             --action)
                 action="$2"
                 shift 2
+                ;;
+            --ignore-missing)
+                ignore_missing=true
+                shift
                 ;;
             *)
                 args+=("$1")
@@ -721,8 +762,12 @@ ${args[1]}" "$file"
                 if grep -qF -- "${args[0]}" "$file"; then
                     sed_inplace "s/${args[0]}/${args[1]}/g" "$file"
                 else
-                    echo "Error: Exact text '${args[0]}' not found in $file" >&2
-                    return 1
+                    if [[ "$ignore_missing" == true ]]; then
+                        return 0
+                    else
+                        echo "Error: Exact text '${args[0]}' not found in $file" >&2
+                        return 1
+                    fi
                 fi
                 ;;
             search)
@@ -781,11 +826,73 @@ needs_update() {
   # Calculate the threshold time for update
   local threshold_time=$(current_time_minus "$interval")
   
-  if (( threshold_time <= last_update_time )); then
-    return 1
+  if (( last_update_time >= threshold_time )); then
+    return 1  # No update needed - last update is newer than threshold
   else
-    return 0
+    return 0  # Update needed - last update is older than threshold
   fi
+}
+
+prepare_ansible_run() {
+    # Return values will be stored in these global variables
+    SPIN_ANSIBLE_ARGS=()
+    SPIN_UNPROCESSED_ARGS=()
+    SPIN_REMOTE_USER="$USER"
+    SPIN_FORCE_INSTALL_GALAXY_DEPS=${SPIN_FORCE_INSTALL_GALAXY_DEPS:-false}
+    SPIN_INVENTORY_FILE="${SPIN_INVENTORY_FILE:-"/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh"}"
+    SPIN_ANSIBLE_COLLECTIONS_PATH="$SPIN_CACHE_DIR/collections"
+    
+    # Process arguments
+    while [[ "$#" -gt 0 ]]; do
+        case "$1" in
+            --host|-h)
+                SPIN_ANSIBLE_ARGS+=("--extra-vars" "target=$2")
+                shift 2
+                ;;
+            --user|-u)
+                SPIN_REMOTE_USER="$2"
+                shift 2
+                ;;
+            --port|-p)
+                SPIN_ANSIBLE_ARGS+=("--extra-vars" "ansible_port=$2")
+                shift 2
+                ;;
+            --upgrade|-U)
+                SPIN_FORCE_INSTALL_GALAXY_DEPS=true
+                shift
+                ;;
+            *)
+                SPIN_UNPROCESSED_ARGS+=("$1")
+                shift
+                ;;
+        esac
+    done
+
+    if [[ -f ".spin-inventory.ini" ]]; then
+        SPIN_INVENTORY_FILE="/ansible/.spin-inventory.ini"
+    fi
+
+    # Create the collections directory if it doesn't exist
+    if [[ ! -d "$SPIN_ANSIBLE_COLLECTIONS_PATH" ]]; then
+        mkdir -p "$SPIN_ANSIBLE_COLLECTIONS_PATH"
+    fi
+
+    # Install Ansible Galaxy dependencies if the flag is set
+    if [[ $(needs_update ".spin-ansible-collection-pull" "1") || "$SPIN_FORCE_INSTALL_GALAXY_DEPS" == true ]]; then
+      echo "Installing Ansible Galaxy dependencies..."
+      docker run --rm -it \
+        -e "PUID=${SPIN_USER_ID}" \
+        -e "PGID=${SPIN_GROUP_ID}" \
+        -e "RUN_AS_USER=$(whoami)" \
+        -v "$SPIN_ANSIBLE_COLLECTIONS_PATH:/etc/ansible/collections" \
+        "$SPIN_ANSIBLE_IMAGE" \
+        ansible-galaxy collection install "${SPIN_ANSIBLE_COLLECTION_NAME}" --force
+      save_current_time_to_cache_file ".spin-ansible-collection-pull"
+    fi
+
+    # Append vault args to additional ansible args
+    IFS=' ' read -r -a vault_args < <(set_ansible_vault_args)
+    SPIN_ANSIBLE_ARGS+=("${vault_args[@]}")
 }
 
 print_version() {
@@ -813,6 +920,9 @@ prompt_and_update_file() {
     local details=""
     local success_message=""
     local prompt="Enter your response"
+    local output_only=false
+    local validate=""
+    local clear_screen=false
 
     # Parse arguments
     while [[ $# -gt 0 ]]; do
@@ -841,6 +951,18 @@ prompt_and_update_file() {
                 success_message="$2"
                 shift 2
                 ;;
+            --output-only)
+                output_only=true
+                shift
+                ;;
+            --validate)
+                validate="$2"
+                shift 2
+                ;;
+            --clear-screen)
+                clear_screen=true
+                shift
+                ;;
             *)
                 echo "Unknown option: $1" >&2
                 return 1
@@ -849,27 +971,73 @@ prompt_and_update_file() {
     done
 
     # Validate required parameters
-    if [[ ${#files[@]} -eq 0 || -z "$title" || -z "$search_default" ]]; then
-        echo "Error: Missing required parameters" >&2
+    if [[ -z "$title" ]]; then
+        echo -e "${BOLD}${RED}Error: Missing required parameter 'title' for prompt_and_update_file function.${RESET}" >&2
         return 1
     fi
-
-    echo "${BOLD}${BLUE}$title${RESET}"
-    if [[ -n "$details" ]]; then
-        echo "$details"
+    if [[ "$output_only" == false ]]; then
+        if [[ ${#files[@]} -eq 0 ]]; then
+            echo "Error: No files specified for update. Please use the --file option to specify at least one file or set --output-only to true." >&2
+            return 1
+        fi
+        if [[ -z "$search_default" ]]; then
+            echo -e "${BOLD}${RED}Error: Missing required parameter 'search-default' for file update mode.${RESET}" >&2
+            return 1
+        fi
     fi
-    read -p "${BOLD}${YELLOW}$prompt [$search_default]:${RESET} " user_response
 
-    # Use the user's input if provided, otherwise use the search_default
-    value_to_use="${user_response:-$search_default}"
+    if [[ "$clear_screen" == true ]]; then
+        clear >&2
+    fi
 
-    # Update each specified file
-    for file in "${files[@]}"; do
-        line_in_file --action exact --file "$file" "$search_default" "$value_to_use"
+    echo -e "${BOLD}${BLUE}$title${RESET}" >&2
+    if [[ -n "$details" ]]; then
+        echo -e "$details" >&2
+    fi
+
+    local value_to_use=""
+    while true; do
+        if [[ -n "$search_default" ]]; then
+            read -p "$(echo -e "${BOLD}${YELLOW}$prompt [$search_default]:${RESET} ")" user_response >&2
+            value_to_use="${user_response:-$search_default}"
+        else
+            read -p "$(echo -e "${BOLD}${YELLOW}$prompt:${RESET} ")" value_to_use >&2
+        fi
+
+        # Validate input if --validate flag is set
+        if [[ -n "$validate" ]]; then
+            case "$validate" in
+                email)
+                    if [[ "$value_to_use" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$ ]]; then
+                        break
+                    else
+                        echo -e "${BOLD}${RED}Invalid email address. Please try again.${RESET}" >&2
+                        continue
+                    fi
+                    ;;
+                # Add more validation options here in the future
+                *)
+                    echo "Unknown validation type: $validate" >&2
+                    return 1
+                    ;;
+            esac
+        else
+            break
+        fi
     done
 
-    if [[ -n "$success_message" ]]; then
-        echo "✅ $success_message"
+    if [[ "$output_only" == true ]]; then
+        # Just output the value to stdout
+        echo "$value_to_use"
+    else
+        # Update each specified file
+        for file in "${files[@]}"; do
+            line_in_file --action exact --file "$file" "$search_default" "$value_to_use"
+        done
+
+        if [[ -n "$success_message" ]]; then
+            echo -e "✅ $success_message" >&2
+        fi
     fi
 }
 
@@ -940,11 +1108,19 @@ prompt_to_encrypt_files(){
 
 run_ansible() {
   local additional_docker_args=()
+  local ansible_args=()
   local args_without_options=()
-  ansible_collections_path="$SPIN_CACHE_DIR/collections"
-  
-  # Create the collections directory if it doesn't exist
-  mkdir -p "$ansible_collections_path"
+  local allow_ssh=false
+  local minimal_output=false
+  local set_env=false
+  local debug=${SPIN_DEBUG:-false}
+  SPIN_FORCE_INSTALL_GALAXY_DEPS=${SPIN_FORCE_INSTALL_GALAXY_DEPS:-false}
+  # List of environment variables that can be forwarded to Ansible container
+  local env_vars_to_forward=(
+    "HCLOUD_TOKEN"
+    "DO_API_TOKEN"
+    "VULTR_API_KEY"
+  )
 
   # Create the known_hosts file if it doesn't exist
   if [[ ! -f "$HOME/.ssh/known_hosts" ]]; then
@@ -954,39 +1130,182 @@ run_ansible() {
   while [[ "$#" -gt 0 ]]; do
     case "$1" in
       --allow-ssh)
-        additional_docker_args+=("-v" "$HOME/.ssh/:/ssh/:ro" "-v" "$HOME/.ssh/known_hosts:/ssh/known_hosts:rw" "-v" "$ansible_collections_path:/etc/ansible/collections")
-        # Mount the SSH Agent for macOS and Linux (including WSL2) systems
-        if [ -n "$SSH_AUTH_SOCK" ]; then
-            case "$(uname -s)" in
-                Darwin)
-                    # macOS
-                    additional_docker_args+=("-v" "/run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock" "-e" "SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock")
-                    ;;
-                Linux)
-                    # Linux (including WSL2)
-                    additional_docker_args+=("-v" "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" "-e" "SSH_AUTH_SOCK=$SSH_AUTH_SOCK")
-                    ;;
-            esac
-        fi
+        allow_ssh=true
         shift
         ;;
       --mount-path)
-        additional_docker_args+=("-v" "${2}:/ansible")
+        additional_docker_args+=("-v" "${2}")
+        shift 2
+        ;;
+      --minimal-output)
+        minimal_output=true
+        shift
+        ;;
+      --set-env)
+        set_env=true
+        shift
+        ;;
+      --container-env)
+        additional_docker_args+=("-e" "$2")
         shift 2
         ;;
       *)
-        args_without_options+=("$1")
+        ansible_args+=("$1")
         shift
         ;;
     esac
   done
+
+  if [[ "$allow_ssh" == true ]]; then
+    additional_docker_args+=("-v" "$HOME/.ssh/:/ssh/:ro" "-v" "$HOME/.ssh/known_hosts:/ssh/known_hosts:rw")
+
+    # Set remote Ansible user
+    ansible_args+=("--extra-vars" "spin_remote_user=$SPIN_REMOTE_USER")
+
+    # Check if we need to ask for sudo password
+    local use_passwordless_sudo
+    use_passwordless_sudo=$(get_ansible_variable "use_passwordless_sudo")
+    use_passwordless_sudo=${use_passwordless_sudo:-"true"}
+    if [ "$SPIN_REMOTE_USER" != "root" ] && [ "$use_passwordless_sudo" = 'false' ]; then
+        ansible_args+=("--ask-become-pass")
+    fi
+
+    # Mount the SSH Agent for macOS and Linux (including WSL2) systems
+    if [ -n "$SSH_AUTH_SOCK" ]; then
+        case "$(uname -s)" in
+            Darwin)
+                # macOS
+                additional_docker_args+=("-v" "/run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock" "-e" "SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock")
+                ;;
+            Linux)
+                # Linux (including WSL2)
+                additional_docker_args+=("-v" "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" "-e" "SSH_AUTH_SOCK=$SSH_AUTH_SOCK")
+                ;;
+        esac
+    fi
+  fi
+
+  if [[ "$minimal_output" == true ]]; then
+    additional_docker_args+=(
+      -e "ANSIBLE_STDOUT_CALLBACK=minimal"
+      -e "ANSIBLE_DISPLAY_SKIPPED_HOSTS=false"
+      -e "ANSIBLE_DISPLAY_OK_HOSTS=false"
+    )
+  fi
+
+  if [[ "$set_env" == true ]]; then
+    additional_docker_args+=("-e" "ANSIBLE_FORCE_COLOR=1")
+    
+    # Forward specific environment variables if they exist
+    for env_var in "${env_vars_to_forward[@]}"; do
+      if [[ -n "${!env_var}" ]]; then
+        # Environment variable exists in current shell
+        additional_docker_args+=("-e" "${env_var}=${!env_var}")
+      elif [[ -f ".env" ]] && grep -q "^${env_var}=" ".env"; then
+        # Variable exists in .env file
+        local env_value
+        env_value=$(grep "^${env_var}=" ".env" | cut -d '=' -f2- | tr -d '"' | tr -d "'")
+        additional_docker_args+=("-e" "${env_var}=${env_value}")
+      fi
+    done
+  fi
+
+  # Mount collections directory if it exists
+  if [[ -d "$SPIN_ANSIBLE_COLLECTIONS_PATH" ]]; then
+    additional_docker_args+=("-v" "$SPIN_ANSIBLE_COLLECTIONS_PATH:/etc/ansible/collections")
+  fi
+
+  if [[ "$debug" == true ]]; then
+    ansible_args+=("-vvvv")
+  fi
+
   docker run --rm -it \
     -e "PUID=${SPIN_USER_ID}" \
     -e "PGID=${SPIN_GROUP_ID}" \
     -e "RUN_AS_USER=$(whoami)" \
     "${additional_docker_args[@]}" \
     "$SPIN_ANSIBLE_IMAGE" \
-    "${args_without_options[@]}"
+    "${ansible_args[@]}"
+}
+
+run_gh() {
+  # Check if gh is installed locally
+  if command -v gh >/dev/null 2>&1; then
+    # Execute gh command locally with all arguments
+    gh "$@"
+    return $?  # Explicitly return the exit code from gh
+  fi
+
+  # Fall back to Docker implementation if gh is not installed
+  local additional_docker_args=()
+  local gh_command=("$@")
+  local interactive_flag=""
+  local use_tty=false
+  local use_interactive=false
+  local interactive_tty_commands=(
+    "auth login" "auth refresh"
+    "issue create" "issue edit"
+    "pr create" "pr edit" "pr review"
+    "repo create" "repo fork"
+    "gist create" "gist edit"
+  )
+
+  # Check if there's data being piped in
+  if [ ! -t 0 ]; then
+    use_interactive=true  # Always use -i when receiving STDIN
+  fi
+
+  # Check if the command needs interactive TTY
+  local cmd_string="${gh_command[*]}"
+  for interactive_cmd in "${interactive_tty_commands[@]}"; do
+    if [[ "$cmd_string" == "$interactive_cmd"* ]]; then
+      use_tty=true
+      use_interactive=true
+      break
+    fi
+  done
+
+  # Ensure the gh config directory exists
+  if [[ ! -d "$HOME/.config/gh" ]]; then
+    mkdir -p "$HOME/.config/gh"
+  fi
+
+  # Mount SSH if available
+  if [[ -d "$HOME/.ssh" ]]; then
+    additional_docker_args+=("-v" "$HOME/.ssh/:/ssh/:ro" "-v" "$HOME/.ssh/known_hosts:/ssh/known_hosts:rw")
+  fi
+
+  # Mount SSH Agent if available
+  if [ -n "$SSH_AUTH_SOCK" ]; then
+      case "$(uname -s)" in
+        Darwin)
+          # macOS
+          additional_docker_args+=("-v" "/run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock" "-e" "SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock")
+          ;;
+        Linux)
+          # Linux (including WSL2)
+          additional_docker_args+=("-v" "$SSH_AUTH_SOCK:$SSH_AUTH_SOCK" "-e" "SSH_AUTH_SOCK=$SSH_AUTH_SOCK")
+          ;;
+      esac
+    fi
+  
+  # Determine interactive/TTY flags
+  if [ "$use_tty" = true ] && [ "$use_interactive" = true ]; then
+    interactive_flag="-it"
+  elif [ "$use_tty" = true ]; then
+    interactive_flag="-t"
+  elif [ "$use_interactive" = true ]; then
+    interactive_flag="-i"
+  fi
+
+  docker run --rm $interactive_flag \
+    -e "PUID=${SPIN_USER_ID}" \
+    -e "PGID=${SPIN_GROUP_ID}" \
+    -e "RUN_AS_USER=$(whoami)" \
+    -v "$(pwd):/app" \
+    -v "$HOME/.config/gh:/config/gh:rw" \
+    "${additional_docker_args[@]}" \
+    "$SPIN_GH_CLI_IMAGE" gh "${gh_command[@]}"
 }
 
 save_current_time_to_cache_file() {
@@ -1010,10 +1329,35 @@ send_to_upgrade_script () {
 
 set_ansible_vault_args() {
   local vault_args=()
+  local variable_file=".spin.yml"
+  local run_type="${1:-docker}"
 
   if [[ -f .vault-password ]]; then
-    vault_args+=("--vault-password-file" ".vault-password")
-  elif is_encrypted_with_ansible_vault ".spin.yml" && is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
+    # Validate the vault password file using Docker
+    if is_encrypted_with_ansible_vault "$variable_file"; then
+     set +e # Disable error checking for the duration of this block
+     docker run --rm -i \
+        -e "PUID=${SPIN_USER_ID}" \
+        -e "PGID=${SPIN_GROUP_ID}" \
+        -e "RUN_AS_USER=$(whoami)" \
+        -v "$(pwd):/ansible" \
+        "$SPIN_ANSIBLE_IMAGE" \
+        ansible-vault view --vault-password-file="/ansible/.vault-password" "$variable_file" > /dev/null 2>&1
+
+      validation_result=$?
+      set -e # Re-enable error checking
+      if [ $validation_result -ne 0 ]; then
+        echo "${BOLD}${RED}❌ Invalid password provided in '.vault-password' file. Please check your password and try again.${RESET}" >&2
+        exit $validation_result
+      fi
+    fi
+
+    if [[ "$run_type" == "local" ]]; then
+      vault_args+=("--vault-password-file" ".vault-password")
+    else
+      vault_args+=("--vault-password-file" "/ansible/.vault-password")
+    fi
+  elif is_encrypted_with_ansible_vault "$variable_file" || is_encrypted_with_ansible_vault ".spin-inventory.ini"; then
     echo "${BOLD}${YELLOW}🔐 '.vault-password' file not found. You will be prompted to enter your vault password.${RESET}" >&2
     vault_args+=("--ask-vault-pass")
   fi
@@ -1022,6 +1366,9 @@ set_ansible_vault_args() {
 }
 
 setup_color() {
+    # Disable debug tracing temporarily
+    { set +x; } 2>/dev/null
+
     RAINBOW="
       $(printf '\033[38;5;196m')
       $(printf '\033[38;5;202m')
@@ -1035,6 +1382,11 @@ setup_color() {
     BOLD=$(printf '\033[1m')
     RESET=$(printf '\033[m')
     MAGENTA=$(printf '\033[1;35m')
+
+    # Restore debug tracing if it was enabled
+    if [[ "${SPIN_DEBUG:-false}" == "true" ]]; then
+        set -x
+    fi
 }
 
 show_existing_files_warning() {
@@ -1080,4 +1432,43 @@ update_last_pull_timestamp() {
 
     # Replace the original .spin-last-pull file with the updated temporary file
     mv "$file.tmp" "$file"
+}
+
+validate_project_setup() {
+
+  validate_spin_yml
+
+  # Validate infrastructure folder is present
+  if [ ! -d ".infrastructure" ]; then
+      echo "${BOLD}${RED}❌ Infrastructure folder not found${RESET}"
+      echo "Please ensure you're in the root of your project."
+      return 1
+  fi
+
+  # Create ci folder if it doesn't exist
+  if [ ! -d "$SPIN_CI_FOLDER" ] || [ ! -f "$SPIN_CI_FOLDER/.gitignore" ]; then
+    echo "${BOLD}${YELLOW}⚠️ Warning: The CI folder is missing, we will create this for you.${RESET}"
+    mkdir -p "$SPIN_CI_FOLDER"
+    echo "*" > "$SPIN_CI_FOLDER/.gitignore"
+    echo "!.gitignore" >> "$SPIN_CI_FOLDER/.gitignore"
+  fi
+
+  return 0
+}
+
+validate_spin_yml() {
+  if [ ! -f ".spin.yml" ]; then
+    echo "${BOLD}${RED}❌ .spin.yml not found${RESET}"
+    echo "Please ensure you're in the root of your project and a .spin.yml file exists."
+    return 1
+  fi
+
+  if is_encrypted_with_ansible_vault ".spin.yml" && \
+    [ ! -f ".vault-password" ]; then
+        echo "${BOLD}${RED}❌Error: .spin.yml is encrypted with Ansible Vault, but '.vault-password' file is missing.${RESET}"
+        echo "${BOLD}${YELLOW}Please save your vault password in '.vault-password' in your project root and try again.${RESET}"
+        return 1
+  fi
+
+  return 0
 }

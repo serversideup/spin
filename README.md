@@ -91,6 +91,8 @@ Spin serves as a collection of open source technologies, put together in one sim
 - [serversideup/docker-swarm-deploy-github-action](https://github.com/marketplace/actions/docker-swarm-deploy-github-action) - A simplified syntax to deploy to Docker Swarm Mode via GitHub Actions.
 - [serversideup/php](https://serversideup.net/open-source/docker-php/) - PHP Docker images highly optimized to work with Laravel + Spin.
 - [serversideup/docker-ssh](https://github.com/serversideup/docker-ssh) - A lightweight docker image that runs SSH. This is a fantastic method on using a secure SSH tunnel into your database cluster.
+- [serversideup/docker-ansible](https://github.com/serversideup/docker-ansible) - A lightweight docker image that runs Ansible.
+- [serversideup/docker-github-cli](https://github.com/serversideup/docker-github-cli) - A lightweight docker image that runs GitHub CLI.
 
 ## Resources
 - **[Website](https://serversideup.net/open-source/spin/)** overview of the product.
