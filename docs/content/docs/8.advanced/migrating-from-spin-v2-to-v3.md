@@ -216,7 +216,7 @@ We just need to temporarily rename the file so we can reference it.
 ### Download the new ".spin.yml" file
 You can copy the contents of our example file from GitHub and paste into our new `.spin.yml` file.
 
-[View latest .spin.yml file on GitHub →](https://github.com/serversideup/ansible-collection-spin/blob/hardware-support/.spin.example.yml)
+[View latest .spin.yml file on GitHub →](https://github.com/serversideup/ansible-collection-spin/blob/main/.spin.example.yml)
 
 ### Migrate contents from your ".spin.original.yml" file
 Move any setting you'd like, but especially do not forget about these:

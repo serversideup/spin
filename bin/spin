@@ -34,7 +34,6 @@ AUTO_UPDATE_INTERVAL_IN_DAYS=${AUTO_UPDATE_INTERVAL_IN_DAYS:-14}
 AUTO_PULL_INTERVAL_IN_DAYS=${AUTO_PULL_INTERVAL_IN_DAYS:-1}
 
 # Ansible Variables
-SPIN_ANSIBLE_COLLECTION_NAME="git+https://github.com/serversideup/ansible-collection-spin.git,hardware-support" #TODO: Remove this once we have a new release
 SPIN_ANSIBLE_COLLECTION_NAME="${SPIN_ANSIBLE_COLLECTION_NAME:-"serversideup.spin"}"
 
 # Import common functions

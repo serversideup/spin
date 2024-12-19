@@ -276,12 +276,12 @@ download_spin_template_repository() {
       laravel)
         template_type=official
         TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-pro"
-        branch="${branch:-"onboarding-optimization"}"
+        branch="${branch:-"main"}"
         ;;
       laravel-pro)
         template_type=official
         TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-pro"
-        branch="${branch:-main}"
+        branch="${branch:-"main"}"
         ;;
       nuxt)
         template_type=official
