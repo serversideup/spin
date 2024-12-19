@@ -35,7 +35,7 @@ spin run php composer install
 - `--force-pull`: Pull Docker Compose images, regardless of cache settings.
 
 ### Official Docker Options
-This command is a shortcut for [`docker-compose run`](https://docs.docker.com/compose/reference/run/) and can accept additional options that you pass to it.
+This command is a shortcut for [`docker compose run`](https://docs.docker.com/compose/reference/run/) and can accept additional options that you pass to it.
 
 ## Special notes
 * This command specifically ignores running container dependencies

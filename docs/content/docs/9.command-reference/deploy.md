@@ -65,7 +65,7 @@ This comprehensive process ensures that your application is built, pushed, and d
 The following options are available to set when running this command.
 | Option | Short | Default | Description |
 | --- | --- | --- | --- |
-| `--compose-file` | `-c` | By default, we look for two files `docker-compose.yml, docker-compose.prod.yml` | The name of the compose files. You can provide many of these options to combine many files. |
+| `--compose-file` | `-c` | By default, we look for two files `compose.yaml, compose.prod.yaml` | The name of the compose files. You can provide many of these options to combine many files. |
 | `--port` | `-p` | `22` | The port to SSH into the server with. |
 | `--upgrade` | `-U` | `false` | Force the upgrade of the Ansible collection. |
 | `--user` | `-u` | The username of your HOST machine (run `whoami` in a new terminal) | The user to SSH into the server with. |
