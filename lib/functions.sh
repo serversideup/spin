@@ -275,7 +275,7 @@ download_spin_template_repository() {
     case "$template" in
       laravel)
         template_type=official
-        TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-pro"
+        TEMPLATE_REPOSITORY="serversideup/spin-template-laravel-basic"
         branch="${branch:-"main"}"
         ;;
       laravel-pro)
