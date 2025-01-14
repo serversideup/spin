@@ -480,7 +480,7 @@ get_ansible_variable(){
   raw_output=$(docker run --rm -i \
     -e "PUID=${SPIN_USER_ID}" \
     -e "PGID=${SPIN_GROUP_ID}" \
-    -e "RUN_AS_USER=$(whoami)" \
+    -e "RUN_AS_USER=${SPIN_RUN_AS_USER}" \
     -e "ANSIBLE_STDOUT_CALLBACK=minimal" \
     -e "ANSIBLE_DISPLAY_SKIPPED_HOSTS=false" \
     -e "ANSIBLE_DISPLAY_OK_HOSTS=false" \
@@ -883,7 +883,7 @@ prepare_ansible_run() {
       docker run --rm -it \
         -e "PUID=${SPIN_USER_ID}" \
         -e "PGID=${SPIN_GROUP_ID}" \
-        -e "RUN_AS_USER=$(whoami)" \
+        -e "RUN_AS_USER=${SPIN_RUN_AS_USER}" \
         -v "$SPIN_ANSIBLE_COLLECTIONS_PATH:/etc/ansible/collections" \
         "$SPIN_ANSIBLE_IMAGE" \
         ansible-galaxy collection install "${SPIN_ANSIBLE_COLLECTION_NAME}" --force
@@ -1222,7 +1222,7 @@ run_ansible() {
   docker run --rm -it \
     -e "PUID=${SPIN_USER_ID}" \
     -e "PGID=${SPIN_GROUP_ID}" \
-    -e "RUN_AS_USER=$(whoami)" \
+    -e "RUN_AS_USER=${SPIN_RUN_AS_USER}" \
     "${additional_docker_args[@]}" \
     "$SPIN_ANSIBLE_IMAGE" \
     "${ansible_args[@]}"
@@ -1301,7 +1301,7 @@ run_gh() {
   docker run --rm $interactive_flag \
     -e "PUID=${SPIN_USER_ID}" \
     -e "PGID=${SPIN_GROUP_ID}" \
-    -e "RUN_AS_USER=$(whoami)" \
+    -e "RUN_AS_USER=${SPIN_RUN_AS_USER}" \
     -v "$(pwd):/app" \
     -v "$HOME/.config/gh:/config/gh:rw" \
     "${additional_docker_args[@]}" \
@@ -1339,7 +1339,7 @@ set_ansible_vault_args() {
      docker run --rm -i \
         -e "PUID=${SPIN_USER_ID}" \
         -e "PGID=${SPIN_GROUP_ID}" \
-        -e "RUN_AS_USER=$(whoami)" \
+        -e "RUN_AS_USER=${SPIN_RUN_AS_USER}" \
         -v "$(pwd):/ansible" \
         "$SPIN_ANSIBLE_IMAGE" \
         ansible-vault view --vault-password-file="/ansible/.vault-password" "$variable_file" > /dev/null 2>&1

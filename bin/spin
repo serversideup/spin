@@ -15,8 +15,10 @@ export COMPOSE_CMD=${COMPOSE_CMD:-"docker compose"}
 # Export the current user and group ID
 SPIN_USER_ID=${SPIN_USER_ID:-$(id -u)}
 SPIN_GROUP_ID=${SPIN_GROUP_ID:-$(id -g)}
+SPIN_RUN_AS_USER=${SPIN_RUN_AS_USER:-$(whoami)}
 export SPIN_USER_ID
 export SPIN_GROUP_ID
+export SPIN_RUN_AS_USER
 
 # Default Images
 SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:cli"}
