@@ -47,7 +47,7 @@ deploy_docker_stack() {
 
     local docker_host="ssh://$ssh_user@$manager_host:$ssh_port"
     echo "${BOLD}${BLUE}📤 Deploying Docker stack with compose files: ${compose_files[*]} on $manager_host...${RESET}"
-    docker -H "$docker_host" stack deploy "${compose_args[@]}" --detach=false --prune "$spin_project_name-$deployment_environment"
+    docker -H "$docker_host" stack deploy "${compose_args[@]}" --detach=false --prune "$swarm_stack_name"
     if [ $? -eq 0 ]; then
         echo "${BOLD}${BLUE}🎉 Successfully deployed Docker stack on $manager_host.${RESET}"
         
@@ -199,6 +199,7 @@ action_deploy() {
     ssh_user="${SPIN_SSH_USER:-"deploy"}"
     spin_project_name="${SPIN_PROJECT_NAME:-"spin"}"
     registry_image="${SPIN_REGISTRY_IMAGE:-"registry:2"}"
+    swarm_stack_name="${SPIN_SWARM_STACK_NAME:-"$spin_project_name-$deployment_environment"}"
 
     # Clean up services on exit
     trap cleanup_on_exit EXIT
