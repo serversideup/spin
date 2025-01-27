@@ -287,6 +287,11 @@ download_spin_template_repository() {
         template_type=official
         TEMPLATE_REPOSITORY="serversideup/spin-template-nuxt"
         ;;
+      skeleton)
+        template_type=official
+        TEMPLATE_REPOSITORY="serversideup/spin-template-skeleton"
+        branch="${branch:-"main"}"
+        ;;
       *)
         template_type=external
         TEMPLATE_REPOSITORY="$template"
