@@ -80,7 +80,7 @@ configure_gha() {
     
     echo "🔑 Adding GitHub Actions secrets..."
     # Loop through all files in the CI folder (sorted alphabetically)
-    find "$SPIN_CI_FOLDER" -type f -maxdepth 1 | sort | while read -r filepath; do
+    find "$SPIN_CI_FOLDER" -maxdepth 1 -type f | sort | while read -r filepath; do
         file=$(basename "$filepath")
         # Skip files with file extensions and .gitignore
         if [[ "$file" != *.* ]]; then
