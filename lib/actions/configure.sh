@@ -140,13 +140,14 @@ gh_set_env() {
   local content
   if [ -n "$file" ]; then
     if [ "$base64_encode" = true ]; then
-      content=$(base64_encode "$file")
+      # Normalize line endings before encoding to ensure cross-platform compatibility
+      content=$(tr -d '\r' < "$file" | base64_encode -)
     else
       content=$(<"$file")
     fi
   else
     if [ "$base64_encode" = true ]; then
-      content=$(echo -n "$value" | base64_encode -)
+      content=$(printf '%s' "$value" | base64_encode -)
     else
       content="$value"
     fi
