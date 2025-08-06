@@ -23,14 +23,10 @@ action_base64() {
             # Decode the input
             if [ -f "$input" ]; then
                 # If it's a file, decode the file contents
-                base64_decode - < "$input"
+                base64_decode "$input"
             else
                 # If it's not a file, assume it's a base64 string and try to decode it
-                echo "$input" | base64_decode - 2>/dev/null
-                if [ $? -ne 0 ]; then
-                    echo "Error: Input is not a valid base64 string."
-                    return 1
-                fi
+                base64_decode "$input"
             fi
             ;;
         *)

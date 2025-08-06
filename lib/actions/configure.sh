@@ -80,7 +80,7 @@ configure_gha() {
     
     echo "🔑 Adding GitHub Actions secrets..."
     # Loop through all files in the CI folder (sorted alphabetically)
-    find "$SPIN_CI_FOLDER" -type f -maxdepth 1 | sort | while read -r filepath; do
+    find "$SPIN_CI_FOLDER"  -maxdepth 1 -type f | sort | while read -r filepath; do
         file=$(basename "$filepath")
         # Skip files with file extensions and .gitignore
         if [[ "$file" != *.* ]]; then
@@ -136,20 +136,31 @@ gh_set_env() {
     return 1
   fi
 
-  # Get content from either file or value
-  local content
+# Get content from either file or value
   if [ -n "$file" ]; then
+    if [ ! -f "$file" ]; then
+      echo "${BOLD}${RED}❌ File not found: $file${RESET}"
+      return 1
+    fi
+    
+    # Read file content and normalize line endings to ensure consistency across platforms
+    # Convert all line endings to Unix format (LF) for cross-platform compatibility
+    content=$(cat "$file" | tr -d '\r')
+    
+    # Optionally base64 encode the content
     if [ "$base64_encode" = true ]; then
-      content=$(base64_encode "$file")
-    else
-      content=$(<"$file")
+      content=$(base64_encode "$content")
+    fi
+  elif [ -n "$value" ]; then
+    content="$value"
+    
+    # Optionally base64 encode the content
+    if [ "$base64_encode" = true ]; then
+      content=$(base64_encode "$content")
     fi
   else
-    if [ "$base64_encode" = true ]; then
-      content=$(echo -n "$value" | base64_encode -)
-    else
-      content="$value"
-    fi
+    echo "${BOLD}${RED}❌ No file or value specified${RESET}"
+    return 1
   fi
 
   # Set the secret using the gh CLI
