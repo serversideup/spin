@@ -15,16 +15,16 @@ base64_encode() {
     if [[ -f "$input" ]]; then
         # File path - use existing behavior
         if [[ "$(uname -s)" == "Darwin" ]]; then
-            base64 -i "$input"
+            base64 -b 0 -i "$input"
         else
-            base64 "$input"
+            base64 -w 0 "$input"
         fi
     else
         # Content - pipe through base64
         if [[ "$(uname -s)" == "Darwin" ]]; then
-            echo "$input" | base64
+            echo "$input" | base64 -b 0
         else
-            echo "$input" | base64
+            echo "$input" | base64 -w 0
         fi
     fi
 }
