@@ -10,19 +10,43 @@ add_user_todo_item() {
 
 base64_encode() {
     local input="$1"
-    if [[ "$(uname -s)" == "Darwin" ]]; then
-        base64 -i "$input"
+    
+    # Check if input is a file path or should be treated as content
+    if [[ -f "$input" ]]; then
+        # File path - use existing behavior
+        if [[ "$(uname -s)" == "Darwin" ]]; then
+            base64 -i "$input"
+        else
+            base64 "$input"
+        fi
     else
-        base64 "$input"
+        # Content - pipe through base64
+        if [[ "$(uname -s)" == "Darwin" ]]; then
+            echo "$input" | base64
+        else
+            echo "$input" | base64
+        fi
     fi
 }
 
 base64_decode() {
     local input="$1"
-    if [[ "$(uname -s)" == "Darwin" ]]; then
-        base64 -D "$input"
+    
+    # Check if input is a file path or should be treated as content
+    if [[ -f "$input" ]]; then
+        # File path - use existing behavior
+        if [[ "$(uname -s)" == "Darwin" ]]; then
+            base64 -D "$input"
+        else
+            base64 -d "$input"
+        fi
     else
-        base64 -d "$input"
+        # Content - pipe through base64 decode
+        if [[ "$(uname -s)" == "Darwin" ]]; then
+            echo "$input" | base64 -D
+        else
+            echo "$input" | base64 -d
+        fi
     fi
 }
 

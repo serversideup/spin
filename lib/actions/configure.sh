@@ -149,14 +149,14 @@ gh_set_env() {
     
     # Optionally base64 encode the content
     if [ "$base64_encode" = true ]; then
-      content=$(echo "$content" | base64_encode)
+      content=$(base64_encode "$content")
     fi
   elif [ -n "$value" ]; then
     content="$value"
     
     # Optionally base64 encode the content
     if [ "$base64_encode" = true ]; then
-      content=$(echo "$content" | base64_encode)
+      content=$(base64_encode "$content")
     fi
   else
     echo "${BOLD}${RED}❌ No file or value specified${RESET}"
