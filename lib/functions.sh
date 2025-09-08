@@ -639,13 +639,17 @@ github_default_branch() {
 }
 
 installation_type() {
-  if [[ "$SPIN_HOME" =~ (/vendor/bin|/node_modules/.bin) ]]; then
-    echo "project"
-  elif [[ "$SPIN_HOME" =~ (\.spin) ]]; then
-    echo "user"
-  else
-    echo "development"
-  fi
+  case "$SPIN_HOME" in
+    */vendor/*|*/node_modules/*)
+      echo "project"
+      ;;
+    */.spin*)
+      echo "user"
+      ;;
+    *)
+      echo "development"
+      ;;
+  esac
 }
 
 is_encrypted_with_ansible_vault() {

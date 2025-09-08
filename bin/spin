@@ -42,8 +42,8 @@ SPIN_ANSIBLE_COLLECTION_NAME="${SPIN_ANSIBLE_COLLECTION_NAME:-"serversideup.spin
 source "$SPIN_HOME/lib/functions.sh"
 setup_color
 
-# Check for upgrades, except for development installs and on `spin update`
-if [[ "$(installation_type)" != "development" && "$1" != "update" ]]; then
+# Check for upgrades, for only user installs
+if [[ "$(installation_type)" == "user" && "$1" != "update" ]]; then
   check_for_upgrade
 fi
 
