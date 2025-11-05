@@ -45,12 +45,12 @@ action_init() {
         ".vault-password" \
         ".github" \
         ".git" \
-        ".infrastructure" \
-        "!.infrastructure/**/local-ca.pem" \
         "Dockerfile" \
         "docker-*.yml" \
         ".gitlab-ci.yml" \
-        ".spin*"
+        ".spin*" \
+        ".infrastructure" \
+        "!.infrastructure/**/local-ca.pem"
 
     copy_template_files "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/template" "$absolute_project_directory"
 
