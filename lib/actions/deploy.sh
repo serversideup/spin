@@ -281,6 +281,21 @@ action_deploy() {
         echo "${BOLD}${GREEN}✅ Deploying to Swarm Manager: $docker_swarm_manager${RESET}"
     fi
 
+    # Clean up any orphaned SSH tunnels from previous runs
+    echo "${BOLD}${BLUE}🧹 Checking for orphaned SSH tunnels...${RESET}"
+    orphaned_pids=$(ps aux | grep "ssh -f -n -N -R ${registry_port}:127.0.0.1:${registry_port}" | grep -v grep | awk '{print $2}')
+    if [ -n "$orphaned_pids" ]; then
+        echo "${BOLD}${YELLOW}⚠️  Found orphaned SSH tunnel(s) from previous run. Cleaning up...${RESET}"
+        for pid in $orphaned_pids; do
+            if ps -p "$pid" > /dev/null 2>&1; then
+                kill "$pid" 2>/dev/null
+                echo "   Stopped tunnel process: $pid"
+            fi
+        done
+        # Give it a moment to clean up
+        sleep 1
+    fi
+
     # Create SSH tunnel to Docker registry
     echo "${BOLD}${BLUE}🚇 Creating SSH tunnel to Docker registry...${RESET}"
     
@@ -308,8 +323,26 @@ action_deploy() {
     else
         ssh_exit_code=$?
         echo "${BOLD}${RED}❌ Failed to create SSH tunnel (Exit code: $ssh_exit_code)${RESET}"
-        echo "${BOLD}${YELLOW}🔧 Troubleshoot your connection by running:${RESET}"
-        echo "${BOLD}${YELLOW}ssh -v -p ${ssh_port} ${ssh_user}@${docker_swarm_manager}${RESET}"
+        echo ""
+        echo "${BOLD}${YELLOW}Common causes and solutions:${RESET}"
+        echo ""
+        echo "  ${BOLD}1. Port ${registry_port} may already be in use on the remote server${RESET}"
+        echo "     Check if another process is using the port:"
+        echo "     ${BLUE}ssh -p ${ssh_port} ${ssh_user}@${docker_swarm_manager} 'lsof -i :${registry_port} || ss -tuln | grep ${registry_port}'${RESET}"
+        echo ""
+        echo "  ${BOLD}2. A stale SSH tunnel may exist on the remote server${RESET}"
+        echo "     Kill any stale SSH processes on the remote server:"
+        echo "     ${BLUE}ssh -p ${ssh_port} ${ssh_user}@${docker_swarm_manager} 'pkill -f \"sshd.*${registry_port}\"'${RESET}"
+        echo ""
+        echo "  ${BOLD}3. GatewayPorts may not be enabled on the remote server${RESET}"
+        echo "     Check if GatewayPorts is enabled in sshd_config:"
+        echo "     ${BLUE}ssh -p ${ssh_port} ${ssh_user}@${docker_swarm_manager} 'sudo grep GatewayPorts /etc/ssh/sshd_config'${RESET}"
+        echo ""
+        echo "  ${BOLD}4. Firewall or network connectivity issues${RESET}"
+        echo "     Test the SSH connection with verbose output:"
+        echo "     ${BLUE}ssh -v -p ${ssh_port} ${ssh_user}@${docker_swarm_manager}${RESET}"
+        echo ""
+        echo "${BOLD}${YELLOW}💡 Tip: Try changing the registry port by setting SPIN_REGISTRY_PORT in your .env file${RESET}"
         exit 1
     fi
 
