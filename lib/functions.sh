@@ -702,6 +702,18 @@ last_pull_timestamp() {
     grep "^$escaped_project_dir " "$cache_file" | awk '{print $2}'
 }
 
+escape_sed_pattern() {
+    # Escape special characters for use in sed search patterns
+    # This ensures exact string matching by escaping regex metacharacters
+    printf '%s' "$1" | sed 's/[][\.|$(){}?+*^/]/\\&/g'
+}
+
+escape_sed_replacement() {
+    # Escape special characters for use in sed replacement strings
+    # In replacement strings, we need to escape: \ / &
+    printf '%s' "$1" | sed 's/[\/&]/\\&/g' | sed 's/\\/\\\\/g'
+}
+
 line_in_file() {
     local action="ensure"
     local files=()
@@ -793,7 +805,12 @@ ${args[1]}" "$file"
                     return 1
                 fi
                 if grep -qF -- "${args[0]}" "$file"; then
-                    sed_inplace "s/${args[0]}/${args[1]}/g" "$file"
+                    # Escape special regex characters for exact matching
+                    local escaped_search
+                    local escaped_replace
+                    escaped_search=$(escape_sed_pattern "${args[0]}")
+                    escaped_replace=$(escape_sed_replacement "${args[1]}")
+                    sed_inplace "s/${escaped_search}/${escaped_replace}/g" "$file"
                 else
                     if [[ "$ignore_missing" == true ]]; then
                         return 0
