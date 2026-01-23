@@ -11,14 +11,9 @@ Stops containers and removes containers, networks, volumes, and images created b
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin down"
----
-```bash
+```bash [Usage for "spin down"]
 spin down [OPTIONS]
 ```
-::
 
 ## Special notes
 This will only run on machines that have `spin` installed on it. This means if you installed `spin` via "composer" or "yarn", this command will **not** execute.

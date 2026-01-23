@@ -20,11 +20,7 @@ In Spin v3, we introduced a new way to manage your server inventory. Previously,
 
 Everything has been merged into a single `.spin.yml` file. This new format gives you the ability to provision servers right from the command line with providers like DigitalOcean, Vultr, and Hetzner.
 
-::code-panel
----
-label: Example .spin.yml with v3
----
-```yaml
+```yaml [Example .spin.yml with v3]
 ##############################################################
 # 👇 Users - You must set at least one user
 ##############################################################
@@ -147,7 +143,6 @@ postfix_hostname: "{{ inventory_hostname }}"
 #     - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKNJGtd7a4DBHsQi7HGrC5xz0eAEFHZ3Ogh3FEFI2345 fake@key"
 #     - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFRfXxUZ8q9vHRcQZ6tLb0KwGHu8xjQHfYopZKLmnopQ anotherfake@key"
 ```
-::
 
 ## What's changed
 We changed a few things regarding this new set up:
@@ -171,15 +166,10 @@ This is always a good idea when you're making big changes like this. It's better
 ### Ensure your .gitignore is up to date
 Essentially what we want to do, is remove `.spin.yml` from the Git repository (unless if you find a certain use case to keep it in there -- as long as it's encrypted with a secure password).
 
-::code-panel
----
-label: Ensure these exist in your .gitignore
----
-```
+``` [Ensure these exist in your .gitignore]
 .spin*
 .vault-password
 ```
-::
 
 ### Ensure your ".env.<environment>" files are up to date
 Depending how you deploy, we may be re-uploading your `.env.<environment>` files to GitHub Actions. Make sure these files are the latest and have every value accurate to what is currently running in your environments.
@@ -187,28 +177,18 @@ Depending how you deploy, we may be re-uploading your `.env.<environment>` files
 ### Remove the ".spin-inventory.ini" file and ".spin.yml" file from the repository
 We know what to remove the files from being tracked by Git.
 
-::code-panel
----
-label: Stop tracking these files in Git
----
-```bash
+```bash [Stop tracking these files in Git]
 git rm --cached .spin-inventory.ini
 git rm --cached .spin.yml
 ```
-::
 
 ### Decrypt your files so you can edit them
 To make it easy for you, it's probably easiest to decrypt your files so you can easily edit them.
 
-::code-panel
----
-label: Decrypt your files
----
-```bash
+```bash [Decrypt your files]
 spin vault decrypt .spin-inventory.ini
 spin vault decrypt .spin.yml
 ```
-::
 
 ### Rename your ".spin.yml" file to ".spin.original.yml"
 We just need to temporarily rename the file so we can reference it.
@@ -228,11 +208,7 @@ Move any setting you'd like, but especially do not forget about these:
 ### Migrate the contents of your ".spin-inventory.ini" file
 The other important thing is to move over our inventory from our `.spin-inventory.ini` file. To do this, let's say we have this example:
 
-::code-panel
----
-label: Example .spin-inventory.ini
----
-```ini
+```ini [Example .spin-inventory.ini]
 ###########################################
 # 👇 Basic Server Configuration - Set your server DNS or IP address
 ###########################################
@@ -262,17 +238,12 @@ staging_manager_servers
 production
 staging
 ```
-::
 
 The most important thing in the file is our "Basic Server Configuration" section. You can see this file has two servers, `server01.example.com` and `server02.example.com`.
 
 We want to move them into our `.spin.yml` file, so it looks like this:
 
-::code-panel
----
-label: Example .spin.yml with migrated inventory
----
-```yaml
+```yaml [Example .spin.yml with migrated inventory]
 ##############################################################
 # 👇 Servers - You must set at least one server
 ##############################################################
@@ -290,7 +261,6 @@ servers:
     environment: staging
     address: server02.example.com
 ```
-::
 
 ### Remove the "providers" and "hardware_profiles" sections if you want
 If you do not want the native providers to be used, you can remove the `providers` and `hardware_profiles` sections. As long as your server has an `address` set, Spin will use whatever host you'd like.
@@ -299,11 +269,7 @@ If you do not want the native providers to be used, you can remove the `provider
 Keep these sections if you want to use the native providers.
 ::
 
-::code-panel
----
-label: '❌ You can remove these lines if you want'
----
-```yaml
+```yaml ['❌ You can remove these lines if you want']
 # ##############################################################
 # # 👇 Providers - You must set at least one provider
 # ##############################################################
@@ -350,20 +316,14 @@ label: '❌ You can remove these lines if you want'
 #       image: ubuntu-24-04-x64
 #       backups: true
 ```
-::
 
 ### Remove the v2 configuration files
 Make sure to delete the old v2 files from the project when you're confident you've migrated everything.
 
-::code-panel
----
-label: Remove the files from the project
----
-```bash
+```bash [Remove the files from the project]
 rm .spin-inventory.ini
 rm .spin.original.yml
 ```
-::
 
 ### Re-encrypt (if you want)
 With this new set up, the `.spin.yml` file acts like an `.env` file. If you'd like the extra security, you can re-encrypt the file.
@@ -372,14 +332,9 @@ With this new set up, the `.spin.yml` file acts like an `.env` file. If you'd li
 If you choose TO NOT encrypt the file, be sure to delete the `.vault-password` file from your local machine.
 ::
 
-::code-panel
----
-label: Re-encrypt the file
----
-```bash
+```bash [Re-encrypt the file]
 spin vault encrypt .spin.yml
 ```
-::
 
 You will need a `.vault-password` file on your local machine if you intend to use the encrypted file.
 
@@ -390,14 +345,9 @@ If you'd like to test the new setup, you can run `spin provision` and it will us
 ⚠️ Running `spin provision` might cause a brief interruption in your services if there is an update for Docker.
 ::
 
-::code-panel
----
-label: Run spin provision on your staging servers
----
-```bash
+```bash [Run spin provision on your staging servers]
 spin provision staging
 ```
-::
 
 ### Update GitHub Actions
 If you're using GitHub Actions, we no longer need these environment variables. They will be reuploaded to GitHub Actions under new names when we run `spin configure gha <environment>`.
@@ -415,15 +365,10 @@ If you added other variables such as `DB_PASSWORD` or `REDIS_PASSWORD`, you can 
 ### Run "spin configure gha <environment>"
 For each environment, you will need to run `spin configure gha <environment>` to update the GitHub Actions environment variables.
 
-::code-panel
----
-label: Run "spin configure gha <environment>"
----
-```bash
+```bash [Run "spin configure gha <environment>"]
 spin configure gha staging
 spin configure gha production
 ```
-::
 
 ### Get latest Spin template
 If you purchased Spin Pro, you can get the latest GitHub Actions template by reinitializing your project.
@@ -435,14 +380,9 @@ The command below will delete all Dockerfiles and Spin configurations then ask y
 - [service_docker-build-and-publish.yml](https://github.com/serversideup/spin-template-laravel-pro/blob/main/blocks/github-actions/.github/workflows/service_docker-build-and-publish.yml)
 ::
 
-::code-panel
----
-label: Reinitialize your project
----
-```bash
+```bash [Reinitialize your project]
 spin init laravel-pro
 ```
-::
 
 ## Review your pending Git changes
 Now is the time to review your pending Git changes. If you're confident everything looks good, you can go ahead and commit your changes and run your deployment.

@@ -11,14 +11,9 @@ Quickly and easily deploy your application to a server without the hassle of set
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin deploy"
----
-```bash
+```bash [Usage for "spin deploy"]
 spin deploy [ -c|--compose-file <compose-file> -p|--port <port> -u|--user <user> ] <environment>
 ```
-::
 
 ## Before getting started
 Be sure you have "provisioned" your server before running this command. If you haven't, you can do so by running `spin provision` before running `spin deploy`.
@@ -28,36 +23,21 @@ Be sure you have "provisioned" your server before running this command. If you h
 ## Example Deployment Command
 To deploy your application to the production environment, you can use the following command:
 
-::code-panel
----
-label: Deploy to Production
----
-```bash
+```bash [Deploy to Production]
 spin deploy production
 ```
-::
 
 To deploy to a staging environment, specify the environment name:
 
-::code-panel
----
-label: Deploy to Staging
----
-```bash
+```bash [Deploy to Staging]
 spin deploy staging
 ```
-::
 
 You can also provide custom Docker Compose files and SSH options:
 
-::code-panel
----
-label: Custom Deployment Options
----
-```bash
+```bash [Custom Deployment Options]
 spin deploy staging --compose-file custom-compose.yml --user myuser --port 2222
 ```
-::
 
 This comprehensive process ensures that your application is built, pushed, and deployed efficiently to your server.
 

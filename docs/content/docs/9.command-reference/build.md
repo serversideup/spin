@@ -11,13 +11,8 @@ Trigger a build of your docker-compose files.
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin build"
----
-```bash
+```bash [Usage for "spin build"]
 spin build [OPTIONS]
 ```
-::
 ## Official Documentation & Additional Options
 This command is a shortcut for [`docker-compose build`](https://docs.docker.com/compose/reference/build/) and can accept additional options that you pass to it.

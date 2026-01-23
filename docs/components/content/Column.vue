@@ -3,7 +3,7 @@
         :class="{
             'xl:sticky xl:top-24': sticky
         }">
-        <ContentSlot :use="$slots.default"/>
+        <slot />
     </div>
 </template>
 

@@ -11,14 +11,9 @@ Lists containers for a Compose project, with current status and exposed ports.
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin ps"
----
-```bash
+```bash [Usage for "spin ps"]
 spin ps [OPTIONS]
 ```
-::
 
 ## Other options
 You can use any command option from the [docker compose ps](https://docs.docker.com/reference/cli/docker/compose/ps/) command.

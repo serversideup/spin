@@ -11,14 +11,9 @@ Create and initialize a new project with Spin.
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin new"
----
-```txt
+```txt [Usage for "spin new"]
 spin new <template-name> <project-name>
 ```
-::
 
 ::note
 `<template-name>` can either be an "official template" provided by the Spin team, or any GitHub repository in the format of `username/repo`.
@@ -35,14 +30,9 @@ We only have one official template right now, but we're working to add more temp
 
 #### Usage
 
-::code-panel
----
-label: Usage for "spin new"
----
-```txt
+```txt [Usage for "spin new"]
 spin new laravel
 ```
-::
 
 ### Optional - Specify your project name
 By default, Spin will use the framework's default project name and create the project in the current directory of where you're running Spin. If you'd like to specify your own project name, simply add it as the second argument to the `spin new` command.

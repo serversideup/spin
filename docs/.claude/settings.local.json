@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:ui.nuxt.com)",
+      "WebFetch(domain:content.nuxt.com)",
+      "WebFetch(domain:docs-template.nuxt.dev)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(yarn install)",
+      "Bash(yarn dev:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}

@@ -4,11 +4,11 @@
             <Link rel="preconnect" href="https://fonts.googleapis.com"/>
             <Link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
             <Link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-            <Link rel="apple-touch-icon" sizes="180x180" :href="( basePath != '/' ? basePath : '' )+'/images/favicon/apple-touch-icon.png'"/>
-            <Link rel="icon" type="image/png" sizes="32x32" :href="( basePath != '/' ? basePath : '' )+'/images/favicon/favicon-32x32.png'"/>
-            <Link rel="icon" type="image/png" sizes="16x16" :href="( basePath != '/' ? basePath : '' )+'/images/favicon/favicon-16x16.png'"/>
-            <Link rel="manifest" :href="( basePath != '/' ? basePath : '' )+'/images/favicon/site.webmanifest'"/>
-            <Link rel="mask-icon" :href="( basePath != '/' ? basePath : '' )+'/images/favicon/safari-pinned-tab.svg'" color="#5bbad5"/>
+            <Link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png"/>
+            <Link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png"/>
+            <Link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png"/>
+            <Link rel="manifest" href="/images/favicon/site.webmanifest"/>
+            <Link rel="mask-icon" href="/images/favicon/safari-pinned-tab.svg" color="#5bbad5"/>
             <Meta name="msapplication-TileColor" content="#da532c"/>
             <Meta name="theme-color" content="#ffffff"/>
         </Head>
@@ -17,22 +17,25 @@
 
         <MarketingHeader/>
 
-        <div class="lg:flex lg:w-screen lg:h-[calc(100vh-167px)]">
-            <div style="scrollbar-width: none" class="contents lg:overflow-y-scroll lg:pointer-events-none lg:z-40 lg:flex lg:top-[126px]">
-                <div class="contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:px-6 lg:pt-4 lg:pb-8 lg:border-white/10 xl:w-80">
-                    <DocsNavigation
-                        class="hidden lg:block"/>
+        <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="lg:flex">
+                <!-- Sidebar -->
+                <div class="hidden lg:block lg:flex-none lg:w-72 xl:w-80">
+                    <div class="sticky top-0 h-[calc(100vh-120px)] overflow-y-auto py-8 pr-4">
+                        <DocsNavigation/>
+                    </div>
                 </div>
-            </div>
 
-            <div class="relative px-4 pt-5 sm:px-6 lg:overflow-y-scroll lg:flex-1 lg:px-8">
-                <main class="py-8 scroll-smooth" id="content-container">
-                    <ContentDoc
-                        class="prose prose-invert" 
-                        tag="article" />
-                </main>
+                <!-- Main content -->
+                <div class="min-w-0 flex-auto lg:pl-8 lg:pr-0 xl:px-16">
+                    <main class="py-8 scroll-smooth" id="content-container">
+                        <article class="prose prose-invert max-w-3xl">
+                            <ContentRenderer v-if="page" :value="page" />
+                        </article>
 
-                <DocsFooter/>
+                        <DocsFooter class="max-w-3xl"/>
+                    </main>
+                </div>
             </div>
         </div>
 
@@ -42,8 +45,11 @@
 
 <script setup>
 const route = useRoute();
-const { basePath, domain } = useRuntimeConfig().public;
-const { page } = useContent();
+const { domain } = useRuntimeConfig().public;
+
+const { data: page } = await useAsyncData(`page-${route.path}`, () =>
+    queryCollection('docs').path(route.path).first()
+)
 
 useHead({
     htmlAttrs: {
@@ -56,20 +62,20 @@ useHead({
 
 useSeoMeta({
     ogLocale: 'en_US',
-    ogUrl: domain+basePath+route.path,
+    ogUrl: domain + route.path,
     ogType: 'website',
     ogSiteName: 'Server Side Up - Spin',
-    ogTitle: page.value?.head.title,
-    ogDescription: page.value.description,
+    ogTitle: page.value?.title,
+    ogDescription: page.value?.description,
     twitterCard: 'summary_large_image',
     twitterDescription: page.value?.description,
     twitterSite: '@serversideup',
-    twitterTitle: page.value?.head.title
+    twitterTitle: page.value?.title
 })
 
 defineOgImage({
     component: 'DocsImage',
-    title: page.value.title,
-    description: page.value.description
+    title: page.value?.title,
+    description: page.value?.description
 });
 </script>

@@ -11,11 +11,6 @@ Print the version of `spin` that you are running. Similar to `spin debug`, but w
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin version"
----
-```bash
+```bash [Usage for "spin version"]
 spin version
 ```
-::

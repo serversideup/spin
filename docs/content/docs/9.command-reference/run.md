@@ -11,24 +11,14 @@ Use `run` if you want to run a command with NEW containers. This is helpful for 
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin run"
----
-```bash
+```bash [Usage for "spin run"]
 spin run [OPTIONS] SERVICE COMMAND 
 ```
-::
 
 ## Example
-::code-panel
----
-label: Example of running a container for "composer install" with PHP
----
-```bash
+```bash [Example of running a container for "composer install" with PHP]
 spin run php composer install
 ```
-::
 
 #### Spin Specific Options
 - `--skip-pull`: Do not automatically pull docker images.

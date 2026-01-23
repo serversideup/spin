@@ -11,14 +11,9 @@ Clear the local Docker and Spin caches on your machine.
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin prune"
----
-```bash
+```bash [Usage for "spin prune"]
 spin prune [OPTIONS]
 ```
-::
 
 ## Options
 The following options are available to set when running this command.
@@ -31,11 +26,6 @@ This command is a shortcut for [`docker system prune --all`](https://docs.docker
 
 If you want to clear volumes as well, you will need to add `--volumes` to the end of the command.
 
-::code-panel
----
-label: Clear volumes as well as all other containers.
----
-```bash
+```bash [Clear volumes as well as all other containers.]
 spin prune --volumes
 ```
-::

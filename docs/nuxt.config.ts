@@ -1,86 +1,64 @@
-import tailwindTypography from '@tailwindcss/typography'
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-    modules: [
-        'nuxt-og-image',
-        '@nuxtjs/color-mode',
-        '@nuxt/content',
-        '@nuxtjs/plausible',
-        '@nuxtjs/tailwindcss',
-        '@vueuse/nuxt'
-    ],
+  modules: [
+    '@nuxt/ui-pro',
+    '@nuxt/content',
+    '@vueuse/nuxt',
+    'nuxt-og-image',
+    '@nuxtjs/plausible',
+    '@nuxtjs/sitemap'
+  ],
 
-    content: {
-        documentDriven: true,
+  future: {
+    compatibilityVersion: 4
+  },
 
-        experimental: {
-            search: {
-                indexed: true
-            }
-        },
+  compatibilityDate: '2025-01-01',
 
-        markdown: {
-            tags: {
-                h2: 'AppHeading2',
-                h3: 'AppHeading3',
-                h4: 'AppHeading4'
-            }
-        },
+  ui: {
+    colorMode: false,
+    icons: ['heroicons', 'simple-icons']
+  },
 
+  colorMode: {
+    preference: 'dark',
+    fallback: 'dark'
+  },
+
+  content: {
+    build: {
+      markdown: {
         highlight: {
-            // OR
-            theme: {
-              // Default theme (same as single string)
-              default: 'github-dark',
-              // Theme used if `html.dark`
-              dark: 'github-dark',
-              // Theme used if `html.sepia`
-              sepia: 'monokai'
-            },
-            preload: [
-                'dockerfile',
-                'ini'
-            ]        
+          theme: { default: 'github-dark', dark: 'github-dark' },
+          langs: ['dockerfile', 'ini', 'bash', 'yaml', 'json', 'typescript', 'javascript', 'php', 'vue', 'html', 'css', 'shell']
         }
-    },
-
-    colorMode: {
-        classSuffix: ''
-    },
-
-    nitro: {
-        prerender: {
-            routes: [
-                '/sitemap.xml',
-                '/api/search.json'
-            ]
-        }
-    },
-
-    ogImage: {
-        componentDirs: ['~/components/Global/OgImage'],
-    },
-
-    plausible: {
-        apiHost: 'https://a.521dimensions.com'
-    },
-
-    runtimeConfig: {
-        public: {
-            basePath: process.env.NUXT_APP_BASE_URL || '/',
-            domain: process.env.TOP_LEVEL_DOMAIN
-        }
-    },
-
-    site: {
-        url: process.env.BASE_PATH,
-    },
-
-    tailwindcss: {
-        config: {
-            plugins: [tailwindTypography]
-        },
-        cssPath: '~/assets/css/tailwind.css',
+      }
     }
+  },
+
+  css: [
+    '~/assets/css/tailwind.css'
+  ],
+
+  sitemap: {
+    siteUrl: 'https://serversideup.net/open-source/spin'
+  },
+
+  ogImage: {
+    componentDirs: ['~/components/Global/OgImage'],
+  },
+
+  plausible: {
+    apiHost: 'https://a.521dimensions.com'
+  },
+
+  runtimeConfig: {
+    public: {
+      domain: process.env.TOP_LEVEL_DOMAIN || 'https://serversideup.net'
+    }
+  },
+
+  site: {
+    url: process.env.SITE_URL || 'https://serversideup.net',
+  }
 })

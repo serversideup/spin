@@ -8,23 +8,18 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
-    "@headlessui/vue": "^1.7.8",
-    "@nuxt/content": "npm:@nuxt/content-edge@latest",
-    "@nuxtjs/color-mode": "^3.2.0",
-    "@nuxtjs/plausible": "^0.2.0",
-    "@nuxtjs/tailwindcss": "^6.11.3",
-    "@tailwindcss/typography": "^0.5.9",
+    "@nuxt/content": "^3.0.0",
+    "@nuxt/ui-pro": "^3.0.0",
+    "@nuxtjs/plausible": "^1.2.0",
+    "@nuxtjs/sitemap": "^7.0.0",
     "@vueuse/core": "^10.7.2",
     "@vueuse/nuxt": "^10.7.2",
-    "nuxt": "^3.10.1",
-    "nuxt-og-image": "^2.2.4",
-    "nuxt-site-config": "^1.6.6",
-    "nuxt-site-config-kit": "^1.6.6",
-    "sitemap": "^7.1.1",
-    "surge": "^0.23.1"
+    "better-sqlite3": "^11.0.0",
+    "nuxt": "^4.0.0",
+    "nuxt-og-image": "^5.1.11",
+    "typescript": "^5.6.3"
   },
   "dependencies": {
-    "@heroicons/vue": "^2.1.1",
     "hotkeys-js": "^3.13.7"
   }
 }

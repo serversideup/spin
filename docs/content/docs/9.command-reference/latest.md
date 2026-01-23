@@ -11,27 +11,17 @@ Run a one-off container to perform a task with the latest version of the contain
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin latest"
----
-```bash
+```bash [Usage for "spin latest"]
 spin latest [OPTIONS] SERVICE COMMAND 
 ```
-::
 
 ### Options
 - `php`: Run the latest stable version of PHP
 - `node`: Run the latest stable LTS version of Node
 
 ## Example
-::code-panel
----
-label: Example of running a container for "composer install" with PHP
----
-```bash
+```bash [Example of running a container for "composer install" with PHP]
 spin latest php php my_script.php
 ```
-::
 
 The above command will run the latest stable version of `php`, then run the command `php my_script.php` inside the container. The `php` in the command is duplicated because one is the service name name of `php` and the other is the command to run `php` inside the container.

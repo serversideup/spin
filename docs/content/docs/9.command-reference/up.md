@@ -11,40 +11,25 @@ Bring up all containers defined in `docker-compose.yml` and `docker-compose.$SPI
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin up"
----
-```bash
+```bash [Usage for "spin up"]
 spin up [OPTIONS]
 ```
-::
 
 ## Example
 ::note
 If you're using a Docker Compose configuration with `build:` directives, you might want to get in the habit of using `spin up --build` to ensure you're always running the latest version of your containers.
 ::
-::code-panel
----
-label: Force a build of containers on initialization
----
-```bash
+```bash [Force a build of containers on initialization]
 spin up --build
 ```
-::
 
 You can add options at the end of the command (like the `--build` shown above. The above command will bring up your containers, but then also force a new build (if you have builds configured in your "docker-compose.dev.yml" file).
 
 ## Defaults
 The `spin up` command defaults to running:
-::code-panel
----
-label: Command default
----
-```bash
+```bash [Command default]
 COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml docker compose up
 ```
-::
 
 ## Official Documentation & Additional Options
 
@@ -63,11 +48,7 @@ This command is a shortcut for [`docker compose up`](https://docs.docker.com/com
 
 ## Overriding the environment with `$SPIN_ENV`
 Let's say you have a few different files in your repository:
-::code-panel
----
-label: Example project root
----
-```
+``` [Example project root]
 .
 ├── docker-compose.ci.yml
 ├── docker-compose.production.yml
@@ -75,29 +56,18 @@ label: Example project root
 ├── docker-compose.testing.yml
 └── docker-compose.yml
 ```
-::
 
 
 By default, Spin uses `docker-compose.yml` and `docker-compose.dev.yml`.
 
 If you want to change that, you just need to set `$SPIN_ENV`:
-::code-panel
----
-label: Change spin environment
----
-```bash
+```bash [Change spin environment]
 SPIN_ENV=testing spin up
 ```
-::
 
 
 This will essentially run:
 
-::code-panel
----
-label: Above command will execute this below
----
-```bash
+```bash [Above command will execute this below]
 COMPOSE_FILE=docker-compose.yml:docker-compose.testing.yml docker compose up
 ```
-::

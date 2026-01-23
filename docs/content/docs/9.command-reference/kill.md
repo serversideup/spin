@@ -11,11 +11,6 @@ Send `SIGKILL` to all containers. See the documentation on [docker kill](https:/
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin kill"
----
-```bash
+```bash [Usage for "spin kill"]
 spin kill
 ```
-::

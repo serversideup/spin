@@ -11,11 +11,6 @@ If you run into an issue with `spin` and need to report a bug, this is a very he
 ::
 
 ## Usage
-::code-panel
----
-label: Get debug information for "spin"
----
-```bash
+```bash [Get debug information for "spin"]
 spin debug
 ```
-::

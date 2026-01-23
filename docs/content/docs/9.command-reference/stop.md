@@ -11,11 +11,6 @@ Send a `SIGTERM` to **all containers**, then after a grace period, send `SIGKILL
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin stop"
----
-```bash
+```bash [Usage for "spin stop"]
 spin stop
 ```
-::

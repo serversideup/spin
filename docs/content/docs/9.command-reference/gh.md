@@ -14,14 +14,9 @@ Run the GitHub CLI via Docker with Spin.
 This command will run the GitHub CLI via Docker using [`serversideup/github-cli`](https://github.com/serversideup/docker-github-cli).
 
 ## Usage
-::code-panel
----
-label: Usage for "spin gh"
----
-```bash
+```bash [Usage for "spin gh"]
 spin gh [OPTIONS] <command>
 ```
-::
 
 ## Official Documentation
 The `spin gh` command supports running all the commands supported by the GitHub CLI. See the [official documentation](https://cli.github.com/manual/) for more information.

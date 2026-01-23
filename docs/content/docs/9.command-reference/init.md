@@ -16,14 +16,9 @@ This process will create new files and may modify existing files. It's highly re
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin init"
----
-```bash
+```bash [Usage for "spin init"]
 spin init [--skip-dependency-install]
 ```
-::
 
 ## What this command does
 Running `spin init` will ask you a few questions about your project, then create the files you need to get started with Spin.

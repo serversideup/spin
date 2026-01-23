@@ -11,28 +11,18 @@ Configure various aspects of your project's deployment settings and infrastructu
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin configure"
----
-```bash
+```bash [Usage for "spin configure"]
 spin configure <command> [options]
 ```
-::
 
 ## Commands
 
 ### GitHub Actions (`gha`)
 Configure GitHub Actions settings for deploying your application to a specific environment.
 
-::code-panel
----
-label: Configure GitHub Actions for an environment
----
-```bash
+```bash [Configure GitHub Actions for an environment]
 spin configure gha <environment>
 ```
-::
 
 #### What this command does
 When configuring GitHub Actions, this command:
@@ -43,14 +33,9 @@ When configuring GitHub Actions, this command:
 5. Configures server access for deployments
 
 #### Example
-::code-panel
----
-label: Configure GitHub Actions for production
----
-```bash
+```bash [Configure GitHub Actions for production]
 spin configure gha production
 ```
-::
 
 ## Prerequisites
 Before running `spin configure gha`, ensure you:
