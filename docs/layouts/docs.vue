@@ -19,15 +19,15 @@
 
         <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="lg:flex">
-                <!-- Sidebar -->
+                <!-- Left Sidebar -->
                 <div class="hidden lg:block lg:flex-none lg:w-72 xl:w-80">
-                    <div class="sticky top-0 h-[calc(100vh-120px)] overflow-y-auto py-8 pr-4">
+                    <div class="sticky top-32 h-[calc(100vh-160px)] overflow-y-auto py-8 pr-4">
                         <DocsNavigation/>
                     </div>
                 </div>
 
                 <!-- Main content -->
-                <div class="min-w-0 flex-auto lg:pl-8 lg:pr-0 xl:px-16">
+                <div class="min-w-0 flex-1 lg:pl-8 lg:pr-0 xl:px-16">
                     <main class="py-8 scroll-smooth" id="content-container">
                         <article class="prose prose-invert max-w-3xl">
                             <ContentRenderer v-if="page" :value="page" />
@@ -36,6 +36,12 @@
                         <DocsFooter class="max-w-3xl"/>
                     </main>
                 </div>
+
+                <!-- Right Sidebar -->
+                <DocsAside
+                    :toc="toc"
+                    :content-path="page?.stem"
+                />
             </div>
         </div>
 
@@ -50,6 +56,9 @@ const { domain } = useRuntimeConfig().public;
 const { data: page } = await useAsyncData(`page-${route.path}`, () =>
     queryCollection('docs').path(route.path).first()
 )
+
+// Extract table of contents from page body
+const toc = computed(() => page.value?.body?.toc?.links || [])
 
 useHead({
     htmlAttrs: {
