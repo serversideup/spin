@@ -1,6 +1,6 @@
 <template>
     <div class="w-full">
-        <a href="https://getspin.pro/?ref=spin" target="_blank" class="py-2 px-1 bg-[#1CE783] w-full flex items-center justify-center font-semibold text-sm md:text-base"
+        <a href="https://getspin.pro/?ref=spin" target="_blank" class="py-2 px-1 bg-[#1CE783] text-[#151A1F] w-full flex items-center justify-center font-semibold text-sm md:text-base"
             :class="{
                 'mt-[43px]': fixed
             }">
