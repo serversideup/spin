@@ -1,90 +1,76 @@
-<template>
-    <div class="w-full min-h-screen bg-[#1D252C]">
-        <Head>
-            <Link rel="preconnect" href="https://fonts.googleapis.com"/>
-            <Link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-            <Link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-            <Link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png"/>
-            <Link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png"/>
-            <Link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png"/>
-            <Link rel="manifest" href="/images/favicon/site.webmanifest"/>
-            <Link rel="mask-icon" href="/images/favicon/safari-pinned-tab.svg" color="#5bbad5"/>
-            <Meta name="msapplication-TileColor" content="#da532c"/>
-            <Meta name="theme-color" content="#ffffff"/>
-        </Head>
+<script setup lang="ts">
+import type { ContentNavigationItem } from '@nuxt/content'
 
-        <GlobalServerSideUp/>
+const route = useRoute()
+const navigationData = inject<Ref<ContentNavigationItem[]>>('navigation')
 
-        <MarketingHeader/>
+/**
+ * Recursively checks if a navigation item or any of its children contains the active path
+ */
+function containsActivePath(item: ContentNavigationItem, activePath: string): boolean {
+  if (item._path === activePath || item.path === activePath) {
+    return true
+  }
 
-        <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="lg:flex">
-                <!-- Left Sidebar -->
-                <div class="hidden lg:block lg:flex-none lg:w-72 xl:w-80">
-                    <div class="sticky top-32 h-[calc(100vh-160px)] overflow-y-auto py-8 pr-4">
-                        <DocsNavigation/>
-                    </div>
-                </div>
+  if (item.children && item.children.length > 0) {
+    return item.children.some(child => containsActivePath(child, activePath))
+  }
 
-                <!-- Main content -->
-                <div class="min-w-0 flex-1 lg:pl-8 lg:pr-0 xl:px-16">
-                    <main class="py-8 scroll-smooth" id="content-container">
-                        <article class="prose prose-invert max-w-3xl">
-                            <ContentRenderer v-if="page" :value="page" />
-                        </article>
+  return false
+}
 
-                        <DocsFooter class="max-w-3xl"/>
-                    </main>
-                </div>
+/**
+ * Processes navigation items to ensure sections are expanded if:
+ * 1. They have defaultOpen: true in .navigation.yml, OR
+ * 2. They contain the active page
+ */
+function processNavigation(items: ContentNavigationItem[], activePath: string): ContentNavigationItem[] {
+  return items.map(item => {
+    const hasActivePath = containsActivePath(item, activePath)
 
-                <!-- Right Sidebar -->
-                <DocsAside
-                    :toc="toc"
-                    :content-path="page?.stem"
-                />
-            </div>
-        </div>
+    const processedItem = { ...item }
 
-        <Search/>
-    </div>
-</template>
+    if (hasActivePath && item.children && item.children.length > 0) {
+      processedItem.defaultOpen = true
+    }
 
-<script setup>
-const route = useRoute();
-const { domain } = useRuntimeConfig().public;
+    if (processedItem.children && processedItem.children.length > 0) {
+      processedItem.children = processNavigation(processedItem.children, activePath)
+    }
 
-const { data: page } = await useAsyncData(`page-${route.path}`, () =>
-    queryCollection('docs').path(route.path).first()
-)
+    return processedItem
+  })
+}
 
-// Extract table of contents from page body
-const toc = computed(() => page.value?.body?.toc?.links || [])
+const navigation = computed(() => {
+  const navItems = navigationData?.value?.[0]?.children || []
+  return processNavigation(navItems, route.path)
+})
 
 useHead({
-    htmlAttrs: {
-        lang: 'en'
-    },
-    bodyAttrs: {
-        class: 'antialiased font-inter bg-black'
-    }
+  bodyAttrs: {
+    class: 'antialiased font-inter bg-[#1D252C]'
+  }
 })
-
-useSeoMeta({
-    ogLocale: 'en_US',
-    ogUrl: domain + route.path,
-    ogType: 'website',
-    ogSiteName: 'Server Side Up - Spin',
-    ogTitle: page.value?.title,
-    ogDescription: page.value?.description,
-    twitterCard: 'summary_large_image',
-    twitterDescription: page.value?.description,
-    twitterSite: '@serversideup',
-    twitterTitle: page.value?.title
-})
-
-defineOgImage({
-    component: 'DocsImage',
-    title: page.value?.title,
-    description: page.value?.description
-});
 </script>
+
+<template>
+  <UContainer>
+    <UPage>
+      <template #left>
+        <UPageAside>
+          <UContentNavigation
+            highlight
+            :navigation="navigation"
+          />
+        </UPageAside>
+      </template>
+
+      <slot />
+
+      <template #right>
+        <slot name="right" />
+      </template>
+    </UPage>
+  </UContainer>
+</template>
