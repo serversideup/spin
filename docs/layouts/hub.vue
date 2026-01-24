@@ -1,7 +1,9 @@
 <template>
-  <main class="w-full max-w-7xl mx-auto px-4 py-8">
-    <ContentRenderer v-if="page" :value="page" />
-  </main>
+  <UContainer>
+    <main class="py-8">
+      <ContentRenderer v-if="page" :value="page" />
+    </main>
+  </UContainer>
 </template>
 
 <script setup>

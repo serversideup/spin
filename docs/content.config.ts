@@ -18,7 +18,11 @@ export default defineContentConfig({
       schema: z.object({
         title: z.string(),
         description: z.string().optional(),
-        layout: z.string().default('hubdetail')
+        layout: z.string().default('hubdetail'),
+        image: z.string().optional(),
+        author: z.string().optional(),
+        authorImage: z.string().optional(),
+        category: z.string().optional()
       })
     }),
     landing: defineCollection({

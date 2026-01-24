@@ -5,6 +5,47 @@ const route = useRoute()
 const navigationData = inject<Ref<ContentNavigationItem[]>>('navigation')
 
 /**
+ * Explicit navigation order - maps path segments to their sort order
+ * This ensures numeric prefixes in folder names are respected
+ */
+const navigationOrder: Record<string, number> = {
+  'installation': 1,
+  'getting-started': 2,
+  'development-environment': 3,
+  'server-configuration': 4,
+  'providers': 5,
+  'deployment': 6,
+  'server-access': 7,
+  'advanced': 8,
+  'command-reference': 9,
+  'community': 11
+}
+
+/**
+ * Gets the sort order for a navigation item based on its path
+ */
+function getSortOrder(item: ContentNavigationItem): number {
+  const path = item.path || ''
+  const segments = path.split('/')
+  const lastSegment = segments[segments.length - 1]
+  return navigationOrder[lastSegment] ?? 999
+}
+
+/**
+ * Recursively sorts navigation items by their defined order
+ * Also filters out the index/introduction page since it's accessible via the Docs header link
+ */
+function sortNavigation(items: ContentNavigationItem[]): ContentNavigationItem[] {
+  return [...items]
+    .filter(item => item.path !== '/docs') // Hide introduction - accessible via header
+    .sort((a, b) => getSortOrder(a) - getSortOrder(b))
+    .map(item => ({
+      ...item,
+      children: item.children ? sortNavigation(item.children) : undefined
+    }))
+}
+
+/**
  * Recursively checks if a navigation item or any of its children contains the active path
  */
 function containsActivePath(item: ContentNavigationItem, activePath: string): boolean {
@@ -49,11 +90,11 @@ function processNavigation(items: ContentNavigationItem[], activePath: string): 
   })
 }
 
-// Process the navigation data to expand sections containing the active page
-// while preserving defaultOpen settings from .navigation.yml
+// Process the navigation data: sort by defined order, then expand sections containing the active page
 const navigation = computed(() => {
   const navItems = navigationData?.value?.[0]?.children || []
-  return processNavigation(navItems, route.path)
+  const sortedItems = sortNavigation(navItems)
+  return processNavigation(sortedItems, route.path)
 })
 </script>
 
