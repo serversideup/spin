@@ -1,6 +1,6 @@
 <template>
     <transition name="slide-in-top">
-        <div id="mobile-menu" v-show="show" class="px-6 pt-7 right-0 bottom-0 bg-[#1D252C] w-full fixed flex flex-col z-50 top-[153px] overflow-y-scroll">
+        <div id="mobile-menu" v-show="show" class="px-6 pt-7 pb-24 right-0 bottom-0 bg-[#1D252C] w-full fixed flex flex-col z-50 top-[153px] overflow-y-scroll">
             <button type="button"
                 @click="promptSearch"
                 class="flex items-center font-inter font-bold text-slate-300 text-xl mb-6">
@@ -50,58 +50,40 @@
             </NuxtLink>
 
             <NuxtLink
-                :href="'https://github.com/serversideup'"
-                class="flex items-center font-inter font-bold text-slate-300 text-lg mb-6">
+                :href="'https://github.com/serversideup/spin'"
+                target="_blank"
+                class="flex items-center font-inter font-bold text-slate-300 text-xl mb-6">
                     <div class="flex items-center justify-center w-5 h-5 mr-2">
                         <svg width="20" height="22" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full max-h-full">
                             <path d="M7 0.65799C3.1325 0.65799 0 3.79049 0 7.65799C0 10.7555 2.00375 13.3717 4.78625 14.2992C5.13625 14.3605 5.2675 14.1505 5.2675 13.9667C5.2675 13.8005 5.25875 13.2492 5.25875 12.663C3.5 12.9867 3.045 12.2342 2.905 11.8405C2.82625 11.6392 2.485 11.018 2.1875 10.8517C1.9425 10.7205 1.5925 10.3967 2.17875 10.388C2.73 10.3792 3.12375 10.8955 3.255 11.1055C3.885 12.1642 4.89125 11.8667 5.29375 11.683C5.355 11.228 5.53875 10.9217 5.74 10.7467C4.1825 10.5717 2.555 9.96799 2.555 7.29049C2.555 6.52924 2.82625 5.89924 3.2725 5.40924C3.2025 5.23424 2.9575 4.51674 3.3425 3.55424C3.3425 3.55424 3.92875 3.37049 5.2675 4.27174C5.8275 4.11424 6.4225 4.03549 7.0175 4.03549C7.6125 4.03549 8.2075 4.11424 8.7675 4.27174C10.1063 3.36174 10.6925 3.55424 10.6925 3.55424C11.0775 4.51674 10.8325 5.23424 10.7625 5.40924C11.2087 5.89924 11.48 6.52049 11.48 7.29049C11.48 9.97674 9.84375 10.5717 8.28625 10.7467C8.54 10.9655 8.75875 11.3855 8.75875 12.0417C8.75875 12.978 8.75 13.7305 8.75 13.9667C8.75 14.1505 8.88125 14.3692 9.23125 14.2992C10.6209 13.8301 11.8284 12.937 12.6839 11.7457C13.5393 10.5543 13.9996 9.12467 14 7.65799C14 3.79049 10.8675 0.65799 7 0.65799Z" fill="currentColor"/>
                         </svg>
                     </div>
 
-                    Github
+                    GitHub
             </NuxtLink>
 
-            <NuxtLink :to="'https://github.com/sponsors/serversideup'" class="flex items-center justify-center w-[115px] py-2 font-bold font-inter text-white rounded-lg border border-solid border-slate-700 bg-slate-800 mb-6 hover:bg-slate-700 text-sm">
-                Sponsor
-                <img class="ml-[10px]" src="/images/icons/heart.svg"/>
-            </NuxtLink>
+            <div class="flex items-center gap-3 mb-8">
+                <NuxtLink :to="'https://github.com/sponsors/serversideup'" target="_blank" class="flex items-center justify-center py-2 px-4 font-bold font-inter text-white rounded-lg border border-solid border-slate-700 bg-slate-800 hover:bg-slate-700 text-sm">
+                    Sponsor
+                    <img class="ml-2" src="/images/icons/heart.svg"/>
+                </NuxtLink>
 
-            <NuxtLink :to="'/docs'" class="flex items-center justify-center w-[136px] py-2 font-bold font-inter text-white rounded-lg bg-[#1CE783] text-sm mb-12 hover:bg-[#1CE783]">
-                Get Started &rarr;
-            </NuxtLink>
+                <NuxtLink :to="'/docs'" class="flex items-center justify-center py-2 px-4 font-bold font-inter text-[#151A1F] rounded-lg bg-[#1CE783] text-sm">
+                    Get Started &rarr;
+                </NuxtLink>
+            </div>
+
+            <!-- Separator -->
+            <div class="border-t border-slate-700 mb-6"></div>
 
             <template v-if="navigation">
-                <div class="w-full">
-                    <h2 class="text-xs font-semibold text-white">
-                        {{ navigation.title }}
-                    </h2>
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Documentation</h3>
 
-                    <ul role="list" class="border-l border-white/20">
-                        <li>
-                            <NuxtLink
-                                :to="navigation.path"
-                                class="flex justify-between gap-2 py-1 pr-3 text-sm transition pl-4"
-                                :class="{
-                                    'text-white': navigation.path === route.path,
-                                    'text-zinc-400 hover:text-white': navigation.path != route.path
-                                }"
-                                @click="resetOverflow()">
-
-                                    <span class="truncate"
-                                        :class="{
-                                            '-ml-[17px] pl-[17px] border-l border-[#1CE783]': navigation.path === route.path,
-                                        }">{{ navigation.title }}</span>
-
-                            </NuxtLink>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="w-full" v-for="(group, groupIndex) in navigation.children" :key="'mobile-navigation-group-'+groupIndex">
-                    <h2 class="text-xs font-semibold text-white" v-if="group.path != '/docs'">
+                <div class="w-full mb-4" v-for="(group, groupIndex) in sortedNavigation" :key="'mobile-navigation-group-'+groupIndex">
+                    <h2 class="text-sm font-semibold text-white mb-2">
                         {{ group.title }}
                     </h2>
-                    <ul v-if="group.path != '/docs'" role="list" class="border-l border-white/20">
+                    <ul role="list" class="border-l border-white/20 mb-4">
                         <li v-for="link in group.children"
                         :key="link.path">
                             <NuxtLink
@@ -128,8 +110,47 @@
 </template>
 
 <script setup>
+import type { ContentNavigationItem } from '@nuxt/content'
+
 const props = defineProps(['show', 'navigation']);
 const route = useRoute();
+
+// Navigation order - same as docs layout
+const navigationOrder = {
+    'installation': 1,
+    'getting-started': 2,
+    'development-environment': 3,
+    'server-configuration': 4,
+    'providers': 5,
+    'deployment': 6,
+    'server-access': 7,
+    'advanced': 8,
+    'command-reference': 9,
+    'community': 11
+}
+
+function getSortOrder(item) {
+    const path = item.path || ''
+    const segments = path.split('/')
+    const lastSegment = segments[segments.length - 1]
+    return navigationOrder[lastSegment] ?? 999
+}
+
+function sortNavigation(items) {
+    if (!items) return []
+    return [...items]
+        .filter(item => item.path !== '/docs')
+        .sort((a, b) => getSortOrder(a) - getSortOrder(b))
+        .map(item => ({
+            ...item,
+            children: item.children ? sortNavigation(item.children) : undefined
+        }))
+}
+
+const sortedNavigation = computed(() => {
+    if (!props.navigation?.children) return []
+    return sortNavigation(props.navigation.children)
+})
 
 const resetOverflow = () => {
     document.documentElement.classList.remove('overflow-y-hidden');

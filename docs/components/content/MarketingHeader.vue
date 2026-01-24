@@ -1,14 +1,14 @@
 <template>
     <div class="w-full">
-        <a href="https://getspin.pro/?ref=spin" target="_blank" class="py-2 px-1 bg-[#1CE783] text-[#151A1F] w-full flex items-center justify-center font-semibold text-sm md:text-base"
+        <a href="https://getspin.pro/?ref=spin" target="_blank" class="py-2 px-4 bg-[#1CE783] text-[#151A1F] w-full flex items-center justify-center font-semibold text-sm md:text-base text-center"
             :class="{
                 'mt-[43px]': fixed
             }">
-            <svg class="mr-[6px]" width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="shrink-0 mr-2" width="20" height="20" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 15.9706L9 12.9706M12 15.9706C13.3968 15.4394 14.7369 14.7694 16 13.9706M12 15.9706V20.9706C12 20.9706 15.03 20.4206 16 18.9706C17.08 17.3506 16 13.9706 16 13.9706M9 12.9706C9.53214 11.5901 10.2022 10.2667 11 9.02065C12.1652 7.15763 13.7876 5.62369 15.713 4.56474C17.6384 3.50578 19.8027 2.95702 22 2.97065C22 5.69065 21.22 10.4706 16 13.9706M9 12.9706H4C4 12.9706 4.55 9.94065 6 8.97065C7.62 7.89065 11 8.97065 11 8.97065M4.5 17.4706C3 18.7306 2.5 22.4706 2.5 22.4706C2.5 22.4706 6.24 21.9706 7.5 20.4706C8.21 19.6306 8.2 18.3406 7.41 17.5606C7.02131 17.1897 6.50929 16.9753 5.97223 16.9587C5.43516 16.9421 4.91088 17.1244 4.5 17.4706Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
 
-            <span class="md:hidden">Spin Pro is now is available for Laravel!</span>
+            <span class="md:hidden">Spin Pro now available for Laravel!</span>
             <span class="hidden md:inline">Spin Pro now available with Laravel Horizon, Reverb, and more!</span>
 
         </a>
