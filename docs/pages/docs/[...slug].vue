@@ -58,7 +58,7 @@
               to="https://sevalla.com/?utm_source=spin"
               target="_blank"
             >
-              <img src="/images/sponsors/sevalla.svg" alt="Sevalla" class="w-full" />
+              <img :src="sevallaLogoSrc" alt="Sevalla" class="w-full" />
             </NuxtLink>
           </div>
         </template>
@@ -115,4 +115,6 @@ const links = computed(() => {
 
   return [...linksList, ...(toc?.bottom?.links || [])].filter(Boolean)
 })
+
+const sevallaLogoSrc = useAssetUrl('/images/sponsors/sevalla.svg')
 </script>

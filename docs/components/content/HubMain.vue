@@ -21,7 +21,7 @@
       >
         <div class="aspect-[1.905/1] relative overflow-hidden">
           <img
-            :src="template.image"
+            :src="useAssetUrl(template.image)"
             class="absolute inset-0 w-full h-full object-cover"
             :alt="template.title"
           />
@@ -40,7 +40,7 @@
           <h3 class="text-white font-semibold text-xl mb-2">{{ template.title }}</h3>
           <p class="text-slate-400 text-sm mb-4">{{ template.description }}</p>
           <div class="flex items-center gap-2">
-            <img :src="template.authorImage" class="w-8 h-8 rounded-full" :alt="template.author" />
+            <img :src="useAssetUrl(template.authorImage)" class="w-8 h-8 rounded-full" :alt="template.author" />
             <div>
               <p class="text-white text-sm">{{ template.author }}</p>
             </div>

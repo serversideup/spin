@@ -1,5 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  app: {
+    baseURL: process.env.NUXT_APP_BASE_URL || '/'
+  },
+
   modules: [
     '@nuxt/ui-pro',
     '@nuxt/content',
@@ -54,7 +58,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      domain: process.env.TOP_LEVEL_DOMAIN || 'https://serversideup.net'
+      domain: process.env.TOP_LEVEL_DOMAIN || 'https://serversideup.net',
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || ''
     }
   },
 

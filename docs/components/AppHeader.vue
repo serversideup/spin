@@ -4,6 +4,11 @@ import type { ContentNavigationItem } from '@nuxt/content'
 const navigation = inject<Ref<ContentNavigationItem[]>>('navigation')
 
 const { header } = useAppConfig()
+
+const logoSrc = computed(() => {
+  const logo = header?.logo?.dark || header?.logo?.light
+  return logo ? useAssetUrl(logo) : null
+})
 </script>
 
 <template>
@@ -17,8 +22,8 @@ const { header } = useAppConfig()
       #title
     >
       <img
-        v-if="header?.logo?.dark || header?.logo?.light"
-        :src="header?.logo?.dark || header?.logo?.light"
+        v-if="logoSrc"
+        :src="logoSrc"
         class="w-32 shrink-0"
         :alt="header?.logo?.alt || 'Logo'"
       />
