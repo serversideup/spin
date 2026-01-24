@@ -67,10 +67,6 @@ useHead({
       </template>
 
       <slot />
-
-      <template #right>
-        <slot name="right" />
-      </template>
     </UPage>
   </UContainer>
 </template>

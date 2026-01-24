@@ -1,5 +1,5 @@
 <template>
-  <NuxtLayout name="docs">
+  <div>
     <UPageHeader
       :title="page?.title"
       :description="page?.description"
@@ -8,19 +8,12 @@
     <UPageBody prose>
       <ContentRenderer v-if="page" :value="page" />
     </UPageBody>
-
-    <template #right>
-      <UContentToc
-        v-if="page?.body?.toc?.links?.length"
-        :links="page.body.toc.links"
-      />
-    </template>
-  </NuxtLayout>
+  </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
-  layout: false
+  layout: 'docs'
 })
 
 const route = useRoute()
