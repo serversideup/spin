@@ -12,7 +12,8 @@
       "Bash(curl:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:api.github.com)",
-      "WebFetch(domain:serversideup.net)"
+      "WebFetch(domain:serversideup.net)",
+      "Bash(gh api:*)"
     ]
   }
 }
