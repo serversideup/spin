@@ -6,6 +6,7 @@
  * - ::code-panel with label → fenced code blocks with [label] syntax
  * - Removes duplicate H1 headers (title is now rendered by UPageHeader from frontmatter)
  * - Adds {target="_blank"} to external links (https://) for new tab behavior
+ * - Replaces backticks with double quotes in code block labels (e.g., [Install `spin`] → [Install "spin"])
  * - Keeps ::note and ::lead-p as-is (custom components still work)
  */
 
@@ -107,6 +108,21 @@ function addExternalLinkTargets(content) {
     );
 }
 
+function fixCodeBlockLabels(content) {
+    // Replace backticks with double quotes inside code block labels
+    // Pattern: ```lang [label with `backticks`]
+    // Becomes: ```lang [label with "quotes"]
+
+    return content.replace(
+        /^(```\w*\s*\[)([^\]]*`[^\]]*)\]/gm,
+        (match, prefix, label) => {
+            // Replace all backticks with double quotes in the label
+            const fixedLabel = label.replace(/`/g, '"');
+            return `${prefix}${fixedLabel}]`;
+        }
+    );
+}
+
 function migrateFile(filePath) {
     let content = readFileSync(filePath, 'utf-8');
     const originalContent = content;
@@ -116,6 +132,7 @@ function migrateFile(filePath) {
     content = migrateCodePanelSimple(content);
     content = removeDuplicateH1(content);
     content = addExternalLinkTargets(content);
+    content = fixCodeBlockLabels(content);
 
     // Check if content was changed
     if (content !== originalContent) {

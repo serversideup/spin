@@ -16,7 +16,7 @@ spin exec [OPTIONS] SERVICE COMMAND
 ```
 
 ## Example
-```bash [Example of running `php artisan migrate` within the `php` container]
+```bash [Example of running "php artisan migrate" within the "php" container]
 spin exec php php artisan migrate
 ```
 
