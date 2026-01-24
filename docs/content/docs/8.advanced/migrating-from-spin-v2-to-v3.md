@@ -195,7 +195,7 @@ We just need to temporarily rename the file so we can reference it.
 ### Download the new ".spin.yml" file
 You can copy the contents of our example file from GitHub and paste into our new `.spin.yml` file.
 
-[View latest .spin.yml file on GitHub →](https://github.com/serversideup/ansible-collection-spin/blob/main/.spin.example.yml)
+[View latest .spin.yml file on GitHub →](https://github.com/serversideup/ansible-collection-spin/blob/main/.spin.example.yml){target="_blank"}
 
 ### Migrate contents from your ".spin.original.yml" file
 Move any setting you'd like, but especially do not forget about these:
@@ -375,8 +375,8 @@ If you purchased Spin Pro, you can get the latest GitHub Actions template by rei
 ::note
 The command below will delete all Dockerfiles and Spin configurations then ask you to reinitialize your project. If you made a lot of customizations to the Dockerfiles and Spin templates, you way want to manually copy the GitHub Actions template over.<br><br>
 **The links below are only accessible to Spin Pro customers.**<br>
-- [action_deploy-production.yml](https://github.com/serversideup/spin-template-laravel-pro/blob/main/blocks/github-actions/.github/workflows/action_deploy-production.yml)
-- [service_docker-build-and-publish.yml](https://github.com/serversideup/spin-template-laravel-pro/blob/main/blocks/github-actions/.github/workflows/service_docker-build-and-publish.yml)
+- [action_deploy-production.yml](https://github.com/serversideup/spin-template-laravel-pro/blob/main/blocks/github-actions/.github/workflows/action_deploy-production.yml){target="_blank"}
+- [service_docker-build-and-publish.yml](https://github.com/serversideup/spin-template-laravel-pro/blob/main/blocks/github-actions/.github/workflows/service_docker-build-and-publish.yml){target="_blank"}
 ::
 
 ```bash [Reinitialize your project]

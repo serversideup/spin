@@ -7,7 +7,7 @@ canonical: https://serversideup.net/open-source/spin/docs/command-reference/vaul
 ---
 
 ::lead-p
-Encrypt & decrypt files with "Ansible Vault". Accepts any command that [`ansible-vault`](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html) accepts.
+Encrypt & decrypt files with "Ansible Vault". Accepts any command that [`ansible-vault`](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html){target="_blank"} accepts.
 ::
 
 ## Usage
@@ -16,7 +16,7 @@ spin vault <ansible-vault-action>
 ```
 
 ## Actions
-The `spin vault` command will intelligently pass any arguments to your local `ansible-vault` binary or to Docker if Ansible is not installed locally. It will also accept any commands that are documented with [`ansible-vault`](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html).
+The `spin vault` command will intelligently pass any arguments to your local `ansible-vault` binary or to Docker if Ansible is not installed locally. It will also accept any commands that are documented with [`ansible-vault`](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html){target="_blank"}.
 
 ### Most popular actions
 - `edit`: Edit an encrypted file
@@ -24,7 +24,7 @@ The `spin vault` command will intelligently pass any arguments to your local `an
 - `decrypt`: Decrypt an encrypted file
 
 ## Official Documentation & Additional Options
-More actions and syntax reference can be found in the [official documentation](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html).
+More actions and syntax reference can be found in the [official documentation](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html){target="_blank"}.
 
 ## Examples
 ```bash [Encrypt a file]
@@ -41,7 +41,7 @@ This command will automatically run `ansible vault` via Docker if you do not hav
 If you'd like a better experience, you may want to consider installing and configuring Ansible on your local machine so you can edit your secrets with your favorite editor.
 
 ## Editing secrets with Sublime Text
-It's possible to edit your secrets with Sublime Text, but it requires a bit of setup. You'll need to [install Ansible to your system](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html).
+It's possible to edit your secrets with Sublime Text, but it requires a bit of setup. You'll need to [install Ansible to your system](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html){target="_blank"}.
 
 Once Ansible is installed and you're able to execute `ansible-vault` locally, you'll then need to set Sublime Text as your editor.
 

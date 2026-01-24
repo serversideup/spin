@@ -24,7 +24,7 @@ Running `spin init` will ask you a few questions about your project, then create
 
 ### Project Types:
 - `laravel`: Initialize Spin into an existing Laravel project.
-- `laravel-pro`: Initialize [Spin Pro's Laravel Template](https://getspin.pro) into an existing Laravel project with Laravel Pro.
+- `laravel-pro`: Initialize [Spin Pro's Laravel Template](https://getspin.pro){target="_blank"} into an existing Laravel project with Laravel Pro.
 - `nuxt`: Initialize Spin into an existing Nuxt project.
 
 ### Options

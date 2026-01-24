@@ -16,7 +16,7 @@ spin mkpasswd [OPTIONS]
 ```
 
 ## Official Documentation & Additional Options
-This command is a shortcut for running [`mkpasswd`](https://linux.die.net/man/1/mkpasswd) with Docker. This is helpful for generating temporary password hashes when configuring your `.spin.yml` file.
+This command is a shortcut for running [`mkpasswd`](https://linux.die.net/man/1/mkpasswd){target="_blank"} with Docker. This is helpful for generating temporary password hashes when configuring your `.spin.yml` file.
 
 ## Examples
 ```bash [Generate a password hash]

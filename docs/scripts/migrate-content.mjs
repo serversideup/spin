@@ -5,6 +5,7 @@
  * Transforms:
  * - ::code-panel with label → fenced code blocks with [label] syntax
  * - Removes duplicate H1 headers (title is now rendered by UPageHeader from frontmatter)
+ * - Adds {target="_blank"} to external links (https://) for new tab behavior
  * - Keeps ::note and ::lead-p as-is (custom components still work)
  */
 
@@ -95,6 +96,17 @@ function removeDuplicateH1(content) {
     return `---\n${frontmatter}\n---\n${body}`;
 }
 
+function addExternalLinkTargets(content) {
+    // Add {target="_blank"} to external links (https://) that don't already have attributes
+    // Pattern: [text](https://...) not followed by {
+    // This follows Nuxt Content's markdown extended syntax
+
+    return content.replace(
+        /\[([^\]]+)\]\((https?:\/\/[^)]+)\)(?!\{)/g,
+        '[$1]($2){target="_blank"}'
+    );
+}
+
 function migrateFile(filePath) {
     let content = readFileSync(filePath, 'utf-8');
     const originalContent = content;
@@ -103,6 +115,7 @@ function migrateFile(filePath) {
     content = migrateCodePanel(content);
     content = migrateCodePanelSimple(content);
     content = removeDuplicateH1(content);
+    content = addExternalLinkTargets(content);
 
     // Check if content was changed
     if (content !== originalContent) {

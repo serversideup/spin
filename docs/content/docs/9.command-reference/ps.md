@@ -16,4 +16,4 @@ spin ps [OPTIONS]
 ```
 
 ## Other options
-You can use any command option from the [docker compose ps](https://docs.docker.com/reference/cli/docker/compose/ps/) command.
+You can use any command option from the [docker compose ps](https://docs.docker.com/reference/cli/docker/compose/ps/){target="_blank"} command.

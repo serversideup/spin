@@ -16,4 +16,4 @@ spin logs [OPTIONS]
 ```
 
 ## Official Documentation & Additional Options
-This command is a shortcut for [`docker-compose logs`](https://docs.docker.com/compose/reference/logs/) and can accept additional options that you pass to it.
+This command is a shortcut for [`docker-compose logs`](https://docs.docker.com/compose/reference/logs/){target="_blank"} and can accept additional options that you pass to it.

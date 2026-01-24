@@ -58,7 +58,7 @@ The following environment variables are set as secrets in GitHub Actions.
 | `<ENVIRONMENT>_ENV_FILE_BASE64` | The base64 encoded `.env` file. | `ABCDEFG1234...` | ⚠️ Yes |
 | `<ENVIRONMENT>_SSH_REMOTE_HOSTNAME` | The hostname/IP of your server. | `server01.example.com` |  ⚠️ Yes |
 | `SSH_DEPLOY_PRIVATE_KEY` | The private SSH key dedicated for the deploy user. | `-----BEGIN OPENSSH PRIVATE KEY-----abc123...` | ⚠️ Yes |
-| `SSH_REMOTE_KNOWN_HOSTS` | If provided, the SSH connection will validate the connection against your known_hosts file and remove the "SSH_KNOWN_HOST" warning. ([Learn more](https://github.com/serversideup/github-action-docker-swarm-deploy/?tab=readme-ov-file#removing-the-ssh_remote_known_hosts-warning)) | `github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC...` | no |
+| `SSH_REMOTE_KNOWN_HOSTS` | If provided, the SSH connection will validate the connection against your known_hosts file and remove the "SSH_KNOWN_HOST" warning. ([Learn more](https://github.com/serversideup/github-action-docker-swarm-deploy/?tab=readme-ov-file#removing-the-ssh_remote_known_hosts-warning){target="_blank"}) | `github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC...` | no |
 | `AUTHORIZED_KEYS` | Makes an `authorized_keys` file containing the public keys of "sudo" users that can be used for authenticating other services via SSH (like database GUI connections).  | `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC...` | no |
 
 To view these environment variables in GitHub Actions, you can follow these steps:

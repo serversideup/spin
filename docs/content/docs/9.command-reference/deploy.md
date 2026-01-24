@@ -79,7 +79,7 @@ By default, everything runs off the `.env` file. This is great for local develop
 To solve this, you can create `.env` files for each environment you want to deploy to. For example, you can create `.env.production` and `.env.staging` files. When you run `spin deploy production`, the `.env.production` file will be used. When you run `spin deploy staging`, the `.env.staging` file will be used.
 
 ::note
-This approach is highly reliant on the framework you're using. For example, when you run `spin deploy production`, the `APP_ENV` variable will be set to `production`. [Laravel is intelligent enough](https://laravel.com/docs/11.x/configuration#additional-environment-files) to know to use the `.env.production` file. If you're using a different framework, you might need to adjust your configuration to use this approach.
+This approach is highly reliant on the framework you're using. For example, when you run `spin deploy production`, the `APP_ENV` variable will be set to `production`. [Laravel is intelligent enough](https://laravel.com/docs/11.x/configuration#additional-environment-files){target="_blank"} to know to use the `.env.production` file. If you're using a different framework, you might need to adjust your configuration to use this approach.
 ::
 
 Be sure to add `.env.*` files to your `.gitignore` file so they are not committed to your repository.
