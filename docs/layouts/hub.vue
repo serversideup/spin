@@ -1,27 +1,7 @@
 <template>
-  <div class="w-full min-h-screen bg-[#1D252C]">
-    <Head>
-      <Link rel="preconnect" href="https://fonts.googleapis.com"/>
-      <Link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-      <Link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-      <Link rel="apple-touch-icon" sizes="180x180" href="/images/favicon/apple-touch-icon.png"/>
-      <Link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/favicon-32x32.png"/>
-      <Link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/favicon-16x16.png"/>
-      <Link rel="manifest" href="/images/favicon/site.webmanifest"/>
-      <Link rel="mask-icon" href="/images/favicon/safari-pinned-tab.svg" color="#5bbad5"/>
-      <Meta name="msapplication-TileColor" content="#da532c"/>
-      <Meta name="theme-color" content="#ffffff"/>
-    </Head>
-
-    <GlobalServerSideUp/>
-    <MarketingHeader/>
-
-    <main class="w-full max-w-7xl mx-auto px-4 py-8">
-      <ContentRenderer v-if="page" :value="page" />
-    </main>
-
-    <Search/>
-  </div>
+  <main class="w-full max-w-7xl mx-auto px-4 py-8">
+    <ContentRenderer v-if="page" :value="page" />
+  </main>
 </template>
 
 <script setup>
@@ -29,7 +9,7 @@ const route = useRoute();
 const { domain } = useRuntimeConfig().public;
 
 const { data: page } = await useAsyncData(`hub-landing-${route.path}`, () =>
-    queryCollection('landing').path(route.path).first()
+  queryCollection('landing').path(route.path).first()
 )
 
 useHead({
@@ -37,7 +17,7 @@ useHead({
     lang: 'en'
   },
   bodyAttrs: {
-    class: 'antialiased font-inter bg-black'
+    class: 'antialiased font-inter bg-[#1D252C]'
   }
 })
 
