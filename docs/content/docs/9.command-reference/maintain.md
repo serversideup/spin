@@ -5,7 +5,7 @@ description: 'Command reference for "spin maintain"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/maintain
 ---
-# spin maintain
+
 ::lead-p
 Apply updates to your inventory of servers.
 ::

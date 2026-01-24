@@ -5,7 +5,7 @@ description: 'Command reference for "spin up"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/up
 ---
-# spin up
+
 ::lead-p
 Bring up all containers defined in `docker-compose.yml` and `docker-compose.$SPIN_ENV.yml` (`$SPIN_ENV` defaults to `dev`).
 ::

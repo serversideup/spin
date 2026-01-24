@@ -5,7 +5,7 @@ description: 'Command reference for "spin build"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/build
 ---
-# spin build
+
 ::lead-p
 Trigger a build of your docker-compose files.
 ::

@@ -5,7 +5,7 @@ description: 'Command reference for "spin deploy"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/deploy
 ---
-# spin deploy
+
 ::lead-p
 Quickly and easily deploy your application to a server without the hassle of setting up CI/CD pipelines. Before running this command, make sure you have everything configured and a supported server online with any host of your choice.
 ::

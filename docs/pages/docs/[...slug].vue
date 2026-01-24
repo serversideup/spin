@@ -2,8 +2,17 @@
   <UPage v-if="page">
     <UPageHeader
       :title="page.title"
-      :description="page.description"
-    />
+      :headline="headline"
+    >
+      <template #links>
+        <UButton
+          v-for="(link, index) in page.links"
+          :key="index"
+          v-bind="link"
+        />
+        <PageHeaderLinks />
+      </template>
+    </UPageHeader>
 
     <UPageBody>
       <ContentRenderer
@@ -68,12 +77,16 @@
 </template>
 
 <script setup lang="ts">
+import type { ContentNavigationItem } from '@nuxt/content'
+import { findPageHeadline } from '@nuxt/content/utils'
+
 definePageMeta({
   layout: 'docs'
 })
 
 const route = useRoute()
 const { toc } = useAppConfig()
+const navigation = inject<Ref<ContentNavigationItem[]>>('navigation')
 
 const { data: page } = await useAsyncData(route.path, () => queryCollection('docs').path(route.path).first())
 if (!page.value) {
@@ -95,6 +108,8 @@ useSeoMeta({
   description,
   ogDescription: description
 })
+
+const headline = computed(() => findPageHeadline(navigation?.value, page.value?.path))
 
 defineOgImage({
   component: 'DocsImage',

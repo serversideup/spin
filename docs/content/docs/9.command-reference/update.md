@@ -5,7 +5,7 @@ description: 'Command reference for "spin update"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/update
 ---
-# spin update
+
 ::lead-p
 Update `spin` to the latest version (on system/user installs only).
 ::

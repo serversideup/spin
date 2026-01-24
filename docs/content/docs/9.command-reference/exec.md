@@ -5,7 +5,7 @@ description: 'Command reference for "spin exec"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/exec
 ---
-# spin exec
+
 ::lead-p
 Use `exec` if you want to run a command in **currently running** containers.
 ::

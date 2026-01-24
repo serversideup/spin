@@ -5,7 +5,7 @@ description: 'Command reference for "spin down"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/down
 ---
-# spin down
+
 ::lead-p
 Stops containers and removes containers, networks, volumes, and images created by up.
 ::

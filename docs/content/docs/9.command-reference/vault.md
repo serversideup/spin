@@ -5,7 +5,7 @@ description: 'Command reference for "spin vault"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/vault
 ---
-# spin vault
+
 ::lead-p
 Encrypt & decrypt files with "Ansible Vault". Accepts any command that [`ansible-vault`](https://docs.ansible.com/ansible/latest/cli/ansible-vault.html) accepts.
 ::

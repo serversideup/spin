@@ -5,7 +5,7 @@ description: 'Command reference for "spin gh"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/gh
 ---
-# spin gh
+
 ::lead-p
 Run the GitHub CLI via Docker with Spin.
 ::

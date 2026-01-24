@@ -6116,6 +6116,13 @@ nuxt-component-meta@0.17.1:
     ufo "^1.6.2"
     vue-component-meta "^3.2.2"
 
+nuxt-llms@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/nuxt-llms/-/nuxt-llms-0.2.0.tgz#aa6804dd1722e3bee759963c2673d818f040da58"
+  integrity sha512-GoEW00x8zaZ1wS0R0aOYptt3b54JEaRwlyVtuAiQoH51BwYdjN5/3+00/+4wi39M5cT4j5XcnGwOxJ7v4WVb9A==
+  dependencies:
+    "@nuxt/kit" "^4.2.2"
+
 nuxt-og-image@^5.1.11:
   version "5.1.13"
   resolved "https://registry.yarnpkg.com/nuxt-og-image/-/nuxt-og-image-5.1.13.tgz#b1123dc21bb94c2a1d274a9dde1ff713d65831ed"

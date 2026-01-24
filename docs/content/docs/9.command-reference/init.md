@@ -6,7 +6,6 @@ layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/init
 ---
 
-# spin init
 ::lead-p
 Initialize Spin on an existing project. This process will create all the files you need to get started with Spin.
 ::

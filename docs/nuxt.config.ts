@@ -10,7 +10,8 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     'nuxt-og-image',
     '@nuxtjs/plausible',
-    '@nuxtjs/sitemap'
+    '@nuxtjs/sitemap',
+    'nuxt-llms'
   ],
 
   future: {
@@ -65,5 +66,87 @@ export default defineNuxtConfig({
 
   site: {
     url: process.env.SITE_URL || 'https://serversideup.net',
+  },
+
+  llms: {
+    domain: 'https://serversideup.net/open-source/spin/',
+    title: 'Spin - Server Side Up',
+    description: 'The ultimate open-source solution for managing your server environments from development to production.',
+    full: {
+      title: 'Spin Documentation - Server Side Up',
+      description: 'The ultimate open-source solution for managing your server environments from development to production. Simple, lightweight, and fast. Based on Docker.'
+    },
+    sections: [
+      {
+        title: 'Installation',
+        contentCollection: 'docs',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/docs/installation%' }
+        ]
+      },
+      {
+        title: 'Getting Started',
+        contentCollection: 'docs',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/docs/getting-started%' }
+        ]
+      },
+      {
+        title: 'Development Environment',
+        contentCollection: 'docs',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/docs/development-environment%' }
+        ]
+      },
+      {
+        title: 'Server Configuration',
+        contentCollection: 'docs',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/docs/server-configuration%' }
+        ]
+      },
+      {
+        title: 'Providers',
+        contentCollection: 'docs',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/docs/providers%' }
+        ]
+      },
+      {
+        title: 'Deployment',
+        contentCollection: 'docs',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/docs/deployment%' }
+        ]
+      },
+      {
+        title: 'Server Access',
+        contentCollection: 'docs',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/docs/server-access%' }
+        ]
+      },
+      {
+        title: 'Advanced',
+        contentCollection: 'docs',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/docs/advanced%' }
+        ]
+      },
+      {
+        title: 'Command Reference',
+        contentCollection: 'docs',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/docs/command-reference%' }
+        ]
+      },
+      {
+        title: 'Community',
+        contentCollection: 'docs',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/docs/community%' }
+        ]
+      }
+    ]
   }
 })

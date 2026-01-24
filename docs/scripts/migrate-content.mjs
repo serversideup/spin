@@ -4,6 +4,7 @@
  *
  * Transforms:
  * - ::code-panel with label → fenced code blocks with [label] syntax
+ * - Removes duplicate H1 headers (title is now rendered by UPageHeader from frontmatter)
  * - Keeps ::note and ::lead-p as-is (custom components still work)
  */
 
@@ -65,6 +66,35 @@ function migrateCodePanelSimple(content) {
     });
 }
 
+function removeDuplicateH1(content) {
+    // In Nuxt UI Pro, UPageHeader renders the title from frontmatter,
+    // so we need to remove duplicate H1 headers from the markdown body.
+    //
+    // Pattern: After frontmatter (---...---), remove the first H1 that matches
+    // or is similar to the frontmatter title.
+
+    // Split content into frontmatter and body
+    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+    if (!frontmatterMatch) {
+        return content;
+    }
+
+    const frontmatter = frontmatterMatch[1];
+    let body = frontmatterMatch[2];
+
+    // Extract title from frontmatter
+    const titleMatch = frontmatter.match(/^title:\s*['"]?(.+?)['"]?\s*$/m);
+    if (!titleMatch) {
+        return content;
+    }
+
+    // Remove the first H1 header from the body (it duplicates the frontmatter title)
+    // Match: # Title (with optional emoji) followed by newline
+    body = body.replace(/^\s*#\s+.+?\n/, '\n');
+
+    return `---\n${frontmatter}\n---\n${body}`;
+}
+
 function migrateFile(filePath) {
     let content = readFileSync(filePath, 'utf-8');
     const originalContent = content;
@@ -72,6 +102,7 @@ function migrateFile(filePath) {
     // Apply migrations
     content = migrateCodePanel(content);
     content = migrateCodePanelSimple(content);
+    content = removeDuplicateH1(content);
 
     // Check if content was changed
     if (content !== originalContent) {

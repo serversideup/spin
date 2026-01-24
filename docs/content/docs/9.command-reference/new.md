@@ -5,7 +5,7 @@ description: 'Command reference for "spin new"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/new
 ---
-# spin new
+
 ::lead-p
 Create and initialize a new project with Spin.
 ::

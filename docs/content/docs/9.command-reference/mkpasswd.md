@@ -5,7 +5,7 @@ description: 'Command reference for "spin mkpasswd"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/mkpasswd
 ---
-# spin mkpasswd
+
 ::lead-p
 Generate a password hash using the mkpasswd utility.
 ::

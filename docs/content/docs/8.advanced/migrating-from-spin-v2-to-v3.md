@@ -6,7 +6,6 @@ layout: docs
 canonical: 'https://serversideup.net/open-source/spin/docs/advanced/migrating-from-spin-v2-to-v3'
 ---
 
-# Migrating from Spin v2 to v3
 ::lead-p
 Although Spin v3 doesn't ship with any breaking changes, there is a new structure for managing your configurations with Spin that you may want to upgrade to take advantage of.
 ::

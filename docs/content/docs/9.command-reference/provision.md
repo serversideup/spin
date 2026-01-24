@@ -5,7 +5,7 @@ description: 'Command reference for "spin provision"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/provision
 ---
-# spin provision
+
 ::lead-p
 Provision and set up your inventory of servers. Before running this command, make sure you have everything configured and a supported server online with any host of your choice.
 ::

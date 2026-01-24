@@ -5,7 +5,7 @@ description: 'Command reference for "spin logs"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/logs
 ---
-# spin logs
+
 ::lead-p
 View the logs of your docker project. Helpful if you need to go back in time on your own machine.
 ::

@@ -5,7 +5,7 @@ description: 'Command reference for "spin configure"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/configure
 ---
-# spin configure
+
 ::lead-p
 Configure various aspects of your project's deployment settings and infrastructure.
 ::

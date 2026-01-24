@@ -5,7 +5,7 @@ description: 'Command reference for "spin pull"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/pull
 ---
-# spin pull
+
 ::lead-p
 Trigger a pull of your Docker Compose images.
 ::
