@@ -8,9 +8,8 @@ const config = useRuntimeConfig()
 const isCopying = ref(false)
 
 // Build the full URL to the raw markdown
-const siteUrl = config.public.domain || 'https://serversideup.net'
-const baseUrl = config.public.baseUrl || ''
-const mdPath = computed(() => `${siteUrl}${baseUrl}/raw${route.path}.md`)
+const site = useSiteConfig();
+const mdPath = computed(() => `${site.url}/raw${route.path}.md`)
 
 const items = [
   {
