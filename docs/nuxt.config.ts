@@ -11,7 +11,8 @@ export default defineNuxtConfig({
     'nuxt-og-image',
     '@nuxtjs/plausible',
     '@nuxtjs/sitemap',
-    'nuxt-llms'
+    'nuxt-llms',
+    './modules/pre-render-raw-routes'
   ],
 
   future: {
