@@ -12,12 +12,6 @@ Ensure you're in the right directory.
 cd docs/
 ```
 
-Copy over the environment variable example file.
-
-```bash
-cp .env.example .env
-```
-
 Make sure to install the dependencies:
 
 ```bash
@@ -37,7 +31,7 @@ yarn dev
 Build the application for production:
 
 ```bash
-yarn build
+yarn generate
 ```
 
 Locally preview production build:

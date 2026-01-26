@@ -1,7 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
+// Site URL: SITE_URL > CF_PAGES_URL (CloudFlare preview) > localhost
+const siteUrl = process.env.SITE_URL || process.env.CF_PAGES_URL || 'http://localhost:3000'
+const basePath = new URL(siteUrl).pathname
+
 export default defineNuxtConfig({
   app: {
-    baseURL: process.env.NUXT_APP_BASE_URL || '/'
+    baseURL: basePath
   },
 
   modules: [
@@ -47,7 +52,7 @@ export default defineNuxtConfig({
   ],
 
   sitemap: {
-    siteUrl: 'https://serversideup.net/open-source/spin'
+    // Reads from site.url automatically
   },
 
   ogImage: {
@@ -60,17 +65,16 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      domain: process.env.TOP_LEVEL_DOMAIN || 'https://serversideup.net',
-      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || ''
+      baseUrl: basePath === '/' ? '' : basePath
     }
   },
 
   site: {
-    url: process.env.SITE_URL || 'https://serversideup.net',
+    url: siteUrl
   },
 
   llms: {
-    domain: 'https://serversideup.net/open-source/spin/',
+    domain: siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`,
     title: 'Spin - Server Side Up',
     description: 'The ultimate open-source solution for managing your server environments from development to production.',
     full: {
