@@ -1,7 +1,5 @@
 <template>
-    <p class="lead"><ContentSlot :use="$slots.default" unwrap="p" /></p>
+    <div class="lead text-xl text-zinc-300 [&>p]:m-0">
+        <slot />
+    </div>
 </template>
-
-<script setup>
-
-</script>

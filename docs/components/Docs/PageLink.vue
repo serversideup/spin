@@ -1,12 +1,12 @@
 <template>
     <AppLink
-        :href="page._path"
+        :href="page.path"
         :variant="'secondary'"
         :arrow="previous ? 'left' : 'right'">
             {{ label }}
     </AppLink>
     <NuxtLink 
-        :to="page._path"
+        :to="page.path"
         tab-index="-1"
         aria-hidden="true"
         class="text-base font-semibold transition text-white hover:text-zinc-300">

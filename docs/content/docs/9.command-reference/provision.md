@@ -5,20 +5,15 @@ description: 'Command reference for "spin provision"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/provision
 ---
-# spin provision
+
 ::lead-p
 Provision and set up your inventory of servers. Before running this command, make sure you have everything configured and a supported server online with any host of your choice.
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin provision"
----
-```bash
+```bash [Usage for "spin provision"]
 spin provision [environment] [ -p|--port <port> -u|--user <user> -U|--upgrade ]
 ```
-::
 
 ::note
 If you're not using our native provider integration, you may need to add `-u root` to the command when you first run it. This will use the `root` user to connect and configure your other users. See our guide on [Using Any Host](/docs/providers/use-any-host) for more details.

@@ -5,20 +5,15 @@ description: 'Command reference for "spin new"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/new
 ---
-# spin new
+
 ::lead-p
 Create and initialize a new project with Spin.
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin new"
----
-```txt
+```txt [Usage for "spin new"]
 spin new <template-name> <project-name>
 ```
-::
 
 ::note
 `<template-name>` can either be an "official template" provided by the Spin team, or any GitHub repository in the format of `username/repo`.
@@ -31,18 +26,13 @@ Getting started with a new project is easy with Spin. Simply run the `spin new` 
 We only have one official template right now, but we're working to add more templates. This Laravel template that will get you up and running with the latest stable version of Laravel with the default configurations running SQLite.
 
 #### Repository
-- [serversideup/spin-template-laravel-basic](https://github.com/serversideup/spin-template-laravel-basic)
+- [serversideup/spin-template-laravel-basic](https://github.com/serversideup/spin-template-laravel-basic){target="_blank"}
 
 #### Usage
 
-::code-panel
----
-label: Usage for "spin new"
----
-```txt
+```txt [Usage for "spin new"]
 spin new laravel
 ```
-::
 
 ### Optional - Specify your project name
 By default, Spin will use the framework's default project name and create the project in the current directory of where you're running Spin. If you'd like to specify your own project name, simply add it as the second argument to the `spin new` command.

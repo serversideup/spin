@@ -1,10 +1,9 @@
-@import "animations.css";
-@import "hamburger.css";
-@import "docsearch.css";
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss";
+@import "@nuxt/ui-pro";
+@import "./animations.css";
+@import "./hamburger.css";
+
 ::-webkit-scrollbar {
     width: 0px;
     height: 0px;
-} 
+}

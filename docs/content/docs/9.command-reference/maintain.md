@@ -5,7 +5,7 @@ description: 'Command reference for "spin maintain"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/maintain
 ---
-# spin maintain
+
 ::lead-p
 Apply updates to your inventory of servers.
 ::
@@ -15,14 +15,9 @@ Apply updates to your inventory of servers.
 When you perform maintenance on your server, your server may experience brief downtime if it the updates require a reboot. Be sure to run this command during a communicated maintenance window.
 ::
 
-::code-panel
----
-label: Usage for "spin maintain"
----
-```bash
+```bash [Usage for "spin maintain"]
 spin maintain [environment] [ -p|--port <port> -u|--user <user> -U|--upgrade ]
 ```
-::
 
 ![Spin Maintain Command](/images/docs/whats-spin/spin-maintain.png)
 

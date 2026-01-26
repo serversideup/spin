@@ -5,20 +5,15 @@ description: 'Command reference for "spin deploy"'
 layout: docs
 canonical: https://serversideup.net/open-source/spin/docs/command-reference/deploy
 ---
-# spin deploy
+
 ::lead-p
 Quickly and easily deploy your application to a server without the hassle of setting up CI/CD pipelines. Before running this command, make sure you have everything configured and a supported server online with any host of your choice.
 ::
 
 ## Usage
-::code-panel
----
-label: Usage for "spin deploy"
----
-```bash
+```bash [Usage for "spin deploy"]
 spin deploy [ -c|--compose-file <compose-file> -p|--port <port> -u|--user <user> ] <environment>
 ```
-::
 
 ## Before getting started
 Be sure you have "provisioned" your server before running this command. If you haven't, you can do so by running `spin provision` before running `spin deploy`.
@@ -28,36 +23,21 @@ Be sure you have "provisioned" your server before running this command. If you h
 ## Example Deployment Command
 To deploy your application to the production environment, you can use the following command:
 
-::code-panel
----
-label: Deploy to Production
----
-```bash
+```bash [Deploy to Production]
 spin deploy production
 ```
-::
 
 To deploy to a staging environment, specify the environment name:
 
-::code-panel
----
-label: Deploy to Staging
----
-```bash
+```bash [Deploy to Staging]
 spin deploy staging
 ```
-::
 
 You can also provide custom Docker Compose files and SSH options:
 
-::code-panel
----
-label: Custom Deployment Options
----
-```bash
+```bash [Custom Deployment Options]
 spin deploy staging --compose-file custom-compose.yml --user myuser --port 2222
 ```
-::
 
 This comprehensive process ensures that your application is built, pushed, and deployed efficiently to your server.
 
@@ -99,7 +79,7 @@ By default, everything runs off the `.env` file. This is great for local develop
 To solve this, you can create `.env` files for each environment you want to deploy to. For example, you can create `.env.production` and `.env.staging` files. When you run `spin deploy production`, the `.env.production` file will be used. When you run `spin deploy staging`, the `.env.staging` file will be used.
 
 ::note
-This approach is highly reliant on the framework you're using. For example, when you run `spin deploy production`, the `APP_ENV` variable will be set to `production`. [Laravel is intelligent enough](https://laravel.com/docs/11.x/configuration#additional-environment-files) to know to use the `.env.production` file. If you're using a different framework, you might need to adjust your configuration to use this approach.
+This approach is highly reliant on the framework you're using. For example, when you run `spin deploy production`, the `APP_ENV` variable will be set to `production`. [Laravel is intelligent enough](https://laravel.com/docs/11.x/configuration#additional-environment-files){target="_blank"} to know to use the `.env.production` file. If you're using a different framework, you might need to adjust your configuration to use this approach.
 ::
 
 Be sure to add `.env.*` files to your `.gitignore` file so they are not committed to your repository.
