@@ -40,8 +40,8 @@ export default defineAppConfig({
     to: '/',
     logo: {
       alt: 'Spin',
-      light: '/images/logos/spin-logo.svg',
-      dark: '/images/logos/spin-logo.svg'
+      light: 'images/logos/spin-logo.svg',
+      dark: 'images/logos/spin-logo.svg'
     },
     search: true,
     links: [{
