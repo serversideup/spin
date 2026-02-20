@@ -2,7 +2,9 @@
   <UApp>
     <NuxtLoadingIndicator />
 
-    <ProjectSwitcherBar />
+    <div class="sticky top-0 z-50">
+      <ProjectSwitcherBar />
+    </div>
 
     <UBanner
       icon="i-lucide-rocket"
