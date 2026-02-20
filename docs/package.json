@@ -13,13 +13,13 @@
     "@nuxtjs/plausible": "^1.2.0",
     "@nuxtjs/sitemap": "^7.0.0",
     "@vueuse/core": "^10.7.2",
-    "@vueuse/nuxt": "^10.7.2",
     "better-sqlite3": "^11.0.0",
     "nuxt": "^4.0.0",
     "nuxt-og-image": "^5.1.11",
     "typescript": "^5.6.3"
   },
   "dependencies": {
+    "@serversideup/project-switcher-bar": "https://github.com/serversideup/project-switcher-bar",
     "hotkeys-js": "^3.13.7",
     "nuxt-llms": "^0.2.0"
   }

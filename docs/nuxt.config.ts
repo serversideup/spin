@@ -12,7 +12,6 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/ui-pro',
     '@nuxt/content',
-    '@vueuse/nuxt',
     'nuxt-og-image',
     '@nuxtjs/plausible',
     '@nuxtjs/sitemap',

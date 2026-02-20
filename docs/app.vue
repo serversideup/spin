@@ -2,7 +2,7 @@
   <UApp>
     <NuxtLoadingIndicator />
 
-    <GlobalServerSideUp />
+    <ProjectSwitcherBar />
 
     <UBanner
       icon="i-lucide-rocket"
@@ -31,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import { ProjectSwitcherBar } from '@serversideup/project-switcher-bar'
 const { seo } = useAppConfig()
 
 const { data: navigation } = await useAsyncData('navigation', () => queryCollectionNavigation('docs'))

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../../../node_modules/@serversideup/project-switcher-bar/src";
 @import "@nuxt/ui-pro";
 @import "./animations.css";
 @import "./hamburger.css";
