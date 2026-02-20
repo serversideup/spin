@@ -2,20 +2,20 @@
   <UApp>
     <NuxtLoadingIndicator />
 
-    <div class="sticky top-0 z-50">
+    <div class="sticky top-0 z-[60]">
       <ProjectSwitcherBar />
+
+      <UBanner
+        icon="i-lucide-rocket"
+        title="Spin Pro now available with Laravel Horizon, Reverb, and more!"
+        to="https://getspin.pro/?ref=spin"
+        color="primary"
+        class="text-black bg-[#1CE783] hover:bg-[#1ad677]"
+        target="_blank"
+      />
+
+      <AppHeader />
     </div>
-
-    <UBanner
-      icon="i-lucide-rocket"
-      title="Spin Pro now available with Laravel Horizon, Reverb, and more!"
-      to="https://getspin.pro/?ref=spin"
-      color="primary"
-      class="text-black bg-[#1CE783] hover:bg-[#1ad677]"
-      target="_blank"
-    />
-
-    <AppHeader />
 
     <UMain class="bg-[#1D252C]">
       <NuxtLayout>
