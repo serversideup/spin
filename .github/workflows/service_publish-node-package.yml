@@ -4,11 +4,11 @@ on:
         runs-on:
           required: false
           type: string
-          default: 'ubuntu-22.04'
+          default: 'ubuntu-24.04'
         node-version:
           required: false
           type: string
-          default: '18'
+          default: '24'
         release-tag:
           required: true
           type: string
@@ -19,13 +19,13 @@ jobs:
   
       steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ inputs.node-version }}
           registry-url: https://registry.npmjs.org/
   
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
     
       - name: Set NPM version (${{ github.ref_name }}).
         run: npm version --git-tag-version=false --commit-hooks=false ${{ github.ref_name }}
