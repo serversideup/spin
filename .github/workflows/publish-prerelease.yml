@@ -5,6 +5,10 @@ on:
   release:
     types: [prereleased]
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   publish-prerelease:
     uses: ./.github/workflows/service_publish-node-package.yml
