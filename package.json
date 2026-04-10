@@ -13,6 +13,7 @@
   },
   "homepage": "https://github.com/serversideup/spin#readme",
   "bin": {
-    "spin": "./bin/spin"
+    "spin": "./bin/spin",
+    "spin-mcp-wait.sh": "./bin/spin-mcp-wait.sh"
   }
 }
