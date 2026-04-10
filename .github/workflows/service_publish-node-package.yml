@@ -29,10 +29,6 @@ jobs:
   
       - name: checkout
         uses: actions/checkout@v6
-
-      # Trusted publishing (OIDC) requires npm CLI >= 11.5.1 (Node images may ship older npm).
-      - name: Upgrade npm for OIDC trusted publishing
-        run: npm install -g npm@^11.5.1
     
       - name: Set NPM version (${{ github.ref_name }}).
         run: npm version --git-tag-version=false --commit-hooks=false ${{ github.ref_name }}
