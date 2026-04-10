@@ -26,6 +26,26 @@ Spin is a lightweight CLI that wraps Docker Compose (development) and Docker Swa
 
 For tasks involving Docker Compose configuration, Dockerfile changes, `serversideup/php` image settings, adding Laravel services (databases, queues, Horizon, Reverb), server provisioning, deployment, or troubleshooting containerized environments — activate the **spin-laravel-development** skill.
 
+## Laravel Boost MCP setup
+
+Since Spin runs PHP inside Docker (not on the host), Laravel Boost needs special configuration to start its MCP server. Spin ships `spin-mcp-wait.sh` which retries until Docker is ready and filters stdout for clean JSON-RPC communication.
+
+Add these to your `.env` file:
+
+```
+BOOST_PHP_EXECUTABLE_PATH="./vendor/bin/spin-mcp-wait.sh ./vendor/bin/spin run -T php php"
+BOOST_COMPOSER_EXECUTABLE_PATH="./vendor/bin/spin run php composer"
+BOOST_NPM_EXECUTABLE_PATH="./vendor/bin/spin run node npm"
+```
+
+Then run:
+
+```
+spin run php php artisan boost:install
+```
+
+**IMPORTANT:** `spin-mcp-wait.sh` is exclusively for MCP server startup. NEVER use it to run commands. Always use `spin run` or `spin exec` for running commands (e.g., `spin run php composer install`).
+
 ## Templates
 
 - **Basic** (`spin new laravel`): Free open source template — <https://github.com/serversideup/spin-template-laravel-basic>

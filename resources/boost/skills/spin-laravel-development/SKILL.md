@@ -8,6 +8,7 @@ description: "Develops and deploys Laravel applications using Spin and serversid
 ## Table of contents
 
 - [Safety guardrails](#safety-guardrails)
+- [Laravel Boost MCP](#laravel-boost-mcp)
 - [How Spin works](#how-spin-works)
 - [Project structure](#project-structure)
 - [Dockerfile pattern](#dockerfile-pattern)
@@ -24,6 +25,26 @@ description: "Develops and deploys Laravel applications using Spin and serversid
 - **NEVER** run commands that could destroy data without explicitly confirming with the user first. This includes `docker system prune`, `docker volume rm`, dropping databases, removing services, or any destructive operation.
 - If Spin fails to run, it is likely because Docker Desktop is not started. Check with `docker info`. If Docker is not running, tell the user to start Docker Desktop and offer to retry before continuing.
 - Always prefer `spin run` over `spin exec` for one-off commands — it is safer because it creates an isolated container.
+
+## Laravel Boost MCP
+
+Spin runs PHP inside Docker, not on the host machine. Laravel Boost's MCP server needs a bridge script (`spin-mcp-wait.sh`) that retries until Docker is ready and filters Docker's stdout noise to preserve the JSON-RPC stdio protocol.
+
+The required `.env` configuration:
+
+```env
+BOOST_PHP_EXECUTABLE_PATH="./vendor/bin/spin-mcp-wait.sh ./vendor/bin/spin run -T php php"
+BOOST_COMPOSER_EXECUTABLE_PATH="./vendor/bin/spin run php composer"
+BOOST_NPM_EXECUTABLE_PATH="./vendor/bin/spin run node npm"
+```
+
+**NEVER use `spin-mcp-wait.sh` to run commands.** It is exclusively for MCP server startup. The script will refuse non-MCP invocations with an error. Always use `spin run` or `spin exec` for running commands:
+
+```bash
+spin run php composer install          # Correct
+spin run php php artisan migrate       # Correct
+spin-mcp-wait.sh spin run php ...     # WRONG — never do this
+```
 
 ## How Spin works
 
