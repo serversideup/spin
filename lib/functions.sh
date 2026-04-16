@@ -226,7 +226,7 @@ display_repository_metadata() {
 
 docker_pull_check() {
   local pull=0
-  local output=$(printf '%s\n' "${BOLD}${BLUE}[spin] ⚡️ Skipping docker image pull because it ran earlier.${RESET}")
+  local output=""
 
   for arg in "$@"; do
     case "$arg" in
@@ -240,11 +240,17 @@ docker_pull_check() {
         ;;
     esac
   done
-  
+
+  # Default "pull ran recently" message is only useful when debugging why an image didn't refresh,
+  # so hide it unless SPIN_DEBUG=true to keep everyday output quiet.
+  if [ "$pull" == "0" ] && [ "${SPIN_DEBUG:-false}" == "true" ]; then
+    output=$(printf '%s\n' "${BOLD}${BLUE}[spin] ⚡️ Skipping docker image pull because it ran earlier.${RESET}")
+  fi
+
   if [ "$pull" != "1" ] && (needs_update ".spin-last-pull" "$AUTO_PULL_INTERVAL_IN_DAYS" || [ "$pull" == "2" ]); then
     $COMPOSE_CMD pull
     update_last_pull_timestamp
-  else
+  elif [ -n "$output" ]; then
     echo "$output"
   fi
 }
