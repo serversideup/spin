@@ -1,6 +1,6 @@
 ---
 name: spin-laravel-development
-description: "Develops and deploys Laravel applications using Spin and serversideup/php Docker images. Covers Docker Compose configuration, development environment setup, container commands, Laravel service configuration (databases, queues, Horizon, Reverb), server provisioning, and deployment workflows. Use when working with Spin, Docker Compose files, serversideup/php images, spin commands, configuring Laravel services in Docker, or deploying Laravel apps to production servers."
+description: "Develops, tests, and deploys Laravel applications using Spin and serversideup/php Docker images. Covers Docker Compose configuration, development environment setup, container commands, running Laravel tests (PHPUnit and Pest), SPIN_ENV selection and CI parity, parallel Compose environments, Laravel service configuration (databases, queues, Horizon, Reverb), server provisioning, and deployment workflows. Use when working with Spin, Docker Compose files, serversideup/php images, spin commands, running artisan test, configuring Laravel services in Docker, or deploying Laravel apps to production servers."
 ---
 
 # Spin Laravel Development
@@ -13,6 +13,7 @@ description: "Develops and deploys Laravel applications using Spin and serversid
 - [Project structure](#project-structure)
 - [Dockerfile pattern](#dockerfile-pattern)
 - [Development workflow](#development-workflow)
+- [Running tests](#running-tests)
 - [serversideup/php images](#serversideupphp-images)
 - [Laravel services](#laravel-services)
 - [Deployment](#deployment)
@@ -24,7 +25,8 @@ description: "Develops and deploys Laravel applications using Spin and serversid
 
 - **NEVER** run commands that could destroy data without explicitly confirming with the user first. This includes `docker system prune`, `docker volume rm`, dropping databases, removing services, or any destructive operation.
 - If Spin fails to run, it is likely because Docker Desktop is not started. Check with `docker info`. If Docker is not running, tell the user to start Docker Desktop and offer to retry before continuing.
-- Always prefer `spin run` over `spin exec` for one-off commands — it is safer because it creates an isolated container.
+- Prefer `spin exec <service> <cmd>` when the stack is running — it reuses the live container and is near-instant. Use `spin run` when the stack is not running or isolated state is needed.
+- Pass `-T` as a defensive default when invoking commands from an AI agent, CI, or subprocess context. Compose auto-detects TTY in regular terminals, but that detection can misfire when wrapped, causing hangs or garbled output.
 
 ## Laravel Boost MCP
 
@@ -38,12 +40,18 @@ BOOST_COMPOSER_EXECUTABLE_PATH="./vendor/bin/spin run php composer"
 BOOST_NPM_EXECUTABLE_PATH="./vendor/bin/spin run node npm"
 ```
 
-**NEVER use `spin-mcp-wait.sh` to run commands.** It is exclusively for MCP server startup. The script will refuse non-MCP invocations with an error. Always use `spin run` or `spin exec` for running commands:
+**NEVER use `spin-mcp-wait.sh` to run commands.** It is exclusively for MCP server startup. The script will refuse non-MCP invocations with this error:
+
+```
+Error: spin-mcp-wait.sh is only for starting the MCP server. Use 'spin' directly instead.
+```
+
+If that error appears, drop `spin-mcp-wait.sh` and invoke `spin` directly:
 
 ```bash
-spin run php composer install          # Correct
-spin run php php artisan migrate       # Correct
-spin-mcp-wait.sh spin run php ...     # WRONG — never do this
+./vendor/bin/spin exec -T php php artisan test          # Correct
+./vendor/bin/spin run  -T php php artisan migrate       # Correct
+./vendor/bin/spin-mcp-wait.sh ./vendor/bin/spin run php # WRONG — never do this
 ```
 
 ## How Spin works
@@ -184,17 +192,27 @@ spin up -d         # Detached mode (background)
 
 ### Running commands
 
-Syntax: `spin run <service> <command>` — the first argument is the **service name** from `docker-compose.yml`.
+Syntax: `spin <exec|run> [-T] <service> <command>` — the service argument is the **service name** from `docker-compose.yml`.
 
 ```bash
-spin run php composer install
-spin run php php artisan migrate       # First "php" = service, second "php" = binary
-spin run php php artisan make:model Post
-spin run node yarn install
-spin run node yarn dev
+spin exec php composer install
+spin exec php php artisan migrate       # First "php" = service, second "php" = binary
+spin run  php php artisan make:model Post
+spin exec node npm install
+spin exec node npm run dev
 ```
 
-**`run` vs `exec`**: Use `spin run` for one-off commands (creates a new container, runs, exits). Use `spin exec` to execute in an already-running container (requires `spin up` to be active). Prefer `spin run` for package installs, migrations, artisan commands.
+**`exec` vs `run`**:
+
+- **`spin exec`** reuses the live container from an already-running stack. Near-instant. Default for `artisan`, `composer`, `npm`, and ad-hoc commands during development.
+- **`spin run`** creates a new container each invocation. Use when the stack is not running, or when isolated state / different env vars are needed.
+
+**The `-T` flag**: Compose auto-detects TTY, so interactive terminal usage works without `-T`. Add `-T` as a defensive default when invoking from an AI agent, CI pipeline, or wrapper script — auto-detection can misfire in those contexts, causing hangs or ANSI-garbled output:
+
+```bash
+./vendor/bin/spin exec -T php php artisan test     # AI/CI-safe
+./vendor/bin/spin exec php artisan tinker          # Interactive — omit -T
+```
 
 ### Volume mounting
 
@@ -241,6 +259,25 @@ SPIN_APP_DOMAIN=laravel.dev.test
 | `spin build` | Build images without starting |
 
 See [COMMANDS.md](COMMANDS.md) for the complete 26-command reference.
+
+## Running tests
+
+Prefer the **already-running dev stack** — it's faster than spinning up a parallel CI stack:
+
+```bash
+./vendor/bin/spin exec -T php php artisan test
+./vendor/bin/spin exec -T php php artisan test --filter=ExampleTest
+./vendor/bin/spin exec -T php composer test    # If the project exposes a composer test script
+```
+
+`php artisan test` works for both PHPUnit and Pest.
+
+**Before assuming the dev stack is enough, inspect the test config** (`phpunit.xml`, `phpunit.xml.dist`, or `phpunit.dist.xml`):
+
+- If the `<php>` block overrides `DB_CONNECTION` to `sqlite` with `DB_DATABASE=:memory:` (and cache/queue/session set to `array`/`sync`), tests are self-contained — the dev stack is plenty.
+- If the test config uses the real database/cache services, the dev stack usually still works. Reach for `SPIN_ENV=ci` only when CI parity is explicitly needed: reproducing a CI-only failure, matching exact service versions, or dry-running the pipeline before pushing.
+
+See [TESTING.md](TESTING.md) for the full CI-parity workflow, parallel Compose environments, and the override-network gotcha.
 
 ## serversideup/php images
 
@@ -332,6 +369,9 @@ The `.spin.yml` file defines users, providers, servers, and environments. Suppor
 | Stale containers | Use `spin up --build` to rebuild |
 | DB password not working | Credentials are only created on first container init — remove volume to reset |
 | Permission errors in container | Check `SPIN_USER_ID`/`SPIN_GROUP_ID` match host user |
+| Command hangs in AI/CI wrapper | Compose TTY auto-detection misfired — add `-T` to `spin exec`/`spin run` |
+| `SPIN_ENV=ci` clobbered dev containers | `docker-compose.ci.yml` needs its own `name:` project (see [TESTING.md](TESTING.md)) |
+| "host not found" between services on `SPIN_ENV=ci` | Override network didn't include inherited services (see [TESTING.md](TESTING.md)) |
 
 See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for remote server debugging and Docker Swarm troubleshooting.
 
@@ -343,4 +383,5 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for remote server debugging and Doc
 | [DOCKER-IMAGES.md](DOCKER-IMAGES.md) | Configuring serversideup/php images, environment variables, health checks |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Setting up deployment pipelines or running `spin deploy` |
 | [LARAVEL-SERVICES.md](LARAVEL-SERVICES.md) | Adding databases, queues, Horizon, Reverb, or other Docker services |
-| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Debugging issues on remote servers or Docker Swarm |
+| [TESTING.md](TESTING.md) | Running Laravel tests, `SPIN_ENV=ci` CI parity, parallel Compose stacks |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Debugging issues on remote servers, Docker Swarm, or Compose network/stack collisions |

@@ -23,6 +23,10 @@
 | Permission denied in container | UID/GID mismatch | Check `SPIN_USER_ID` and `SPIN_GROUP_ID` match host user (`id -u`, `id -g`) |
 | Stale containers / old image | Cached Docker layers | Run `spin up --build` to rebuild |
 | Container exits immediately | Error in entrypoint | Check `spin logs` for the error message |
+| Command hangs or output is garbled in AI/CI | Compose TTY auto-detection misfired in the wrapper context | Add `-T` to `spin exec`/`spin run` |
+| "Error: spin-mcp-wait.sh is only for starting the MCP server" | `spin-mcp-wait.sh` used to run a command | Drop it; invoke `spin exec -T` or `spin run -T` directly (see [SKILL.md](SKILL.md#laravel-boost-mcp)) |
+| `SPIN_ENV=ci` stack clobbered the dev stack | `docker-compose.ci.yml` inherits dev's project name | Add `name: myapp-ci` to the override (see [TESTING.md](TESTING.md#running-multiple-compose-environments-in-parallel)) |
+| "host not found" / "connection refused" between services on the CI stack (works in dev) | Override defines a custom network; inherited services did not get re-attached | Re-declare every inherited service with `networks:` in the override (see [TESTING.md](TESTING.md#override-networks-and-inherited-services)) |
 
 ---
 

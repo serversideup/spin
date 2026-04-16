@@ -73,14 +73,20 @@ Examples:
 ```bash
 spin run php composer install
 spin run php php artisan migrate
-spin run node yarn install
+spin run node npm install
+spin run -T php composer install       # Defensive -T for AI/CI/subprocess contexts
 ```
 
 Spin-specific options:
 - `--skip-pull` — Do not automatically pull images
 - `--force-pull` — Pull images regardless of cache
 
+Key Docker Compose options:
+- `-T` — Disable pseudo-TTY allocation. Compose auto-detects TTY by default, so terminal use works without it. Pass `-T` as a defensive default when invoking from an AI agent, CI pipeline, or subprocess — auto-detection can misfire there and cause hangs or garbled output.
+
 The container is automatically removed after the command completes. Container dependencies are not started.
+
+Use `spin run` when the stack is not running or when isolated state / different env vars are needed. If the stack is already running, prefer `spin exec` — it reuses the live container and is near-instant.
 
 ### `spin exec`
 
@@ -90,11 +96,19 @@ Run a command in a **currently running** container (requires `spin up` to be act
 spin exec [OPTIONS] SERVICE COMMAND
 ```
 
-Example:
+Examples:
 
 ```bash
-spin exec php php artisan tinker
+spin exec php php artisan test
+spin exec php composer install
+spin exec php php artisan tinker           # Interactive — no -T needed
+spin exec -T php php artisan test          # Defensive -T for AI/CI/subprocess contexts
 ```
+
+Key Docker Compose options:
+- `-T` — Disable pseudo-TTY allocation. Compose auto-detects TTY by default, so terminal use works without it. Pass `-T` as a defensive default when invoking from an AI agent, CI pipeline, or subprocess — auto-detection can misfire there, causing hangs, ANSI-garbled output, or prompts with nowhere to respond.
+
+`spin exec` is the default choice for `artisan`, `composer`, `npm`, and ad-hoc commands during active development.
 
 ### `spin logs`
 
