@@ -459,14 +459,21 @@ export_compose_file_variable(){
   fi
 }
 
+# Filters spin-only flags out of "$@". Returns the remaining arguments via
+# the SPIN_FILTERED_ARGS global. bash can't return arrays through stdout
+# without IFS word-splitting destroying argument boundaries at the call site.
+#
+# Example usage:
+#   filter_out_spin_arguments "$@"
+#   local args=("${SPIN_FILTERED_ARGS[@]}")
+#   $COMPOSE_CMD run ... "${args[@]}"
 filter_out_spin_arguments() {
-    non_docker_args=(
+    SPIN_FILTERED_ARGS=()
+
+    local non_docker_args=(
         "--skip-pull"
         "--force-pull"
     )
-
-    # Declare an array to hold the filtered arguments
-    local filtered_args=()
 
     # Loop through all passed arguments
     for arg in "$@"; do
@@ -479,12 +486,9 @@ filter_out_spin_arguments() {
         done
 
         if ! $is_non_docker_arg; then
-            filtered_args+=("$arg")
+            SPIN_FILTERED_ARGS+=("$arg")
         fi
     done
-
-    # Return the filtered arguments as an array
-    echo "${filtered_args[@]}"
 }
 
 get_ansible_variable(){

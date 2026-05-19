@@ -176,9 +176,10 @@ docker run --rm \
 # lib/actions/example.sh
 #!/usr/bin/env bash
 action_example() {
-    local args=($(filter_out_spin_arguments "$@"))
-    
-    # Implementation here
+    filter_out_spin_arguments "$@"
+    local args=("${SPIN_FILTERED_ARGS[@]}")
+
+    # Implementation here, using "${args[@]}" for the filtered arguments
     echo "Running example command"
 }
 ```
@@ -238,9 +239,11 @@ SPIN_ENV=production spin deploy production
 ### Argument Filtering
 
 ```bash
-# Remove Spin-specific arguments before passing to Docker
-local args=($(filter_out_spin_arguments "$@"))
-$COMPOSE_CMD up ${args[@]}
+# Remove Spin-specific arguments before passing to Docker. The filtered
+# args are returned via the SPIN_FILTERED_ARGS global.
+filter_out_spin_arguments "$@"
+local args=("${SPIN_FILTERED_ARGS[@]}")
+$COMPOSE_CMD up "${args[@]}"
 ```
 
 ### Cache Management
