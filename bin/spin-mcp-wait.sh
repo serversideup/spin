@@ -28,6 +28,18 @@ if [ "$is_mcp" -eq 0 ]; then
     exit 1
 fi
 
+# Monorepo support: when the compose files live somewhere other than where the
+# MCP client launches this bridge (e.g. the repo root, while the Laravel app and
+# this script live in a subdirectory), set SPIN_MCP_WORKING_DIRECTORY to that
+# directory and we cd into it so `spin` finds the compose files. Unset keeps the
+# current behavior (run from the current directory).
+if [ -n "${SPIN_MCP_WORKING_DIRECTORY:-}" ]; then
+    cd "$SPIN_MCP_WORKING_DIRECTORY" || {
+        echo "spin-mcp-wait: SPIN_MCP_WORKING_DIRECTORY does not exist: $SPIN_MCP_WORKING_DIRECTORY" >&2
+        exit 1
+    }
+fi
+
 MAX_RETRIES=${SPIN_MCP_MAX_RETRIES:-60}
 SLEEP_SECONDS=${SPIN_MCP_RETRY_INTERVAL:-5}
 attempt=0
