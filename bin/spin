@@ -22,7 +22,7 @@ export SPIN_RUN_AS_USER
 
 # Default Images
 SPIN_PHP_IMAGE=${SPIN_PHP_IMAGE:-"serversideup/php:cli"}
-SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:20"}
+SPIN_NODE_IMAGE=${SPIN_NODE_IMAGE:-"node:24"}
 SPIN_ANSIBLE_IMAGE=${SPIN_ANSIBLE_IMAGE:-"docker.io/serversideup/ansible-core:2.21-alpine"}
 SPIN_GH_CLI_IMAGE=${SPIN_GH_CLI_IMAGE:-"docker.io/serversideup/github-cli:alpine"}
 
