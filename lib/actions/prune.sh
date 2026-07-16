@@ -5,7 +5,7 @@ action_prune(){
     echo "${BOLD}${YELLOW}🚨 You're about to delete some data.${RESET}"
   fi
   
-  docker system prune --all $@
+  docker system prune --all "$@"
   echo "${BOLD}${GREEN}✅ Docker cache cleared.${RESET}"
 
   # Validate SPIN_CACHE_DIR variable is set

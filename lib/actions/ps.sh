@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 action_ps(){
-  $COMPOSE_CMD ps $@ 
+  $COMPOSE_CMD ps "$@"
 }
