@@ -2,7 +2,8 @@
 action_up() {
   docker_pull_check "$@"
 
-  local args=($(filter_out_spin_arguments "$@"))
+  filter_out_spin_arguments "$@"
+  local args=("${SPIN_FILTERED_ARGS[@]}")
 
-  $COMPOSE_CMD up --remove-orphans ${args[@]}
+  $COMPOSE_CMD up --remove-orphans "${args[@]}"
 }
