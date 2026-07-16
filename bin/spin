@@ -145,7 +145,7 @@ if [ $# -gt 0 ]; then
     ;;
     ps)
       source "$SPIN_HOME/lib/actions/ps.sh"
-      action_ps
+      action_ps "$@"
     ;;
     pull)
       source "$SPIN_HOME/lib/actions/pull.sh"
