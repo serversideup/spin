@@ -211,11 +211,11 @@ docker run --rm \
 
 ### Docker Images Used
 
-Spin uses these Docker images for tooling:
+Spin uses these Docker images for tooling (defaults are defined in `bin/spin` — check there for current versions):
 - `serversideup/ansible-core` - For running Ansible playbooks
 - `serversideup/github-cli` - For GitHub CLI operations
 - `serversideup/php:cli` - For PHP-related operations
-- `node:20` - For Node.js operations
+- `node` - For Node.js operations (`SPIN_NODE_IMAGE`)
 
 ## Testing Considerations
 

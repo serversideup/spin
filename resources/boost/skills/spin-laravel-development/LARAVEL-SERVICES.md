@@ -2,6 +2,8 @@
 
 Docker Compose service configurations for Laravel with Spin.
 
+Service names, exposed ports, and `*.dev.test` domains below are the Spin template defaults — always verify against the project's actual compose files, since projects can rename or restructure any of this.
+
 ## Table of contents
 
 - [Connection pattern](#connection-pattern)
@@ -23,7 +25,7 @@ Docker Compose service configurations for Laravel with Spin.
 
 ## Connection pattern
 
-In Docker, services connect via **container name as hostname**:
+In Docker, services connect via **service name as hostname** (as defined in the project's compose file):
 
 ```env
 DB_HOST=mysql        # NOT localhost, NOT 127.0.0.1
@@ -50,7 +52,7 @@ DB_USERNAME=laraveluser
 DB_PASSWORD=laravelpassword
 ```
 
-Exposed on `localhost:3306` in development for GUI database clients.
+Templates typically expose it on `localhost:3306` in development for GUI database clients — check the dev override file.
 
 ---
 
@@ -67,7 +69,7 @@ DB_USERNAME=laraveluser
 DB_PASSWORD=laravelpassword
 ```
 
-Exposed on `localhost:5432` in development.
+Templates typically expose it on `localhost:5432` in development — check the dev override file.
 
 ---
 
@@ -172,11 +174,7 @@ High-performance application server using FrankenPHP. Default command:
 php artisan octane:start --server=frankenphp --port=8080
 ```
 
-Considerations when using Octane:
-- The application stays loaded in memory between requests
-- Avoid storing state in global variables
-- Singletons persist between requests
-- Test thoroughly — persistent processes can expose hidden bugs
+Requires the `frankenphp` image variant (see [DOCKER-IMAGES.md](DOCKER-IMAGES.md)).
 
 ---
 
@@ -214,7 +212,7 @@ export default defineConfig({
 });
 ```
 
-Run with: `spin run node yarn dev`
+Run with `spin run node yarn dev` (substitute the project's package manager and service name).
 
 For production HTTPS asset loading, add to `AppServiceProvider::register()`:
 
@@ -258,5 +256,3 @@ MEILISEARCH_KEY=developmentkey1234567890
 ```
 
 For production, set a secure key (20+ alphanumeric characters). Avoid running the Meilisearch UI in production unless properly secured.
-
-For additional service configurations and updates, see <https://getspin.pro/docs>.

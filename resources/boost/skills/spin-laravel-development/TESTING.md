@@ -47,12 +47,11 @@ Before choosing a stack, look at `phpunit.xml`, `phpunit.xml.dist`, or `phpunit.
 
 ## Running tests on the dev stack (default)
 
-From a regular terminal, `-T` is optional — Compose auto-detects TTY. When invoked from an AI agent, CI pipeline, or wrapper script, pass `-T` defensively so auto-detection can't misfire:
+Pass `-T` when invoking from an AI agent, CI, or wrapper script (see [SKILL.md](SKILL.md#running-commands)):
 
 ```bash
 ./vendor/bin/spin exec -T php php artisan test
 ./vendor/bin/spin exec -T php php artisan test --filter=ExampleTest
-./vendor/bin/spin exec -T php php artisan test --compact   # Laravel 9+
 ```
 
 `php artisan test` runs PHPUnit and Pest tests transparently. If the project exposes a `composer test` script, prefer it:
