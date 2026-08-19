@@ -157,7 +157,7 @@ if [ $# -gt 0 ]; then
     ;;
     stop)
       source "$SPIN_HOME/lib/actions/stop.sh"
-      action_stop
+      action_stop "$@"
     ;;
     up)
       source "$SPIN_HOME/lib/actions/up.sh"

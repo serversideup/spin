@@ -10,7 +10,7 @@
 
 ---
 
-**Docker Compose pass-through:** `spin up`, `down`, `build`, `logs`, `ps`, `pull`, `run`, and `exec` forward any additional flags straight to the wrapped `docker compose` subcommand — every official Docker Compose option for that subcommand works (e.g. `spin logs -f php`, `spin exec -w /var/www/html php ls`). Exceptions are noted per command below.
+**Docker Compose pass-through:** `spin up`, `down`, `stop`, `build`, `logs`, `ps`, `pull`, `run`, and `exec` forward any additional flags straight to the wrapped `docker compose` subcommand — every official Docker Compose option for that subcommand works (e.g. `spin logs -f php`, `spin exec -w /var/www/html php ls`). Exceptions are noted per command below.
 
 ---
 
@@ -48,13 +48,13 @@ Wraps [`docker compose down`](https://docs.docker.com/compose/reference/down/). 
 
 ### `spin stop`
 
-Gracefully stop (`SIGTERM`) **all running containers on the machine** — not just this project's. Does NOT wrap `docker compose stop` and takes no options.
+Gracefully stop the project's containers without removing them (restart with `spin up`).
 
 ```bash
-spin stop
+spin stop [OPTIONS] [SERVICE...]
 ```
 
-**Prompts for interactive Y/N confirmation** — it will hang in AI agent, CI, or other non-interactive contexts. Prefer `spin down` to stop the current project's stack.
+Wraps [`docker compose stop`](https://docs.docker.com/compose/reference/stop/). Pass service names to stop specific services.
 
 ### `spin build`
 

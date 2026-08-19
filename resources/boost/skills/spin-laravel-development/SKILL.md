@@ -24,7 +24,7 @@ description: "Develops, tests, and deploys Laravel applications using Spin and s
 ## Safety guardrails
 
 - **NEVER** run commands that could destroy data without explicitly confirming with the user first. This includes `docker system prune`, `docker volume rm`, dropping databases, removing services, or any destructive operation.
-- Avoid `spin stop` and `spin kill` — they act on **all containers on the machine** (not just this project) and require interactive confirmation, which hangs in non-interactive contexts. Use `spin down` to stop the project's stack.
+- Avoid `spin kill` — it kills **all containers on the machine** (not just this project) and requires interactive confirmation, which hangs in non-interactive contexts. Use `spin stop` or `spin down` for the project's stack.
 - If Spin fails to run, it is likely because Docker Desktop is not started. Check with `docker info`. If Docker is not running, tell the user to start Docker Desktop and offer to retry before continuing.
 - Use `spin exec` (running stack) or `spin run` (stopped stack), with `-T` in AI/CI/subprocess contexts — see [Running commands](#running-commands).
 - Projects start from templates but are free to restructure. Treat the project's own compose files, Dockerfile, and `.env` as the source of truth for service names, versions, ports, and paths — the examples in this skill show typical template defaults, not guarantees.
@@ -57,7 +57,7 @@ If that error appears, drop `spin-mcp-wait.sh` and invoke `spin` directly:
 
 ## How Spin works
 
-Spin wraps Docker Compose and follows its syntax exactly. The compose-wrapping commands (`up`, `down`, `build`, `logs`, `ps`, `pull`, `run`, `exec`) forward any additional flags straight to the wrapped `docker compose` subcommand, so every official Docker Compose option works (see [COMMANDS.md](COMMANDS.md) for per-command exceptions).
+Spin wraps Docker Compose and follows its syntax exactly. The compose-wrapping commands (`up`, `down`, `stop`, `build`, `logs`, `ps`, `pull`, `run`, `exec`) forward any additional flags straight to the wrapped `docker compose` subcommand, so every official Docker Compose option works (see [COMMANDS.md](COMMANDS.md) for per-command exceptions).
 
 The core pattern is **Docker Compose overrides**: a base `docker-compose.yml` is merged with an environment-specific override file. Spin sets `COMPOSE_FILE=docker-compose.yml:docker-compose.$SPIN_ENV.yml` automatically.
 
@@ -254,6 +254,7 @@ SPIN_APP_DOMAIN=laravel.dev.test
 |---------|-------------|
 | `spin up` | Start all services (`docker compose up`) |
 | `spin up --build` | Start and rebuild |
+| `spin stop` | Stop containers without removing them |
 | `spin down` | Stop and remove containers |
 | `spin run <svc> <cmd>` | One-off command in new container |
 | `spin exec <svc> <cmd>` | Command in running container |
