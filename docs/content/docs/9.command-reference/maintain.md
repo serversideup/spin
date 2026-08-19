@@ -16,7 +16,7 @@ When you perform maintenance on your server, your server may experience brief do
 ::
 
 ```bash [Usage for "spin maintain"]
-spin maintain [environment] [ -p|--port <port> -u|--user <user> -U|--upgrade ]
+spin maintain [environment] [ -h|--host <host> -p|--port <port> -u|--user <user> -U|--upgrade ]
 ```
 
 ![Spin Maintain Command](/images/docs/whats-spin/spin-maintain.png)

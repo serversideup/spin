@@ -52,7 +52,7 @@ spin deploy staging
 |--------|-------|---------|-------------|
 | `--compose-file` | `-c` | `docker-compose.yml,docker-compose.prod.yml` | Compose files |
 | `--port` | `-p` | `22` | SSH port |
-| `--user` | `-u` | Current user | SSH user |
+| `--user` | `-u` | `deploy` | SSH user (dedicated non-sudo user created by `spin provision`) |
 | `--upgrade` | `-U` | `false` | Force Ansible collection upgrade |
 
 ### Environment variables
@@ -60,16 +60,16 @@ spin deploy staging
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SPIN_BUILD_PLATFORM` | `linux/amd64` | Build platform |
-| `SPIN_BUILD_TAGS` | `latest` | Image tags |
+| `SPIN_BUILD_TAG` | Current timestamp | Image tag |
 | `SPIN_REGISTRY_PORT` | `5080` | Local registry port |
 | `SPIN_PROJECT_NAME` | `spin` | Project name for the stack |
-| `SPIN_TRAEFIK_CONFIG_FILE` | `.infrastructure/conf/traefik/prod/traefik.yml` | Traefik config path |
+| `SPIN_SSH_USER` | `deploy` | SSH user (same as `--user`) |
 
 ### Compose variables available after deploy
 
 | Variable | Example | Description |
 |----------|---------|-------------|
-| `SPIN_IMAGE_DOCKERFILE` | `localhost:5080/dockerfile:latest` | Built image reference |
+| `SPIN_IMAGE_DOCKERFILE` | `127.0.0.1:5080/dockerfile:20260819120000` | Built image reference (one `SPIN_IMAGE_*` variable per Dockerfile) |
 | `SPIN_MD5_HASH_*` | `abcdef123456` | MD5 of config files (for Swarm config rotation) |
 | `SPIN_DEPLOYMENT_ENVIRONMENT` | `production` | Target environment name |
 | `SPIN_APP_DOMAIN` | `example.com` | Extracted from `APP_URL` in `.env` |

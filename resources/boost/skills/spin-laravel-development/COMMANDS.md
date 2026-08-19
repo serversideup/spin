@@ -10,7 +10,7 @@
 
 ---
 
-**Docker Compose pass-through:** `spin up`, `down`, `build`, `logs`, `ps`, `run`, and `exec` forward any additional flags straight to the wrapped `docker compose` subcommand — every official Docker Compose option for that subcommand works (e.g. `spin logs -f php`, `spin exec -w /var/www/html php ls`). Exceptions are noted per command below.
+**Docker Compose pass-through:** `spin up`, `down`, `build`, `logs`, `ps`, `pull`, `run`, and `exec` forward any additional flags straight to the wrapped `docker compose` subcommand — every official Docker Compose option for that subcommand works (e.g. `spin logs -f php`, `spin exec -w /var/www/html php ls`). Exceptions are noted per command below.
 
 ---
 
@@ -141,10 +141,10 @@ Wraps [`docker compose ps`](https://docs.docker.com/reference/cli/docker/compose
 Pull images defined in compose files.
 
 ```bash
-spin pull
+spin pull [OPTIONS]
 ```
 
-Wraps [`docker compose pull`](https://docs.docker.com/engine/reference/commandline/compose_pull/). **Exception to pass-through: additional options are not forwarded.**
+Wraps [`docker compose pull`](https://docs.docker.com/engine/reference/commandline/compose_pull/).
 
 ### `spin kill`
 
@@ -168,7 +168,7 @@ Create a new project from a template.
 spin new <template-name> [project-name]
 ```
 
-Available templates: `laravel`, `nuxt`, or any GitHub repo URL.
+Available templates: `laravel`, `laravel-pro`, `nuxt`, `skeleton`, or any GitHub repository (`username/repo`).
 
 Example:
 
@@ -181,10 +181,10 @@ spin new laravel my-app
 Initialize Spin on an existing project. Creates Docker Compose files, Dockerfile, and `.infrastructure/` folder.
 
 ```bash
-spin init [--skip-dependency-install]
+spin init <template-name> [--skip-dependency-install]
 ```
 
-Project types: `laravel`, `laravel-pro`, `nuxt`.
+Templates: `laravel`, `laravel-pro`, `nuxt`, `skeleton`, or any GitHub repository (`username/repo`).
 
 ### `spin latest`
 
@@ -218,10 +218,10 @@ spin deploy [OPTIONS] <environment>
 |--------|-------|---------|-------------|
 | `--compose-file` | `-c` | `docker-compose.yml,docker-compose.prod.yml` | Compose files to use |
 | `--port` | `-p` | `22` | SSH port |
-| `--user` | `-u` | Current user (`whoami`) | SSH user |
+| `--user` | `-u` | `deploy` | SSH user (a dedicated non-sudo user created by `spin provision` for deployments) |
 | `--upgrade` | `-U` | `false` | Force upgrade Ansible collection |
 
-Environment variables: `SPIN_BUILD_PLATFORM` (default `linux/amd64`), `SPIN_BUILD_TAGS`, `SPIN_REGISTRY_PORT` (default `5080`), `SPIN_PROJECT_NAME`.
+Environment variables: `SPIN_BUILD_PLATFORM` (default `linux/amd64`), `SPIN_BUILD_TAG` (default: current timestamp), `SPIN_REGISTRY_PORT` (default `5080`), `SPIN_PROJECT_NAME`, `SPIN_SSH_USER` (default `deploy`).
 
 Per-environment `.env` files: Create `.env.production`, `.env.staging`, etc. Laravel automatically uses the correct file based on `APP_ENV`.
 

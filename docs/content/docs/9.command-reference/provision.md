@@ -12,7 +12,7 @@ Provision and set up your inventory of servers. Before running this command, mak
 
 ## Usage
 ```bash [Usage for "spin provision"]
-spin provision [environment] [ -p|--port <port> -u|--user <user> -U|--upgrade ]
+spin provision [environment] [ -h|--host <host> -p|--port <port> -u|--user <user> -U|--upgrade ]
 ```
 
 ::note

@@ -48,7 +48,7 @@ The following options are available to set when running this command.
 | `--compose-file` | `-c` | By default, we look for two files `docker-compose.yml, docker-compose.prod.yml` | The name of the compose files. You can provide many of these options to combine many files. |
 | `--port` | `-p` | `22` | The port to SSH into the server with. |
 | `--upgrade` | `-U` | `false` | Force the upgrade of the Ansible collection. |
-| `--user` | `-u` | The username of your HOST machine (run `whoami` in a new terminal) | The user to SSH into the server with. |
+| `--user` | `-u` | `deploy` | The user to SSH into the server with. Spin provisions a dedicated `deploy` user (without sudo permissions) specifically for deployments. |
 
 ## Change Options with Environment Variables
 You can also modify the behavior of the `spin deploy` command by setting environment variables:
@@ -56,19 +56,21 @@ You can also modify the behavior of the `spin deploy` command by setting environ
 | Environment Variable | Default | Description |
 | --- | --- | --- |
 | `SPIN_BUILD_PLATFORM` | `linux/amd64` | The platform to build the Docker image with. |
-| `SPIN_BUILD_TAGS` | `latest` | The tags to use when building the Docker image. |
+| `SPIN_BUILD_TAG` | Current timestamp (`YYYYMMDDHHMMSS`) | The tag to use when building the Docker image. |
+| `SPIN_BUILD_IMAGE_PREFIX` | `127.0.0.1:<registry_port>` | The registry prefix for the built Docker image name. |
 | `SPIN_INVENTORY_FILE` | `/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh` | The inventory file or dynamic inventory script to use for the deployment. |
 | `SPIN_PROJECT_NAME` | `spin` | The name of the project to use for the deployment. |
 | `SPIN_REGISTRY_PORT` | `5080` | The port to use on your local machine for the temporary registry. |
-| `SPIN_TRAEFIK_CONFIG_FILE` | `./.infrastructure/conf/traefik/prod/traefik.yml` | The Traefik configuration file to use for the deployment. |
+| `SPIN_SSH_PORT` | `22` | The port to SSH into the server with. |
+| `SPIN_SSH_USER` | `deploy` | The user to SSH into the server with. |
 
 ## Environment Variables Available For Compose Files
 The following environment variables are available to use in your compose files after running this command.
 
 | Variable | Example  | Description  |
 | --- | --- | --- |
-| `SPIN_IMAGE_*`              | `localhost:5080/dockerfile:latest` or `localhost:5080/dockerfile.php:latest`    | Automatically generated for each Dockerfile in the project directory. The variable name is derived from the Dockerfile name (e.g., `SPIN_IMAGE_DOCKERFILE` derives from `Dockerfile`, `SPIN_IMAGE_DOCKERFILE_PHP` derives from `Dockerfile.php`), and the value contains the full image name including registry, image name (based on Dockerfile name), and tag. These variables can be used in Docker Compose files to reference the built images. |
-| `SPIN_MD5_HASH_*` | `abcdef123456`                        | The MD5 Hash value of all configs under `.infrastructure/conf`. For example, `.infrastructure/conf/traefik/dev/traefik.yml`'s MD5 value will be stored in `SPIN_MD5_HASH_TRAEFIK_YML`|
+| `SPIN_IMAGE_*`              | `127.0.0.1:5080/dockerfile:20260819120000` or `127.0.0.1:5080/dockerfile.php:20260819120000`    | Automatically generated for each Dockerfile in the project directory. The variable name is derived from the Dockerfile name (e.g., `SPIN_IMAGE_DOCKERFILE` derives from `Dockerfile`, `SPIN_IMAGE_DOCKERFILE_PHP` derives from `Dockerfile.php`), and the value contains the full image name including registry, image name (based on Dockerfile name), and tag. These variables can be used in Docker Compose files to reference the built images. |
+| `SPIN_MD5_HASH_*` | `abcdef123456`                        | The MD5 Hash value of every config file referenced under the `configs:` section of your compose files. For example, `.infrastructure/conf/traefik/prod/traefik.yml`'s MD5 value will be stored in `SPIN_MD5_HASH_TRAEFIK_YML`|
 | `SPIN_DEPLOYMENT_ENVIRONMENT` | `production`                         | The environment you are deploying to.|
 | Anything from your `.env` file | `DB_PASSWORD`                         | Any environment variables you have set in your `.env` file.|
 | `SPIN_APP_DOMAIN` | `example.com`                         | This variable is created from `APP_URL` and extracts the app domain. This is helpful for frameworks like Laravel when we load up the `.env` file.|
@@ -95,11 +97,11 @@ If a `.env` file exists in your project directory, the script loads the environm
 The script sets default values for various deployment parameters, which can be overridden by environment variables:
 - `SPIN_REGISTRY_PORT`: Port for the local Docker registry (default is 5080).
 - `SPIN_BUILD_PLATFORM`: Platform for building the Docker image (default is "linux/amd64").
-- `SPIN_BUILD_IMAGE_PREFIX`: Prefix for the Docker image name (default is "localhost:<registry_port>").
-- `SPIN_BUILD_TAG`: Tag for the Docker image (default is "latest").
+- `SPIN_BUILD_IMAGE_PREFIX`: Prefix for the Docker image name (default is "127.0.0.1:<registry_port>").
+- `SPIN_BUILD_TAG`: Tag for the Docker image (default is the current timestamp, e.g. "20260819120000").
 - `SPIN_INVENTORY_FILE`: Path to the Ansible inventory file or dynamic inventory script (default is "/etc/ansible/collections/ansible_collections/serversideup/spin/plugins/inventory/spin-dynamic-inventory.sh").
-- `SPIN_SSH_PORT`: SSH port for connecting to the server.
-- `SPIN_SSH_USER`: SSH user for connecting to the server (default is "deploy").
+- `SPIN_SSH_PORT`: SSH port for connecting to the server (default is 22).
+- `SPIN_SSH_USER`: SSH user for connecting to the server (default is "deploy" — a dedicated, non-sudo user that `spin provision` creates specifically for deployments. Your authorized keys are added to it, while your personal user keeps sudo permissions for server management).
 - `SPIN_PROJECT_NAME`: Name of the project (default is "spin").
 
 ### Checks for Dockerfiles

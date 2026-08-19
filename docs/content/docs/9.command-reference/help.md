@@ -7,7 +7,7 @@ canonical: https://serversideup.net/open-source/spin/docs/command-reference/help
 ---
 
 ::lead-p
-Get a convenient link to open the documentation for `spin`.
+List all available `spin` commands and get a convenient link to open the documentation.
 ::
 
 ## Usage

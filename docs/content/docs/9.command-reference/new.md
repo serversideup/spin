@@ -22,11 +22,17 @@ spin new <template-name> <project-name>
 ## Create a new project with Spin installed
 Getting started with a new project is easy with Spin. Simply run the `spin new` command followed by your project name and Spin will create a new project for you with Spin installed.
 
-## Official Spin Template running Laravel
-We only have one official template right now, but we're working to add more templates. This Laravel template that will get you up and running with the latest stable version of Laravel with the default configurations running SQLite.
+## Official Spin Templates
+The following official templates are available:
 
-#### Repository
-- [serversideup/spin-template-laravel-basic](https://github.com/serversideup/spin-template-laravel-basic){target="_blank"}
+| Template | Repository | Description |
+| --- | --- | --- |
+| `laravel` | [serversideup/spin-template-laravel-basic](https://github.com/serversideup/spin-template-laravel-basic){target="_blank"} | The latest stable version of Laravel with the default configurations running SQLite. |
+| `laravel-pro` | [Spin Pro](https://getspin.pro){target="_blank"} | Premium Laravel template with pre-configured services (databases, Horizon, Reverb, Vite, Mailpit, and more). |
+| `nuxt` | [serversideup/spin-template-nuxt](https://github.com/serversideup/spin-template-nuxt){target="_blank"} | The latest stable version of Nuxt. |
+| `skeleton` | [serversideup/spin-template-skeleton](https://github.com/serversideup/spin-template-skeleton){target="_blank"} | A bare-bones starting point for building your own template. |
+
+You can also pass any GitHub repository in the format of `username/repo` to use a community template.
 
 #### Usage
 
