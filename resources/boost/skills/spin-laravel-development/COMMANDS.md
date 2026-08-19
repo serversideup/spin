@@ -10,6 +10,10 @@
 
 ---
 
+**Docker Compose pass-through:** `spin up`, `down`, `build`, `logs`, `ps`, `run`, and `exec` forward any additional flags straight to the wrapped `docker compose` subcommand — every official Docker Compose option for that subcommand works (e.g. `spin logs -f php`, `spin exec -w /var/www/html php ls`). Exceptions are noted per command below.
+
+---
+
 ## Development commands
 
 ### `spin up`
@@ -26,7 +30,7 @@ Spin-specific options:
 - `--skip-pull` — Do not automatically pull images
 - `--force-pull` — Pull images regardless of cache
 
-All [`docker compose up`](https://docs.docker.com/compose/reference/up/) options are supported.
+All [`docker compose up`](https://docs.docker.com/compose/reference/up/) options are supported. Always runs with `--remove-orphans`.
 
 Override environment: `SPIN_ENV=testing spin up` uses `docker-compose.testing.yml`.
 
@@ -40,15 +44,17 @@ Stop and remove containers, networks, volumes, and images created by `up`.
 spin down [OPTIONS]
 ```
 
-Wraps `docker compose down`.
+Wraps [`docker compose down`](https://docs.docker.com/compose/reference/down/). Always runs with `--remove-orphans`.
 
 ### `spin stop`
 
-Send `SIGTERM` to all containers (graceful stop).
+Gracefully stop (`SIGTERM`) **all running containers on the machine** — not just this project's. Does NOT wrap `docker compose stop` and takes no options.
 
 ```bash
 spin stop
 ```
+
+**Prompts for interactive Y/N confirmation** — it will hang in AI agent, CI, or other non-interactive contexts. Prefer `spin down` to stop the current project's stack.
 
 ### `spin build`
 
@@ -82,7 +88,7 @@ Spin-specific options:
 - `--force-pull` — Pull images regardless of cache
 
 Key Docker Compose options:
-- `-T` — Disable pseudo-TTY allocation. Compose auto-detects TTY by default, so terminal use works without it. Pass `-T` as a defensive default when invoking from an AI agent, CI pipeline, or subprocess — auto-detection can misfire there and cause hangs or garbled output.
+- `-T` — Disable pseudo-TTY allocation. Pass it in AI/CI/subprocess contexts (see [SKILL.md](SKILL.md#running-commands) for the rationale).
 
 The container is automatically removed after the command completes. Container dependencies are not started.
 
@@ -106,7 +112,7 @@ spin exec -T php php artisan test          # Defensive -T for AI/CI/subprocess c
 ```
 
 Key Docker Compose options:
-- `-T` — Disable pseudo-TTY allocation. Compose auto-detects TTY by default, so terminal use works without it. Pass `-T` as a defensive default when invoking from an AI agent, CI pipeline, or subprocess — auto-detection can misfire there, causing hangs, ANSI-garbled output, or prompts with nowhere to respond.
+- `-T` — Disable pseudo-TTY allocation. Pass it in AI/CI/subprocess contexts (see [SKILL.md](SKILL.md#running-commands) for the rationale).
 
 `spin exec` is the default choice for `artisan`, `composer`, `npm`, and ad-hoc commands during active development.
 
@@ -135,18 +141,20 @@ Wraps [`docker compose ps`](https://docs.docker.com/reference/cli/docker/compose
 Pull images defined in compose files.
 
 ```bash
-spin pull [OPTIONS]
+spin pull
 ```
 
-Wraps [`docker compose pull`](https://docs.docker.com/engine/reference/commandline/compose_pull/).
+Wraps [`docker compose pull`](https://docs.docker.com/engine/reference/commandline/compose_pull/). **Exception to pass-through: additional options are not forwarded.**
 
 ### `spin kill`
 
-Send `SIGKILL` to all containers (immediate stop).
+Immediately kill (`SIGKILL`) **all running containers on the machine** — not just this project's. Does NOT wrap `docker compose kill` and takes no options.
 
 ```bash
 spin kill
 ```
+
+**Prompts for interactive Y/N confirmation** — it will hang in AI agent, CI, or other non-interactive contexts. Prefer `spin down` for the current project's stack.
 
 ---
 

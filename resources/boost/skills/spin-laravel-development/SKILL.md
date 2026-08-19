@@ -24,9 +24,10 @@ description: "Develops, tests, and deploys Laravel applications using Spin and s
 ## Safety guardrails
 
 - **NEVER** run commands that could destroy data without explicitly confirming with the user first. This includes `docker system prune`, `docker volume rm`, dropping databases, removing services, or any destructive operation.
+- Avoid `spin stop` and `spin kill` — they act on **all containers on the machine** (not just this project) and require interactive confirmation, which hangs in non-interactive contexts. Use `spin down` to stop the project's stack.
 - If Spin fails to run, it is likely because Docker Desktop is not started. Check with `docker info`. If Docker is not running, tell the user to start Docker Desktop and offer to retry before continuing.
-- Prefer `spin exec <service> <cmd>` when the stack is running — it reuses the live container and is near-instant. Use `spin run` when the stack is not running or isolated state is needed.
-- Pass `-T` as a defensive default when invoking commands from an AI agent, CI, or subprocess context. Compose auto-detects TTY in regular terminals, but that detection can misfire when wrapped, causing hangs or garbled output.
+- Use `spin exec` (running stack) or `spin run` (stopped stack), with `-T` in AI/CI/subprocess contexts — see [Running commands](#running-commands).
+- Projects start from templates but are free to restructure. Treat the project's own compose files, Dockerfile, and `.env` as the source of truth for service names, versions, ports, and paths — the examples in this skill show typical template defaults, not guarantees.
 
 ## Laravel Boost MCP
 
@@ -56,7 +57,7 @@ If that error appears, drop `spin-mcp-wait.sh` and invoke `spin` directly:
 
 ## How Spin works
 
-Spin wraps Docker Compose and follows its syntax exactly. Any Docker Compose option works with Spin.
+Spin wraps Docker Compose and follows its syntax exactly. The compose-wrapping commands (`up`, `down`, `build`, `logs`, `ps`, `run`, `exec`) forward any additional flags straight to the wrapped `docker compose` subcommand, so every official Docker Compose option works (see [COMMANDS.md](COMMANDS.md) for per-command exceptions).
 
 The core pattern is **Docker Compose overrides**: a base `docker-compose.yml` is merged with an environment-specific override file. Spin sets `COMPOSE_FILE=docker-compose.yml:docker-compose.$SPIN_ENV.yml` automatically.
 
@@ -68,13 +69,13 @@ COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml docker compose up
 
 Override with `SPIN_ENV=testing spin up` to use `docker-compose.testing.yml` instead.
 
-The base file defines shared service structure. Override files add environment-specific settings. Docker merges them intelligently — override values replace or extend base values:
+The base file defines shared service structure. Override files add environment-specific settings. Docker merges them intelligently — override values replace or extend base values. (Image versions and service names below are illustrative — mirror the project's actual files.)
 
 ```yaml
 # docker-compose.yml (base — shared across all environments)
 services:
   traefik:
-    image: traefik:v3.6
+    image: traefik:v3
   php:
     depends_on:
       - traefik
@@ -105,7 +106,7 @@ services:
       - "traefik.http.services.laravel.loadbalancer.server.port=8080"
       - "traefik.http.services.laravel.loadbalancer.server.scheme=http"
   node:
-    image: node:22
+    image: node:24
     volumes:
       - .:/usr/src/app/
     working_dir: /usr/src/app/
@@ -131,6 +132,8 @@ services:
 
 ## Project structure
 
+Typical layout from the Laravel templates (individual projects may differ):
+
 ```
 docker-compose.yml              # Base (shared services)
 docker-compose.dev.yml           # Dev overrides (ports, volumes, build target, labels)
@@ -151,7 +154,7 @@ The `.infrastructure/` folder is flexible. `conf/` stores committed configuratio
 
 ## Dockerfile pattern
 
-Multi-stage build using `serversideup/php`:
+Multi-stage build using `serversideup/php` (match the PHP version and variant to the project):
 
 ```dockerfile
 FROM serversideup/php:8.5-fpm-nginx-alpine AS base
@@ -192,7 +195,7 @@ spin up -d         # Detached mode (background)
 
 ### Running commands
 
-Syntax: `spin <exec|run> [-T] <service> <command>` — the service argument is the **service name** from `docker-compose.yml`.
+Syntax: `spin <exec|run> [-T] <service> <command>` — the service argument is the **service name** from the project's `docker-compose.yml` (verify there; not every project names its services `php` and `node`).
 
 ```bash
 spin exec php composer install
@@ -258,7 +261,7 @@ SPIN_APP_DOMAIN=laravel.dev.test
 | `spin ps` | List running containers |
 | `spin build` | Build images without starting |
 
-See [COMMANDS.md](COMMANDS.md) for the complete 26-command reference.
+See [COMMANDS.md](COMMANDS.md) for the complete command reference.
 
 ## Running tests
 
@@ -272,12 +275,9 @@ Prefer the **already-running dev stack** — it's faster than spinning up a para
 
 `php artisan test` works for both PHPUnit and Pest.
 
-**Before assuming the dev stack is enough, inspect the test config** (`phpunit.xml`, `phpunit.xml.dist`, or `phpunit.dist.xml`):
+Inspect the project's `phpunit.xml` before choosing a stack: if tests are self-contained (sqlite `:memory:`, `array`/`sync` drivers), the dev stack is plenty; otherwise it usually still works. Reach for `SPIN_ENV=ci` only when CI parity is explicitly needed.
 
-- If the `<php>` block overrides `DB_CONNECTION` to `sqlite` with `DB_DATABASE=:memory:` (and cache/queue/session set to `array`/`sync`), tests are self-contained — the dev stack is plenty.
-- If the test config uses the real database/cache services, the dev stack usually still works. Reach for `SPIN_ENV=ci` only when CI parity is explicitly needed: reproducing a CI-only failure, matching exact service versions, or dry-running the pipeline before pushing.
-
-See [TESTING.md](TESTING.md) for the full CI-parity workflow, parallel Compose environments, and the override-network gotcha.
+See [TESTING.md](TESTING.md) for the stack decision tree, the full CI-parity workflow, parallel Compose environments, and the override-network gotcha.
 
 ## serversideup/php images
 
