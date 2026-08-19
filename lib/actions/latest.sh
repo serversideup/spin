@@ -6,7 +6,7 @@ action_latest(){
       case $1 in
         node)
           shift 1
-          docker run --rm -v $(pwd):/usr/app/src/ -w /usr/src/app $SPIN_NODE_IMAGE "$@"
+          docker run --rm -v $(pwd):/usr/src/app -w /usr/src/app $SPIN_NODE_IMAGE "$@"
         ;;
         php)
           shift 1
@@ -18,6 +18,6 @@ action_latest(){
         ;;
       esac
     else
-      printf "${BOLD}${YELLOW}\🤔 You didn't pass \"spin new\" any arguments. Run \"spin help\" if you want to see the documentation.${RESET}"
+      printf "${BOLD}${YELLOW}\🤔 You didn't pass \"spin latest\" any arguments. Run \"spin help\" if you want to see the documentation.${RESET}"
     fi
 }
