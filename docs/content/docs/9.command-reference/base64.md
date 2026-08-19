@@ -11,13 +11,14 @@ Encode and decode strings with base64.
 ::
 
 ## Usage
-```bash [Usage for "spin build"]
-spin base64 [OPTIONS] <file>
+```bash [Usage for "spin base64"]
+spin base64 encode <file>
+spin base64 decode <file|base64-string>
 ```
 
-### Options
-- `encode` (or `-e`): Encode a string with base64
-- `decode` (or `-d`): Decode a string with base64
+### Actions
+- `encode` (or `-e`): Encode a file with base64
+- `decode` (or `-d`): Decode a file or base64 string
 
 ## Examples
 ```bash [Encode a file with base64]

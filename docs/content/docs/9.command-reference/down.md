@@ -15,5 +15,8 @@ Stops containers and removes containers, networks, volumes, and images created b
 spin down [OPTIONS]
 ```
 
+## Official Documentation & Additional Options
+This command is a shortcut for [`docker compose down`](https://docs.docker.com/compose/reference/down/){target="_blank"} and can accept additional options that you pass to it.
+
 ## Special notes
-This will only run on machines that have `spin` installed on it. This means if you installed `spin` via "composer" or "yarn", this command will **not** execute.
+Spin automatically adds `--remove-orphans` to remove any orphan containers.

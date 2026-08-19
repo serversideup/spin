@@ -16,16 +16,18 @@ This process will create new files and may modify existing files. It's highly re
 
 ## Usage
 ```bash [Usage for "spin init"]
-spin init [--skip-dependency-install]
+spin init <template-name> [--skip-dependency-install]
 ```
 
 ## What this command does
 Running `spin init` will ask you a few questions about your project, then create the files you need to get started with Spin.
 
-### Project Types:
+### Templates:
 - `laravel`: Initialize Spin into an existing Laravel project.
 - `laravel-pro`: Initialize [Spin Pro's Laravel Template](https://getspin.pro){target="_blank"} into an existing Laravel project with Laravel Pro.
 - `nuxt`: Initialize Spin into an existing Nuxt project.
+- `skeleton`: A bare-bones template for any project type.
+- `username/repo`: Any GitHub repository containing a Spin template.
 
 ### Options
 - `--skip-dependency-install`: Skip the installation of dependencies. This is useful if you're using a custom script to install dependencies.

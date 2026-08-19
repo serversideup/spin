@@ -22,5 +22,8 @@ spin exec php php artisan migrate
 
 The above command runs `php artisan migrate` inside of the `php` service (this is why "php" is repeated twice).
 
+## Official Documentation & Additional Options
+This command is a shortcut for [`docker compose exec`](https://docs.docker.com/compose/reference/exec/){target="_blank"} and can accept additional options that you pass to it.
+
 ## Special notes
-This will only run on machines that have `spin` installed on it. This means if you installed `spin` via "composer" or "yarn", this command will **not** execute.
+This command requires the containers to already be running (start them with `spin up`). If your containers are not running, use [`spin run`](/docs/command-reference/run) instead.

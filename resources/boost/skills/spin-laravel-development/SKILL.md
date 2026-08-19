@@ -57,7 +57,7 @@ If that error appears, drop `spin-mcp-wait.sh` and invoke `spin` directly:
 
 ## How Spin works
 
-Spin wraps Docker Compose and follows its syntax exactly. The compose-wrapping commands (`up`, `down`, `build`, `logs`, `ps`, `run`, `exec`) forward any additional flags straight to the wrapped `docker compose` subcommand, so every official Docker Compose option works (see [COMMANDS.md](COMMANDS.md) for per-command exceptions).
+Spin wraps Docker Compose and follows its syntax exactly. The compose-wrapping commands (`up`, `down`, `build`, `logs`, `ps`, `pull`, `run`, `exec`) forward any additional flags straight to the wrapped `docker compose` subcommand, so every official Docker Compose option works (see [COMMANDS.md](COMMANDS.md) for per-command exceptions).
 
 The core pattern is **Docker Compose overrides**: a base `docker-compose.yml` is merged with an environment-specific override file. Spin sets `COMPOSE_FILE=docker-compose.yml:docker-compose.$SPIN_ENV.yml` automatically.
 

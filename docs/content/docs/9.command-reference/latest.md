@@ -12,10 +12,10 @@ Run a one-off container to perform a task with the latest version of the contain
 
 ## Usage
 ```bash [Usage for "spin latest"]
-spin latest [OPTIONS] SERVICE COMMAND 
+spin latest <php|node> COMMAND
 ```
 
-### Options
+### Services
 - `php`: Run the latest stable version of PHP
 - `node`: Run the latest stable LTS version of Node
 
