@@ -72,26 +72,43 @@ check_connection_with_cmd() {
 }
 
 check_for_upgrade() {
-  if needs_update ".spin-last-update" "$AUTO_UPDATE_INTERVAL_IN_DAYS"  || [ "$1" == "--force" ]; then
-    if [ "$1" != "--force" ]; then
-      read -n 1 -r -p "${BOLD}${YELLOW}[spin] 🤔 Would you like to check for updates? [Y/n]${RESET} " response
-      case "$response" in
-        [yY$'\n'])
-          send_to_upgrade_script
-          ;;
-        * )
-          echo
-          save_current_time_to_cache_file ".spin-last-update"
-          echo "[spin] You can update manually by running \`spin update\`"
-          ;;
-      esac
-    else
-      send_to_upgrade_script
-    fi
-  else
-    # Silence is golden. We won't bug the user if everything looks good.
-    :
+  local response=""
+
+  if [ "$1" == "--force" ]; then
+    send_to_upgrade_script
+    return 0
   fi
+
+  if [ "${SPIN_SKIP_UPDATE_CHECK:-false}" == "true" ]; then
+    return 0
+  fi
+
+  if [ ! -t 0 ]; then
+    # Nobody can answer the prompt below without a terminal, so record the check and
+    # move on. "needs_update" is silenced here because its message promises an update
+    # attempt that we're deliberately skipping.
+    if needs_update ".spin-last-update" "$AUTO_UPDATE_INTERVAL_IN_DAYS" > /dev/null; then
+      save_current_time_to_cache_file ".spin-last-update"
+      printf '%s\n' "${BOLD}${YELLOW}[spin] ⏭️ Skipping the update check because this shell isn't interactive. Run \`spin update\` when you're ready to update.${RESET}"
+    fi
+    return 0
+  fi
+
+  if needs_update ".spin-last-update" "$AUTO_UPDATE_INTERVAL_IN_DAYS"; then
+    read -n 1 -r -p "${BOLD}${YELLOW}[spin] 🤔 Would you like to check for updates? [Y/n]${RESET} " response || response=""
+    case "$response" in
+      [yY$'\n'])
+        send_to_upgrade_script
+        ;;
+      * )
+        echo
+        save_current_time_to_cache_file ".spin-last-update"
+        echo "[spin] You can update manually by running \`spin update\`"
+        ;;
+    esac
+  fi
+
+  return 0
 }
 
 check_if_docker_is_running(){
