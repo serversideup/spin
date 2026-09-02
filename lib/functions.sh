@@ -473,6 +473,7 @@ filter_out_spin_arguments() {
     local non_docker_args=(
         "--skip-pull"
         "--force-pull"
+        "--with-deps"
     )
 
     # Loop through all passed arguments
