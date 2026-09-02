@@ -59,6 +59,8 @@ Before running `spin configure gha`, ensure you:
 - Have an environment file (e.g., `.env.production` for production)
 - Have your server provisioned with `spin provision`
 
+With `--env`, only the first three apply. It doesn't read your `.spin.yml`, doesn't need an `.infrastructure` folder, and never connects to a server.
+
 ## Environment Files
 The command expects an environment file matching your target environment:
 - Production: `.env.production`
