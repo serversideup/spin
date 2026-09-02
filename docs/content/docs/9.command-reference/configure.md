@@ -21,7 +21,7 @@ spin configure <command> [options]
 Configure GitHub Actions settings for deploying your application to a specific environment.
 
 ```bash [Configure GitHub Actions for an environment]
-spin configure gha <environment>
+spin configure gha [--env] <environment>
 ```
 
 #### What this command does
@@ -32,9 +32,24 @@ When configuring GitHub Actions, this command:
 4. Sets up required GitHub Actions secrets
 5. Configures server access for deployments
 
+#### Options
+The following options are available to set when running this command.
+| Option | Short | Default | Description |
+| --- | --- | --- | --- |
+| `environment` | - | <none> | Required. The target environment to configure (e.g., `production`, `staging`). |
+| `--env` | - | <none> | Only update the `<ENVIRONMENT>_ENV_FILE_BASE64` secret. Skips steps 2 and 5 above, so it never connects to your servers. |
+| `--host` | `-h` | <none> | The hostname or group of hosts to configure server access on. |
+| `--port` | `-p` | `22` | The port to SSH into the server with. |
+| `--user` | `-u` | The username of your HOST machine (run `whoami` in a new terminal) | The user to SSH into the server with. |
+| `--upgrade` | `-U` | Check for Ansible collection updates once per day. | Force upgrade the Ansible Collection on your machine before configuring. |
+
 #### Example
 ```bash [Configure GitHub Actions for production]
 spin configure gha production
+```
+
+```bash [Update only the production environment file]
+spin configure gha production --env
 ```
 
 ## Prerequisites
@@ -77,6 +92,8 @@ maxWidth: 500
 
 ::note
 The only way you can update a value of a secret is to overwrite the previous value. GitHub Actions does not allow you to view the value of a secret once it's set. If you need to update a value, just run `spin configure gha <environment>` again.
+
+If your environment file is the only thing that changed, run `spin configure gha <environment> --env` instead. It updates `<ENVIRONMENT>_ENV_FILE_BASE64` and leaves the other secrets untouched. This only needs GitHub authentication, so it works even without SSH access to your servers.
 ::
 
 ## Special Notes

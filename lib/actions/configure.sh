@@ -5,8 +5,6 @@
 #################################
 action_configure() {
 
-  validate_project_setup
-
   case "$1" in
     gha)
       shift
@@ -26,13 +24,33 @@ action_configure() {
 configure_gha() {
     local deploy_public_key_content=''
     local environment_file=''
+    local env_only=false
+    local remaining_args=()
+
+    for arg in "$@"; do
+        case "$arg" in
+            --env)
+                env_only=true
+                ;;
+            *)
+                remaining_args+=("$arg")
+                ;;
+        esac
+    done
+
+    set -- "${remaining_args[@]}"
 
     # Ensure environment is specified
     if [ $# -eq 0 ]; then
         echo "${BOLD}${RED}❌ No environment specified${RESET}"
-        echo "Usage: spin configure gha <environment>"
-        echo "Example: spin configure gha production"
+        show_gha_usage
         return 1
+    fi
+
+    # "--env" only touches the environment file and GitHub, so it doesn't need
+    # the .spin.yml, infrastructure folder or CI folder that the rest requires.
+    if [ "$env_only" = false ]; then
+        validate_project_setup
     fi
 
     # Check if GitHub CLI image exists locally
@@ -53,6 +71,11 @@ configure_gha() {
 
     # Set ENV_BASE_64
     gh_set_env --base64 --variable "${gha_environment_uppercase}_ENV_FILE_BASE64" --file "$environment_file"
+
+    if [ "$env_only" = true ]; then
+      echo "${BOLD}${GREEN}✅ Updated the \"$gha_environment\" environment file in GitHub Actions.${RESET}"
+      return 0
+    fi
 
     # Ensure deployment key exists
     if [ ! -f "$SPIN_CI_FOLDER/SSH_DEPLOY_PRIVATE_KEY" ]; then
@@ -177,6 +200,16 @@ is_github_repository() {
   run_gh repo view --json name >/dev/null 2>&1
 }
 
+show_gha_usage() {
+  echo "Usage: spin configure gha [--env] <environment>"
+  echo
+  echo "Options:"
+  echo "  --env    Only update the <ENVIRONMENT>_ENV_FILE_BASE64 secret in GitHub."
+  echo "           Requires GitHub authentication, but never connects to your servers."
+  echo
+  echo "Example: spin configure gha production"
+}
+
 show_usage() {
   echo "${BOLD}${RED}❌ Invalid command: $1${RESET}"
   echo
@@ -184,6 +217,8 @@ show_usage() {
   echo
   echo "Commands:"
   echo "  gha <environment>    Configure GitHub Actions settings for specified environment"
+  echo
+  show_gha_usage
 }
 
 repository_exists() {
