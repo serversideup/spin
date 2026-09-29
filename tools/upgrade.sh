@@ -164,6 +164,7 @@ get_current_version() {
 }
 
 get_latest_release() {
+    # shellcheck source=/dev/null
     source "$SPIN_CONFIG_FILE_LOCATION"
 
     if [ "$TRACK" == beta ]; then

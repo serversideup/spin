@@ -6,11 +6,11 @@ action_latest(){
       case $1 in
         node)
           shift 1
-          docker run --rm -v $(pwd):/usr/src/app -w /usr/src/app $SPIN_NODE_IMAGE "$@"
+          docker run --rm -v "$(pwd)":/usr/src/app -w /usr/src/app $SPIN_NODE_IMAGE "$@"
         ;;
         php)
           shift 1
-          docker run --rm -v $(pwd):/var/www/html $SPIN_PHP_IMAGE "$@"
+          docker run --rm -v "$(pwd)":/var/www/html $SPIN_PHP_IMAGE "$@"
         ;;
         *)
           echo "\"$1\" is not a valid command. Below are the commands available."

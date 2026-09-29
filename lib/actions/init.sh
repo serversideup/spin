@@ -24,6 +24,7 @@ action_init() {
     # Check if the template has an init script and execute it
     if [ -f "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/install.sh" ]; then
         # Use source with the arguments passed individually
+        # shellcheck disable=SC2154 # Set by download_spin_template_repository in lib/functions.sh
         set -- "${framework_args[@]}"
         source "$SPIN_TEMPLATE_TEMPORARY_SRC_DIR/install.sh" "$@"
     else

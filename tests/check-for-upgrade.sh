@@ -67,7 +67,8 @@ build_test_installation
 # An open, empty pipe on stdin is what CI runners and coding agents hand to spin.
 # It never reaches EOF, so an unguarded "read" blocks until something kills it.
 open_empty_pipe_on_stdin() {
-  local fifo="$(dirname "$TEST_INSTALL_DIR")/stdin-fifo"
+  local fifo
+  fifo="$(dirname "$TEST_INSTALL_DIR")/stdin-fifo"
   mkfifo "$fifo"
   exec 3<> "$fifo"
 }

@@ -222,13 +222,13 @@ display_repository_metadata() {
   # Check if the URL is reachable
   if curl --output /dev/null --silent --head --fail "$meta_url"; then
     # Download the file content into a variable using curl
-    local meta_content=$(curl -s "$meta_url")
+    meta_content=$(curl -s "$meta_url")
 
-    local title=$(echo "$meta_content" | grep '^title:' | awk -F': ' '{print $2}')
-    local description=$(echo "$meta_content" | grep '^description:' | awk -F': ' '{print $2}')
-    local repository=$(echo "$meta_content" | grep '^repository:' | awk -F': ' '{print $2}')
-    local issues=$(echo "$meta_content" | grep '^issues:' | awk -F': ' '{print $2}')
-    local authors=$(echo "$meta_content" | awk '/^authors:/,/^$/ { if (!/^authors:/ && !/^$/ && $1 == "-") { gsub(/^  - /, "", $0); printf("%s, ", $0) } }' | sed 's/, $//')
+    title=$(echo "$meta_content" | grep '^title:' | awk -F': ' '{print $2}')
+    description=$(echo "$meta_content" | grep '^description:' | awk -F': ' '{print $2}')
+    repository=$(echo "$meta_content" | grep '^repository:' | awk -F': ' '{print $2}')
+    issues=$(echo "$meta_content" | grep '^issues:' | awk -F': ' '{print $2}')
+    authors=$(echo "$meta_content" | awk '/^authors:/,/^$/ { if (!/^authors:/ && !/^$/ && $1 == "-") { gsub(/^  - /, "", $0); printf("%s, ", $0) } }' | sed 's/, $//')
 
     echo -e "${BOLD}${GREEN}Repository Metadata:${RESET}"
     echo -e "${BOLD}Title:${RESET} $title"
@@ -711,7 +711,7 @@ is_internet_connected() {
         else
           printf "${BOLD}${YELLOW}\"spin\" tried to check for updates, but we couldn't connect to Github.com. We'll try again tomorrow.${RESET} \n"
           # Take the current time and subtract just one day short of the auto update interval so we check again tomorrow
-          echo $(current_time_minus $(expr $AUTO_UPDATE_INTERVAL_IN_DAYS - 1)) > $SPIN_CACHE_DIR/.spin-last-update
+          current_time_minus "$((AUTO_UPDATE_INTERVAL_IN_DAYS - 1))" > "$SPIN_CACHE_DIR/.spin-last-update"
           return 1
         fi
     done
@@ -806,7 +806,8 @@ line_in_file() {
                 fi
                 if grep -q -- "^${args[0]}" "$file"; then
                     # Escape forward slashes in the replacement string
-                    local escaped_replace=$(echo "${args[1]}" | sed 's/\//\\\//g')
+                    local escaped_replace
+                    escaped_replace=$(echo "${args[1]}" | sed 's/\//\\\//g')
                     # Match lines that start with the search term, followed by anything
                     sed_inplace "s/^${args[0]}.*$/${escaped_replace}/" "$file"
                 else
@@ -905,7 +906,8 @@ needs_update() {
   esac
 
   # Calculate the threshold time for update
-  local threshold_time=$(current_time_minus "$interval")
+  local threshold_time
+  threshold_time=$(current_time_minus "$interval")
   
   if (( last_update_time >= threshold_time )); then
     return 1  # No update needed - last update is newer than threshold
@@ -982,7 +984,8 @@ print_version() {
 
   if [[ "$(installation_type)" == "user" ]]; then
     printf "$(git -C $SPIN_HOME describe --tags) "
-    source $SPIN_CONFIG_FILE_LOCATION
+    # shellcheck source=/dev/null
+    source "$SPIN_CONFIG_FILE_LOCATION"
     printf "[$TRACK] "
     printf "(User Installed)\n"
   elif [[ "$(installation_type)" == "project" ]]; then
@@ -1480,8 +1483,9 @@ show_existing_files_warning() {
 
 update_last_pull_timestamp() {
     local file="$SPIN_CACHE_DIR/.spin-last-pull"
-    local project_dir="$(pwd)"
-    local current_time="$(date +"%s")"
+    local project_dir current_time
+    project_dir=$(pwd)
+    current_time=$(date +"%s")
 
     # Ensure the file exists
     touch "$file"

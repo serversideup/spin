@@ -77,8 +77,7 @@ generate_md5_hashes() {
                 config_md5_hash=$(get_md5_hash "$config_file_path" | awk '{ print $1 }')
                 config_md5_var="SPIN_MD5_HASH_$(basename "$config_file_path" | tr '[:lower:]' '[:upper:]' | tr '.' '_')"
 
-                eval "$config_md5_var=$config_md5_hash"
-                export $config_md5_var
+                export "$config_md5_var=$config_md5_hash"
             fi
         done
     fi
@@ -102,7 +101,6 @@ action_deploy() {
     deployment_environment_uppercase=""
     spin_registry_name="spin-registry"
     env_file=""
-    force_ansible_upgrade=false
     
     validate_project_setup
 
@@ -127,6 +125,7 @@ action_deploy() {
             shift 2
             ;;
         --upgrade|-U)
+            # shellcheck disable=SC2034 # Read by prepare_ansible_run in lib/functions.sh
             SPIN_FORCE_INSTALL_GALAXY_DEPS=true
             shift
             ;;
@@ -170,6 +169,7 @@ action_deploy() {
     # Source the env file if it exists
     if [[ -n "$env_file" ]]; then
         set -a
+        # shellcheck source=/dev/null
         source "$env_file"
         set +a
     fi
@@ -262,7 +262,10 @@ action_deploy() {
       "${SPIN_ANSIBLE_ARGS[@]}" \
       "${SPIN_UNPROCESSED_ARGS[@]}"
 
-    docker_swarm_manager=$(cat "$SPIN_CI_FOLDER/${deployment_environment_uppercase}_SSH_REMOTE_HOSTNAME")
+    if ! docker_swarm_manager=$(cat "$SPIN_CI_FOLDER/${deployment_environment_uppercase}_SSH_REMOTE_HOSTNAME" 2>/dev/null) || [ -z "$docker_swarm_manager" ]; then
+        echo "${BOLD}${RED}❌ Error: Failed to get a valid swarm manager host for group '$deployment_environment'.${RESET}" >&2
+        exit 1
+    fi
 
     # Read and export authorized keys
     if [[ -f "$SPIN_CI_FOLDER/AUTHORIZED_KEYS" ]]; then
@@ -274,12 +277,7 @@ action_deploy() {
         echo "${BOLD}${YELLOW}⚠️  Warning: No AUTHORIZED_KEYS file found in $SPIN_CI_FOLDER${RESET}"
     fi
 
-    if [ $? -ne 0 ] || [ -z "$docker_swarm_manager" ]; then
-        echo "${BOLD}${RED}❌ Error: Failed to get a valid swarm manager host for group '$deployment_environment'.${RESET}" >&2
-        exit 1
-    else
-        echo "${BOLD}${GREEN}✅ Deploying to Swarm Manager: $docker_swarm_manager${RESET}"
-    fi
+    echo "${BOLD}${GREEN}✅ Deploying to Swarm Manager: $docker_swarm_manager${RESET}"
 
     # Clean up any orphaned SSH tunnels from previous runs
     echo "${BOLD}${BLUE}🧹 Checking for orphaned SSH tunnels...${RESET}"
