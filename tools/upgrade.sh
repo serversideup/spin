@@ -149,8 +149,14 @@ check_for_updates() {
         perform_upgrade $latest_release
     else
         printf "${BOLD}${GREEN}✅ No updates needed!${RESET} \"spin\" is up-to-date. Now get back to work! \n"
-        date "+%s" > "${SPIN_HOME}/cache/.spin-last-update"
+        save_last_update_check_time
     fi
+}
+
+save_last_update_check_time() {
+    local cache_dir="${SPIN_CACHE_DIR:-${SPIN_HOME}/cache}"
+    mkdir -p "$cache_dir"
+    date "+%s" > "$cache_dir/.spin-last-update"
 }
 
 get_current_version() {
@@ -204,6 +210,8 @@ perform_upgrade() {
         fmt_error 'Update of "spin" failed.'
         exit 1
     fi
+
+    save_last_update_check_time
 
     printf '%s      ___     %s      ___   %s            %s      ___     %s\n'      $RAINBOW $RESET
     printf '%s     /  /\    %s     /  /\  %s    ___     %s     /__/\    %s\n'      $RAINBOW $RESET
