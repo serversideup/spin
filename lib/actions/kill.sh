@@ -10,6 +10,7 @@ action_kill(){
     fi
 
     echo "Killing containers..."
+    # shellcheck disable=SC2046 # Each container ID must be its own argument
     docker kill $(docker ps -q)
   else
     echo "👉 No containers are running."
