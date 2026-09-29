@@ -225,6 +225,12 @@ When making changes:
 3. Test on WSL2 if possible
 4. Verify Docker commands work with both Docker Desktop and native Docker
 5. Test with `SPIN_DEBUG=true` to see command execution
+6. Run ShellCheck through Docker, the same way CI does:
+
+```bash
+docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:v0.11.0 \
+    -S warning bin/spin lib/*.sh lib/actions/*.sh tools/*.sh tests/*.sh
+```
 
 ```bash
 # Enable debug mode
@@ -261,10 +267,14 @@ save_current_time_to_cache_file ".spin-last-update"
 ### User Prompts
 
 ```bash
-# Interactive prompt with default
+# Interactive prompt with default. "read -n 1" stores an empty string when
+# the user presses Enter, so "" is the default answer, not $'\n'.
 read -n 1 -r -p "${BOLD}${YELLOW}[spin] Would you like to continue? [Y/n]${RESET} " response
+if [ -n "$response" ]; then
+    echo
+fi
 case "$response" in
-    [yY$'\n'])
+    [yY] | "")
         # Yes action
         ;;
     *)
