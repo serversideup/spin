@@ -96,12 +96,15 @@ check_for_upgrade() {
 
   if needs_update ".spin-last-update" "$AUTO_UPDATE_INTERVAL_IN_DAYS"; then
     read -n 1 -r -p "${BOLD}${YELLOW}[spin] 🤔 Would you like to check for updates? [Y/n]${RESET} " response || response=""
+    # Pressing Enter already moved the cursor to a new line; any other key didn't.
+    if [ -n "$response" ]; then
+      echo
+    fi
     case "$response" in
-      [yY$'\n'])
+      [yY] | "")
         send_to_upgrade_script
         ;;
       * )
-        echo
         save_current_time_to_cache_file ".spin-last-update"
         echo "[spin] You can update manually by running \`spin update\`"
         ;;
