@@ -1,0 +1,34 @@
+name: test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Run ShellCheck
+        run: |
+          docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:v0.11.0 \
+            -S warning bin/spin lib/*.sh lib/actions/*.sh tools/*.sh tests/*.sh
+
+  regression-tests:
+    strategy:
+      matrix:
+        runs-on: [ubuntu-24.04, macos-latest]
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Run update check tests
+        run: ./tests/check-for-upgrade.sh
